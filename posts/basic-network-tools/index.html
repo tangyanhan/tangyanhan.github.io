@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>有关端口的基本网络工具 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>有关端口的基本网络工具</h1>
+  <time datetime=2020-12-03T14:00:51&#43;0800 class="post-date">Thu, Dec 3, 2020</time>
+  <h1 id="netstat">netstat</h1>
+<p>netstat在查看网络端口占用时速度比较快，也是比较常用的工具。</p>
+<p>netstat 在显示网络连接时有一堆的参数可以叠加:</p>
+<pre tabindex="0"><code>netstat  [address_family_options] [--tcp|-t] [--udp|-u] [--udplite|-U] [--sctp|-S] [--raw|-w] [--l2cap|-2] [--rfcomm|-f] [--listening|-l] [--all|-a]
+[--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--symbolic|-N] [--extend|-e[--extend|-e]] [--timers|-o] [--program|-p] [--ver‐
+bose|-v] [--continuous|-c] [--wide|-W]
+
+address_family_options:
+
+[-4|--inet]  [-6|--inet6]  [--protocol={inet,inet6,unix,ipx,ax25,netrom,ddp,bluetooth,  ...  }  ] [--unix|-x] [--inet|--ip|--tcpip] [--ax25] [--x25]
+[--rose] [--ash] [--bluetooth] [--ipx] [--netrom] [--ddp|--appletalk] [--econet|--ec]
+</code></pre><p>显示所有tcp/udp监听端口情况及进程信息，以数字形式显示IP:</p>
+<pre tabindex="0"><code>netstat -tunlp
+</code></pre><p>显示系统所有端口占用情况:</p>
+<pre tabindex="0"><code>netstat -anp
+</code></pre><p>显示所有TCP IPv4端口占用情况:</p>
+<pre tabindex="0"><code>netstat -anpt4
+</code></pre><p>按状态统计所有TCP IPv4使用情况:</p>
+<pre tabindex="0"><code>netstat -nat4 | awk &#39;{print $6}&#39; | sort | uniq -c | sort -r
+</code></pre><h1 id="lsoflist-open-files">lsof(list open files)</h1>
+<p>由于linux下一切东西都是文件，因此这个命令能够做各种事情。</p>
+<p>详细版说明:https://www.cnblogs.com/sparkbj/p/7161669.html</p>
+<p>常见的网络相关操作：</p>
+<h2 id="列出所有网络连接">列出所有网络连接</h2>
+<p><code>lsof -i</code></p>
+<h2 id="查看目前端口使用情况">查看目前端口使用情况</h2>
+<p><code>lsof -i [46][proto][@host|addr][:svc_list|port_list]</code></p>
+<ul>
+<li>查看TCP端口使用情况: <code>lsof -i tcp</code></li>
+<li>查看TCP IPv4端口使用情况: <code>lsof -i 4tcp</code></li>
+<li>查看UDP端口使用情况: <code>lsof -i udp</code></li>
+<li>查看TCP端口3306被谁占用: <code>lsof -i tcp:3306</code></li>
+</ul>
+<h2 id="查看进程文件打开情况">查看进程文件打开情况</h2>
+<ul>
+<li>查看指定进程号打开的文件: <code>lsof -p [PID]</code></li>
+<li>查看多个进程号打开的文件： <code>lsof -p [PID1],[PID2]</code></li>
+<li>列出名字为NAME开头的进程打开的文件: <code>lsof -c [NAME]</code></li>
+<li>列出名字开头为名字A或B开头的进程打开的文件： <code>lsof -c A -c B</code></li>
+</ul>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>有关端口的基本网络工具</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#netstat">netstat</a></li>
+    <li><a href="#lsoflist-open-files">lsof(list open files)</a>
+      <ul>
+        <li><a href="#列出所有网络连接">列出所有网络连接</a></li>
+        <li><a href="#查看目前端口使用情况">查看目前端口使用情况</a></li>
+        <li><a href="#查看进程文件打开情况">查看进程文件打开情况</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

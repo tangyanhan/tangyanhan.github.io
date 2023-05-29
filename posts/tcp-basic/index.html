@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>TCP协议基础:连接建立，关闭与状态转移 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>TCP协议基础:连接建立，关闭与状态转移</h1>
+  <time datetime=2020-12-03T18:40:15&#43;0800 class="post-date">Thu, Dec 3, 2020</time>
+  <p>本篇是对TCP/IP详解的相关读书笔记。</p>
+<h1 id="tcp连接的建立与终止">TCP连接的建立与终止</h1>
+<p><strong>一般情况下</strong>，C/S通讯模型下的TCP连接的建立与关闭可以概括为“三次握手，四次关闭”。</p>
+<h2 id="三次握手">三次握手</h2>
+<ol>
+<li>Client发起SYN，并带上自己随机的初始化ISN(c)</li>
+<li>Server收到后, 回复SYN+ACK，通过设定Seq=ISN(c)+1，表示自己已经正确收到了该SYN，并带上自己的ISN(s)</li>
+<li>Client回复ACK, 设定Seq=ISN(c)+1,表示这是第一个成功发送的包，ACK=ISN(s)+1，表示自己正确收到了第二部的SYN</li>
+</ol>
+<p>ISN是一个随机的16位二进制数字，通信两侧随机选择一个数字作为自己的初始化ISN.</p>
+<p>假设两侧固定选择0，那么会发生什么呢？ 由于TCP连接的建立在网络上没有加密和其它验证机制，骚扰者可以通过不断伪造包来打断两者之间的握手过程。</p>
+<h2 id="四次断开">四次断开</h2>
+<p>由于TCP协议是一个全双工协议，通讯双方都可以主动向对方发送数据，因此关闭时需要明确的关闭双方通道，共需<code>(FIN+ACK)X2</code>，即四次断开。</p>
+<ol>
+<li>客户端发送<code>FIN+ACK, Seq=K, ACK=L</code>, 这里ACK时对上一条报文的回复，Seq是客户端的当前计数</li>
+<li>服务端收到后，回复<code>ACK,Seq=L, ACK=K+1</code>，<code>ACK</code>表明自己正确收到了上述信息，并回应。此时客户端发送通道已经关闭，服务端仍可继续向客户端发送剩余的缓冲信息</li>
+<li>服务端发送<code>FIN+ACK, Seq=L, ACK=K+1</code></li>
+<li>客户端回复<code>ACK,Seq=K, ACK=L+1</code>,表明自己正确收到了关闭信息，服务端收到后将释放相关资源</li>
+</ol>
+<h2 id="三次连接四次断开示意图">三次连接/四次断开示意图</h2>
+<p><img src="/images/post/tcp_states.png" alt="TCP连接的建立与终止"></p>
+<h2 id="同时打开">同时打开</h2>
+<p>同时打开不是指A通过客户端请求B的端口7777，而B同时通过客户端请求A的端口8888。 因为默认情况下，通过客户端connect连接到主机特定端口，客户端会随机选择一个端口。这时，两者同时建立了两个不同的TCP连接。</p>
+<p>同时打开，是指A通过8888端口连接B的7777端口同时，B也通过7777端口连接A。由于两者选择的都是相同的端口组合，因此建立的是同一个TCP连接。由于两边都是主动打开者，根据三次握手的设定，主动打开连接时，对方必须回应<code>SYN+ACK</code>才能让连接正常建立，因此同时打开，会多一次<code>SYN+ACK</code>。</p>
+<h2 id="同时关闭">同时关闭</h2>
+<p>在只有一方主动关闭TCP连接的情况下，TCP连接是“4次关闭”，即主动关闭一方发出<code>FIN</code>，被动关闭方发出<code>FIN+ACK</code>表示收到了对方的<code>FIN</code>，然后也发出自己的<code>FIN</code>表示关闭自己这边的半连接，主动关闭方回复<code>FIN+ACK</code>后，连接终止。</p>
+<p>在双方同时关闭的情况下，两边都是主动关闭方，几乎同时发出了自己的<code>FIN</code>表示要关闭自己的半连接，在收到对方的<code>FIN</code>时，他们各自的<code>FIN</code>已经发出，因此只需要对对方的<code>FIN</code>回复<code>FIN+ACK</code>就完成了两个半连接的关闭。同时关闭依旧是4次报文交换，但报文段的顺序是交叉的。</p>
+<h1 id="tcp的状态转移">TCP的状态转移</h1>
+<p>综上所述，TCP连接的建立和终止实际包括了主动+被动，以及双方都是主动的同时打开，同时关闭等。TCP中这些报文会引起连接进入不同的状态，它是一个有限状态机。
+在<a href="https://tools.ietf.org/html/rfc793">RFC 793</a>中描述了其状态转移，这里照搬TCP/IP详解中的状态转移图:</p>
+<p><img src="/images/post/tcp_state_machine.png" alt="TCP状态转移图"></p>
+<h2 id="time_wait状态">TIME_WAIT状态</h2>
+<p><code>TIME_WAIT</code>又成为<code>2MSL</code>等待状态，因为在该状态时，TCP连接总是会等待两倍于最大段生存周期(Max Segment Lifetime, MSL)的时间。一个MSL是指一个报文段在网络中被丢弃之前，最大存活的周期。在Linux中，<code>2MSL</code>这个值可以通过查看sysctl参数<code>net.ipv4.tcp_fin_timeout</code>得到：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sysctl net.ipv4.tcp_fin_timeout
+</span></span><span style="display:flex;"><span><span style="color:#228b22"># 或者</span>
+</span></span><span style="display:flex;"><span>cat /proc/sys/net/ipv4/tcp_fin_timeout
+</span></span></code></pre></div><p>对于IPv6而言，Linux同样使用该参数来控制这个值，没有额外的键值。</p>
+<h3 id="time_wait存在的意义">TIME_WAIT存在的意义</h3>
+<ol>
+<li>
+<p>在主动关闭连接后，为了防止我们最后的ACK丢失，等待一段时间</p>
+</li>
+<li>
+<p>在等待期间，双方将该连接（客户端IP地址，客户端端口号，服务器IP地址，服务端端口号）标记为不可用，避免后续新连接与前面的连接混淆。</p>
+</li>
+</ol>
+<p><code>TIME_WAIT</code>状态下，如果复用TCP连接可能出现混淆，因为我们难以单凭ISN区分出不同的连接，ISN可能出现环绕，也可能出现两个连接重叠，因此在<a href="https://tools.ietf.org/html/rfc6191">RFC6191</a>中定义了通过定义时间戳来更精确的区分不同连接的TCP报文段，从而复用<code>TIME_WAIT</code>状态的TCP连接。</p>
+<p>因此，在Linux下，复用<code>TIME_WAIT</code>状态连接，需要同时开启<code>net.ipv4.tcp_tw_reuse</code>及<code>net.ipv4.tcp_timestamps</code>：</p>
+<pre tabindex="0"><code>sysctl -w net.ipv4.tcp_tw_reuse=1
+sysctl -w net.ipv4.tcp_timestamps=1
+</code></pre><h2 id="fin_wait_2状态">FIN_WAIT_2状态</h2>
+<p>从状态转移图可知，<code>FIN_WAIT_2</code>出现在主动关闭一方，当主动关闭方发送了自己的<code>FIN</code>并收到<code>FIN+ACK</code>后，只要在等待对方的<code>FIN</code>，就可以回复<code>ACK</code>并进入<code>TIME_WAIT</code>状态，这就是<code>FIN_WAIT_2</code>，即等待4次关闭中的第二次<code>FIN</code>，而这时被动关闭方将停留在<code>CLOSE_WAIT</code>状态，直到发出自己的<code>FIN</code>。为了防止双方因为没有应答而永远卡在半关闭状态，Linux会在连接超时且没有收到回复时，将连接直接转入<code>CLOSED</code>状态，这个值是<code>net.ipv4.tcp_fin_timeout</code>。</p>
+<h1 id="tcp连接管理相关攻击">TCP连接管理相关攻击</h1>
+<h2 id="syn泛洪">SYN泛洪</h2>
+<p>即若干主机大量向主机发送<code>SYN</code>而不进一步建立连接，导致大量浪费主机资源而导致拒绝服务。这里可以使用一种叫做<code>SYN Cookies</code>的技术，通过对SYN建档和回复巧妙设计的<code>SYN+ACK</code>序列号，检查是否客户端进行了正确的回复，然后才为连接分配相应的资源。</p>
+<p>Linux下开启该功能参数为:</p>
+<pre tabindex="0"><code>sysctl -w net.ipv4.tcp_syncookies=1
+</code></pre><h1 id="tcp在linux系统中的状态表示">TCP在Linux系统中的状态表示</h1>
+<p>如果使用如lsof, netstat这些工具，会发现有一列状态，这些状态码含义在内核源码 <code>net/ipv4/tcp.c</code> 中有描述:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#228b22">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_SYN_SENT		发出SYN请求建立连接
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">    sent a connection request, waiting for ack
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_SYN_RECV		收到SYN连接请求，发送ACK，并等待三次握手的最后一个ACK
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">    received a connection request, sent ack,
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				waiting for final ack in three-way handshake.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_ESTABLISHED		连接建立/connection established
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_FIN_WAIT1		我方关闭，等待剩余缓存数据发送完成
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">    our side has shutdown, waiting to complete
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				transmission of remaining buffered data
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_FIN_WAIT2		所有缓存数据发送完成，等待远程关闭
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">    all buffered data sent, waiting for remote
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				to shutdown
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_CLOSING		两侧都已经关闭，但我们还有必须要发送完的数据
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">    both sides have shutdown but we still have
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				data we have to finish sending
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_TIME_WAIT	进入关闭状态钱等待最后一个ACK，只能从FIN_WAIT2或CLOSING进入该状态
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">  	timeout to catch resent junk before entering
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				closed, can only be entered from FIN_WAIT2
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				or CLOSING.  Required because the other end
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				may not have gotten our last ACK causing it
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				to retransmit the data packet (which we ignore)
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_CLOSE_WAIT	远端已关闭，等待我们把剩下的数据写入并关闭，我们必须调用close()来进入到LAST_ACK状态
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> 	remote side has shutdown and is waiting for
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				us to finish writing our data and to shutdown
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				(we have to close() to move on to LAST_ACK)
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *	TCP_LAST_ACK 对方已经关闭后，我方也已经关闭。或许我们的缓存里还有需要发送的数据.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> 	out side has shutdown after remote has
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				shutdown.  There may still be data in our
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"> *				buffer that we have to finish sending
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">*/</span>
+</span></span></code></pre></div>
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>TCP协议基础:连接建立，关闭与状态转移</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#tcp连接的建立与终止">TCP连接的建立与终止</a>
+      <ul>
+        <li><a href="#三次握手">三次握手</a></li>
+        <li><a href="#四次断开">四次断开</a></li>
+        <li><a href="#三次连接四次断开示意图">三次连接/四次断开示意图</a></li>
+        <li><a href="#同时打开">同时打开</a></li>
+        <li><a href="#同时关闭">同时关闭</a></li>
+      </ul>
+    </li>
+    <li><a href="#tcp的状态转移">TCP的状态转移</a>
+      <ul>
+        <li><a href="#time_wait状态">TIME_WAIT状态</a>
+          <ul>
+            <li><a href="#time_wait存在的意义">TIME_WAIT存在的意义</a></li>
+          </ul>
+        </li>
+        <li><a href="#fin_wait_2状态">FIN_WAIT_2状态</a></li>
+      </ul>
+    </li>
+    <li><a href="#tcp连接管理相关攻击">TCP连接管理相关攻击</a>
+      <ul>
+        <li><a href="#syn泛洪">SYN泛洪</a></li>
+      </ul>
+    </li>
+    <li><a href="#tcp在linux系统中的状态表示">TCP在Linux系统中的状态表示</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

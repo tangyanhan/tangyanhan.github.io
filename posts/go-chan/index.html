@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go源码分析: chan 实现 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  <link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/contrib/auto-render.min.js"></script></script>
+<script>
+    window.onload = function() {
+        renderMathInElement(document.body,
+                        {
+                            delimiters: [
+                                {left: "$$", right: "$$", display: true},
+                                {left: "\\[", right: "\\]", display: true},
+                                {left: "$", right: "$", display: false},
+                                {left: "\\(", right: "\\)", display: false}
+                            ]
+                        }
+                    );
+    }
+</script>
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Go源码分析: chan 实现</h1>
+  <time datetime=2020-05-13T11:16:24&#43;0800 class="post-date">Wed, May 13, 2020</time>
+  <h1 id="chan组成">chan组成</h1>
+<p>chan 可以简单定义为一个&quot;带锁的队列&quot;, 当make(chan type), 不带数量时, 队列最大长度为1.</p>
+<p>chan的实现需要达成以下目标:</p>
+<ol>
+<li>读阻塞</li>
+<li>写阻塞</li>
+<li>可读时, 使阻塞的goroutine恢复</li>
+<li>可写时, 使阻塞的goroutine恢复</li>
+</ol>
+<p>chan的主要实现在<code>runtime/chan.go</code>中, 其主要构成如图:</p>
+<p><img src="/images/post/go-chan.png" alt="chan"></p>
+<p>当 make(chan int, 4) 时, buf 能否分配到4个int长度的内存. 通过 sendx/recvx 标记读写的位置, 然后读/写过程分别加锁完成.</p>
+<p>当一个 chan 可读/可写时, 此时可能有多个 goroutine 都在等待, 需要以FIFO顺序释放一个被阻塞的goroutine, 因此hchan结构中包含了sendq和recvq, 分别记录被阻塞的写goroutine 以及被阻塞的读 goroutine.</p>
+<h1 id="语法糖">语法糖</h1>
+<p>与go fn()启动goroutine一样, chan的很多使用, 本质上是编译器提供的语法糖. 下面提供一些与源码的对照:</p>
+<h2 id="从chan中读取值">从chan中读取值</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>v := &lt;- c
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// Expand by compiler:
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>runtime.<span style="color:#008b45">chanrecv1</span>(&amp;c, &amp;v)
+</span></span></code></pre></div><h2 id="读取值的同时知道chan是否关闭">读取值的同时知道chan是否关闭</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>v, ok := &lt;- c
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// Expand by compiler:
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>ok := runtime.<span style="color:#008b45">chanrecv2</span>(&amp;c, &amp;v)
+</span></span></code></pre></div><h2 id="写入chan">写入chan</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>c &lt;- v
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// Expand:
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#008b45">chansend1</span>(&amp;c, &amp;v)
+</span></span></code></pre></div><h2 id="非阻塞写入">非阻塞写入</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>c := <span style="color:#658b00">make</span>(<span style="color:#8b008b;font-weight:bold">chan</span> <span style="color:#00688b;font-weight:bold">int</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">select</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">case</span> c &lt;- v:
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// ... foo
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">default</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// ... bar
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// Expand:
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#008b45">selectnbsend</span>(&amp;c, v) {
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... foo
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>} <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... bar
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span></code></pre></div><h2 id="非阻塞读取">非阻塞读取</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">select</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">case</span> v := &lt;- c
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... foo
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">default</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... bar
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// Expand:
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#008b45">selectnbrecv</span>(&amp;c, v) {
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... foo
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>} <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... bar
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span></code></pre></div><h1 id="select">select</h1>
+<p>这个实现并不在<code>chan.go</code>中. 写下面一段程序:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	a := <span style="color:#658b00">make</span>(<span style="color:#8b008b;font-weight:bold">chan</span> <span style="color:#8b008b;font-weight:bold">struct</span>{})
+</span></span><span style="display:flex;"><span>	c := <span style="color:#658b00">make</span>(<span style="color:#8b008b;font-weight:bold">chan</span> <span style="color:#8b008b;font-weight:bold">struct</span>{})
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">select</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">case</span> &lt;-a:
+</span></span><span style="display:flex;"><span>		state += <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">case</span> &lt;-c:
+</span></span><span style="display:flex;"><span>		state += <span style="color:#b452cd">2</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">default</span>:
+</span></span><span style="display:flex;"><span>		state += <span style="color:#b452cd">9</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><p>通过<code>go tool objdump -S mychan &gt; mychan.s</code> 获得汇编与源码的对照, 发现使用的是<code>runtime.selectgo</code>.</p>
+<p>源码在 <code>runtime/select.go</code>中.</p>
+<p>关于select, 我们需要解答以下问题:</p>
+<h2 id="在select中读写nil-chan">在select中读写nil chan</h2>
+<p>当select的分支中涉及为nil chan时, select 会如何读取它们? 如果是写呢?</p>
+<p>在 selectgo 入口处, 对nil chan进行了处理, 将其替换为一个空的scase{}:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#228b22">// Replace send/receive cases involving nil channels with
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// caseNil so logic below can assume non-nil channel.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#8b008b;font-weight:bold">for</span> i := <span style="color:#8b008b;font-weight:bold">range</span> scases {
+</span></span><span style="display:flex;"><span>		cas := &amp;scases[i]
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">if</span> cas.c == <span style="color:#8b008b;font-weight:bold">nil</span> &amp;&amp; cas.kind != caseDefault {
+</span></span><span style="display:flex;"><span>			*cas = scase{}
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>空的<code>scase.kind == caseNil</code>, 搜索 caseNil, 发现相关代码都是这样的:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// 首次读取(处理default), 忽略
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>loop:
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">switch</span> cas.kind {
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">case</span> caseNil:
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// goroutine入队列, 忽略
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">if</span> cas.kind == caseNil {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// goroutine出队列, 忽略
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">if</span> k.kind == caseNil {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">continue</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>即select会忽略nil chan. 基于以上内容, 以下代码的输出是什么?</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">var</span> invalid <span style="color:#8b008b;font-weight:bold">chan</span> <span style="color:#00688b;font-weight:bold">int</span>
+</span></span><span style="display:flex;"><span>	valid := <span style="color:#658b00">make</span>(<span style="color:#8b008b;font-weight:bold">chan</span> <span style="color:#00688b;font-weight:bold">int</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">go</span> <span style="color:#8b008b;font-weight:bold">func</span>(x <span style="color:#00688b;font-weight:bold">int</span>) {
+</span></span><span style="display:flex;"><span>		time.<span style="color:#008b45">Sleep</span>(time.Second)
+</span></span><span style="display:flex;"><span>		valid &lt;- x
+</span></span><span style="display:flex;"><span>	}(<span style="color:#b452cd">2333</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">var</span> v <span style="color:#00688b;font-weight:bold">int</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">select</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">case</span> v = &lt;-valid:
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">case</span> v = &lt;-invalid:
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    fmt.<span style="color:#008b45">Println</span>(v)
+</span></span></code></pre></div><h2 id="第一步-尝试读写处理default">第一步: 尝试读写,处理default</h2>
+<p>select首先会尝试遍历一遍所有的分支, 看是否有碰巧已经可读写, 或者是直接到 default 分支返回.</p>
+<p>遍历顺序(pollorder) 是随机的, 通过洗牌进行随机交换打乱顺序:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// generate permuted order
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">for</span> i := <span style="color:#b452cd">1</span>; i &lt; ncases; i++ {
+</span></span><span style="display:flex;"><span>    j := <span style="color:#008b45">fastrandn</span>(<span style="color:#658b00">uint32</span>(i + <span style="color:#b452cd">1</span>))
+</span></span><span style="display:flex;"><span>    pollorder[i] = pollorder[j]
+</span></span><span style="display:flex;"><span>    pollorder[j] = <span style="color:#658b00">uint16</span>(i)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>因此, 在多分支select带有 default 的情况下, 必定会在第一遍返回:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">case</span> caseDefault:
+</span></span><span style="display:flex;"><span>        dfli = casi
+</span></span><span style="display:flex;"><span>        dfl = cas
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> dfl != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#008b45">selunlock</span>(scases, lockorder)
+</span></span><span style="display:flex;"><span>    casi = dfli
+</span></span><span style="display:flex;"><span>    cas = dfl
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">goto</span> retc
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="阻塞">阻塞</h2>
+<p>在读写单个chan的过程中, 读写goroutine都会被阻塞. 同样的, 读写多个chan, 当前goroutine 也要阻塞.</p>
+<p>阻塞的方式是对所有的chan加锁, 即 sellock()函数. 它首先通过堆排序, 对chan根据地址大小进行排序, 然后顺序加锁. 采用堆排序的理由是, 堆排序时间复杂度为 $O(nlogn)$, 而空间复杂度为 $O(1)$.</p>
+<p>接下来, 按照加锁顺序挨个改变对应的chan, 使其在等待队列中加入我们当前的 goroutine即可:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">switch</span> cas.kind {
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">case</span> caseRecv:
+</span></span><span style="display:flex;"><span>    c.recvq.<span style="color:#008b45">enqueue</span>(sg)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">case</span> caseSend:
+</span></span><span style="display:flex;"><span>    c.sendq.<span style="color:#008b45">enqueue</span>(sg)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="为什么要按地址堆排序作为加锁顺序">为什么要按地址堆排序作为加锁顺序</h2>
+<p>前文中我们知道, select在有多个chan时, 会随机顺序遍历来寻找一个可用chan. 那么有没有办法让某个chan比别的有更大机会被读到呢?</p>
+<p>方法当然是有的, select 允许多条 case 读写同一个ch.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">select</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">case</span> &lt;-c0:
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... 0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">case</span> &lt;-c0:
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... 0
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">case</span> &lt;-c1:
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... 1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">case</span> &lt;-c2:
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... 2
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">case</span> &lt;-c3:
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... 3
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#8b008b;font-weight:bold">case</span> &lt;-c4:
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ... 4
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span></code></pre></div><p>这样, 假如本来有5个不同的chan, 当5个ch均可读时, 每个chan被读取到的概率是 $\frac{1}{5}$ . 我们将c0多写了一遍, c0被读取到的概率变成了 $\frac{1}{3}$.</p>
+<p>我们知道, 每个chan都有自己的读写goroutine队列, 读写时需要加锁. 而此时select读写同一个ch两遍, c0 的队列岂不是要被锁住两遍导致死锁, 或者队列中被加入两边同一个g?</p>
+<p>在 sellock中对一系列select chan 进行加锁操作:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">sellock</span>(scases []scase, lockorder []<span style="color:#00688b;font-weight:bold">uint16</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">var</span> c *hchan
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">for</span> _, o := <span style="color:#8b008b;font-weight:bold">range</span> lockorder {
+</span></span><span style="display:flex;"><span>        c0 := scases[o].c
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// 比较是否c0与上一个相等
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		<span style="color:#8b008b;font-weight:bold">if</span> c0 != <span style="color:#8b008b;font-weight:bold">nil</span> &amp;&amp; c0 != c {
+</span></span><span style="display:flex;"><span>			c = c0
+</span></span><span style="display:flex;"><span>			<span style="color:#008b45">lock</span>(&amp;c.lock)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>由于我们已经根据地址排序了lockorder, 因此可以轻易的判断c0已经被锁过一次.</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Go源码分析: chan 实现</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#chan组成">chan组成</a></li>
+    <li><a href="#语法糖">语法糖</a>
+      <ul>
+        <li><a href="#从chan中读取值">从chan中读取值</a></li>
+        <li><a href="#读取值的同时知道chan是否关闭">读取值的同时知道chan是否关闭</a></li>
+        <li><a href="#写入chan">写入chan</a></li>
+        <li><a href="#非阻塞写入">非阻塞写入</a></li>
+        <li><a href="#非阻塞读取">非阻塞读取</a></li>
+      </ul>
+    </li>
+    <li><a href="#select">select</a>
+      <ul>
+        <li><a href="#在select中读写nil-chan">在select中读写nil chan</a></li>
+        <li><a href="#第一步-尝试读写处理default">第一步: 尝试读写,处理default</a></li>
+        <li><a href="#阻塞">阻塞</a></li>
+        <li><a href="#为什么要按地址堆排序作为加锁顺序">为什么要按地址堆排序作为加锁顺序</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

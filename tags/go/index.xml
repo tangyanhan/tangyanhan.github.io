@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Go on Ethan Tang</title>
+    <link>https://tangyanhan.github.io/tags/go/</link>
+    <description>Recent content in Go on Ethan Tang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 13 May 2020 11:16:24 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/go/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go源码分析: chan 实现</title>
+      <link>https://tangyanhan.github.io/posts/go-chan/</link>
+      <pubDate>Wed, 13 May 2020 11:16:24 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/go-chan/</guid>
+      <description>chan组成 chan 可以简单定义为一个&amp;quot;带锁的队列&amp;quot;, 当make(chan type), 不带数量时, 队列最大长度为1.
+chan的实现需要达成以下目标:
+读阻塞 写阻塞 可读时, 使阻塞的goroutine恢复 可写时, 使阻塞的goroutine恢复 chan的主要实现在runtime/chan.go中, 其主要构成如图:
+当 make(chan int, 4) 时, buf 能否分配到4个int长度的内存. 通过 sendx/recvx 标记读写的位置, 然后读/写过程分别加锁完成.
+当一个 chan 可读/可写时, 此时可能有多个 goroutine 都在等待, 需要以FIFO顺序释放一个被阻塞的goroutine, 因此hchan结构中包含了sendq和recvq, 分别记录被阻塞的写goroutine 以及被阻塞的读 goroutine.
+语法糖 与go fn()启动goroutine一样, chan的很多使用, 本质上是编译器提供的语法糖. 下面提供一些与源码的对照:
+从chan中读取值 v := &amp;lt;- c // Expand by compiler: runtime.chanrecv1(&amp;amp;c, &amp;amp;v) 读取值的同时知道chan是否关闭 v, ok := &amp;lt;- c // Expand by compiler: ok := runtime.chanrecv2(&amp;amp;c, &amp;amp;v) 写入chan c &amp;lt;- v // Expand: chansend1(&amp;amp;c, &amp;amp;v) 非阻塞写入 c := make(chan int) select { case c &amp;lt;- v: // .</description>
+    </item>
+    
+    <item>
+      <title>Go源码分析: map</title>
+      <link>https://tangyanhan.github.io/posts/go-map/</link>
+      <pubDate>Thu, 07 May 2020 12:05:24 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/go-map/</guid>
+      <description>map 的基本构成 map的实现文件为 src/runtime/map.go. 它的基本结构是一个HashMap,实现方式为哈希桶, 根据key将数据散列到不同的桶中，每个桶中有固定的8个键值对.
+桶尾部可以挂载额外的桶(overflow buckets).
+由结构可知， Go map的访问复杂度为O(1), 假设哈希函数恶化, 所有key都映射到同一个bucket, map可以退化为单链表.
+内存结构 为了内存能够连续分配，以及访问高效， Go将hashmap中的桶及键值对摊平作为连续内存结构存储.
+初始化及空间复杂度 在func makemap(make map的原型)中， 我们可以看到以下代码. 假设我们现在有n个元素需要存储， 那么：
+如果这个数量不超过8个， 那么一个桶就可以放得下
+如果数量超过了8个， 那么hashmap允许承受的最大负载因子(loadFactor)为6.5
+即找到一个B, 使得:
+$$2^{B}\cdot\frac{13}{2}&amp;gt;n$$
+// Find the size parameter B which will hold the requested # of elements. // For hint &amp;lt; 0 overLoadFactor returns false since hint &amp;lt; bucketCnt. B := uint8(0) for overLoadFactor(hint, B) { B++ } h.B = B 读取一个key Go map 根据key获得值有几种方法：</description>
+    </item>
+    
+    <item>
+      <title>Go源码分析: 逃逸分析</title>
+      <link>https://tangyanhan.github.io/posts/go-escape-analysis/</link>
+      <pubDate>Sun, 05 Apr 2020 23:25:07 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/go-escape-analysis/</guid>
+      <description>什么是逃逸分析 逃逸分析(Escape Analysis)是Go在编译程序时执行的过程, 由编译器通过分析, 决定变量应当分配在栈上还是堆上.
+在编译中进行逃逸分析 目前有代码如下:
+package main import ( &amp;#34;fmt&amp;#34; ) type User struct { name string } func GetUsername(u *User) string { return u.name } func escapeSimple() int { i := 1 j := i + 1 return j } func main() { fmt.Println(escapeSimple()) } 通过在编译时增加gcflags参数, 使用类似如下命令编译:
+go build -gcflags &amp;#39;-m -N -l&amp;#39; ./advanced/cmd/escape-analysis 然后获得输出如下:
+# github.com/tangyanhan/u235/advanced/cmd/escape-analysis advanced/cmd/escape-analysis/main.go:11:18: leaking param: u to result ~r1 level=1 advanced/cmd/escape-analysis/main.go:22:13: main .</description>
+    </item>
+    
+    <item>
+      <title>Go源码分析: Slice内存增长方式</title>
+      <link>https://tangyanhan.github.io/posts/go-growslice/</link>
+      <pubDate>Sat, 04 Apr 2020 22:41:18 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/go-growslice/</guid>
+      <description>源文件: runtime/slice.go
+slice 是一个连续的内存结构, 由3部分组成: 内存区域, 长度 和 可用长度(cap):
+type slice struct { array unsafe.Pointer len int cap int } make 创建一个slice， 实际上有3个参数： make([]type, len, cap)
+当省略参数cap时，默认cap=len
+cap决定了实际分配内存区域的大小， 在进行 append/copy等操作时， 如果长度没有超过cap， 则不需要重新分配内存， 也不需要在内存中移动数据
+make slice原型： func makeslice
+func makeslice(et *_type, len, cap int) unsafe.Pointer { mem, overflow := math.MulUintptr(et.size, uintptr(cap)) if overflow || mem &amp;gt; maxAlloc || len &amp;lt; 0 || len &amp;gt; cap { // NOTE: Produce a &amp;#39;len out of range&amp;#39; error instead of a // &amp;#39;cap out of range&amp;#39; error when someone does make([]T, bignumber).</description>
+    </item>
+    
+    <item>
+      <title>Go,Javascript与Websocket</title>
+      <link>https://tangyanhan.github.io/posts/go-js-ws/</link>
+      <pubDate>Sat, 19 Oct 2019 15:45:40 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/go-js-ws/</guid>
+      <description>JS中建立Websocket连接 var ws = new WebSocket(&amp;#34;ws://hostname/path&amp;#34;, [&amp;#34;protocol1&amp;#34;, &amp;#34;protocol2&amp;#34;]) 参数说明 第一个参数是服务端websocket地址，如果是https+websocket，那么前缀写成wss
+第二个参数并不是必须的，它约定了双方通讯使用的自定义子协议，会被放到这个Header中： Sec-WebSocket-Protocol
+子协议在某些场合是很必要的，例如服务端要与多个客户端版本兼容，那么若干个版本之后，服务端设定支持子协议 v1.5, v2.0, 而客户端发送的却是 v1.0，那么他们就可以在握手阶段失败，不会继续通信下去导致奇奇怪怪的错误。
+携带额外信息及认证 WebSocket构造函数只有两个变量，不能提供通过设置自定义Header的方式来携带其它信息，但仍可以通过一些取巧的办法携带额外的信息，用于认证等：
+通过ws地址填写形如 ws://username:password@hostname/path， 即构造出了 Authorization Header
+通过ws地址填写形如 ws://:password@hostname/path ，即构造出了 Bearer Token Header
+通过在Cookie中加入值，也能够携带额外的信息
+因此，在服务端设计握手阶段认证时，应当避免使用这三种方式外携带的信息来进行认证（例如设置一个自定义的头部），当然也可以在websocket连接建立后，再通过自定义的认证协议，走websocket进行认证。
+Go中提供Websocket服务 Google自己提供一个Websocket包 : golang.org/x/net/websocket
+不过他们亲口承认这个包缺乏一些特性，也缺乏维护，他们推荐用 github.com/gorilla/websocket (原文见 https://godoc.org/golang.org/x/net/websocket)
+// 这里代码使用了go-restful 作为http框架，换成http也无妨 conn, err := websocket.Upgrade(resp.ResponseWriter, req.Request, nil, 0, 0) if err != nil { resp.WriteError(http.StatusBadRequest, err) return } defer conn.Close() 也可以手动创建一个 Upgrader 来处理子协议协商问题, 如果协商通过，就可以很容易的获得最终协商好的子协议，从而使用正确版本的数据格式和处理方法。
+数据发送 WebSocket发送的数据都是“帧（Frames）”，主要有这么几种：
+持续帧（用于数据分片，一般不明确使用） 文本帧（传输文本数据） 二进制帧（传输二进制数据） Ping/Pong帧 （用于心跳等，简单检测连接存活状态） 控制帧（关闭连接等） JS中提供了send方法，能够发送文本帧或二进制帧：</description>
+    </item>
+    
+  </channel>
+</rss>

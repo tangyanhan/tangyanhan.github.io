@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Helm(1):安装和使用 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Helm(1):安装和使用</h1>
+  <time datetime=2020-02-21T11:40:26&#43;0800 class="post-date">Fri, Feb 21, 2020</time>
+  <h2 id="安装">安装</h2>
+<p>可以从 <a href="https://github.com/helm/helm/releases/tag/v3.0.3">https://github.com/helm/helm/releases/tag/v3.0.3</a> 获取不同操作系统的版本</p>
+<pre tabindex="0"><code>wget https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz
+
+tar xzvf helm-v3.0.3-linux-amd64.tar.gz
+
+sudo cp helm /usr/local/bin/helm
+</code></pre><p>与Helm2不同, helm不再需要在集群中维持一个tiller. Helm 3 默认使用与kubectl相同的配置(KUBECONFIG), 来对Kubernetes进行操作.</p>
+<h2 id="使用">使用</h2>
+<p>类似Linux的rpm/deb, Helm能够安装和管理的软件包, 叫做Chart. Helm Chart能够从本地安装, 也可以从网络下载安装.</p>
+<p>同样的, helm 3 可以通过命令,将网络地址作为自己的Repository.</p>
+<p>而一个Chart安装到Kubernetes集群, 成为一组真实运行的资源, 就叫做一个Release. 同一个Chart在集群中的每次安装, 都会创建一个Release.</p>
+<p>类似于Docker Hub, Helm 3 已经将 <a href="https://hub.helm.sh">https://hub.helm.sh</a> 作为自己的默认搜索源,  可以通过 helm search hub <!-- raw HTML omitted --> 从 <a href="https://hub.helm.sh">https://hub.helm.sh</a> 寻找自己需要的Chart.</p>
+<p>添加一个命名为azure的Repo:</p>
+<pre tabindex="0"><code>helm repo add azure http://mirror.azk8s.cn/kubernetes/charts
+</code></pre><p>从Repo中搜索一个Chart:</p>
+<pre tabindex="0"><code>helm search repo &lt;keyword&gt;
+</code></pre><p>安装一个网络上的Chart:</p>
+<pre tabindex="0"><code>helm install [NAME] [CHART] [flags]
+</code></pre><p>例如: <code>helm install redis azure/redis --namespace middleware</code></p>
+<p>将名为 azure/redis 的Chart安装到 middleware 命名空间中, 其release名为 redis</p>
+<p>同样, 也可以从本地安装一个Chart.</p>
+<p>将网络上的chart拉到本地: <code>helm pull azure/redis</code></p>
+<p>卸载一个Release, 则 <code>helm uninstall azure/redis</code></p>
+<p>如果有特定namespace, 可以使用 <code>helm uninstall azure/redis --namespace xxx</code></p>
+<p>安装一个本地的Chart, 可以通过压缩包安装, 也可以通过未压缩的文件夹安装:</p>
+<pre tabindex="0"><code>helm install pipeline -f config.yaml .
+</code></pre><p>以 config.yaml 中的值作为配置, 安装当前文件夹下的Chart.</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Helm(1):安装和使用</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#安装">安装</a></li>
+        <li><a href="#使用">使用</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

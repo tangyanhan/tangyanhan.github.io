@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Helm(3): 小技巧 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Helm(3): 小技巧</h1>
+  <time datetime=2020-02-24T20:51:00&#43;0800 class="post-date">Mon, Feb 24, 2020</time>
+  <h1 id="用变量组合成新的模板">用变量组合成新的模板</h1>
+<p>假设我们的一个组件在Chart中组合出了一个配置变量, 然后正巧有好几个文件要用到它:</p>
+<pre tabindex="0"><code>http://{{ .Release.Name }}.{{ .Release.Namespace }}:{{ .Values.service.servicePort }}
+</code></pre><p>Golang Template已经自带一些如局部变量来做类似的事情, 但它的作用域无疑是有限的,也不利于统一管理. 这就有了 <code>define</code>的用武之地.</p>
+<p>这里<code>define</code>其实是Go模板自带的语法,可以轻易组合出新的嵌套模板, 基本语法是:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>{{- define &#34;tmpl.addr&#34; -}}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>http://{{ .Release.Name }}.{{ .Release.Namespace }}:{{ .Values.service.servicePort }}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>{{- end -}}<span style="color:#bbb">
+</span></span></span></code></pre></div><p>如果这个模板有很多文件会用到它, 那么可以将它放到一个专门的文件中, 例如 <code>templates/_helpers.tpl</code>, 这样你不必费尽心机避免模板被当作Kubernetes Object的一部分, 也容易寻找和维护.</p>
+<p>我们就可以在其它文件中这样使用它:</p>
+<pre tabindex="0"><code>{{ template &#34;tmpl.addr&#34; . }}
+</code></pre><p>在templates文件夹下, 只要是 <code>_</code>开头的文件都不会被渲染作为Kubernetes Object,因此其实是可以随便起的. 在这个文件夹下, 还有一个不会被渲染成 Kubernetes Object的文件, 叫做<code>NOTES.txt</code>, 稍后再说.</p>
+<h1 id="安装完成后的叨逼叨">安装完成后的叨逼叨</h1>
+<p>事实上, 很多时候负责安装的用户往往并不会仔细去研究你提供的安装文档(有时,你甚至没有一份详尽的文档). 往往用户安装完成之后, TA也不知道安装了些什么东西, 接下来该做什么. 如果你安装过一些类似的中间件, 例如 <code>bitnami/kafka</code>, 那么你会发现安装完后, 它会打印出一堆信息, 告诉你该如何访问它, 以及其它注意事项等.</p>
+<p>安装完成后打印出的信息放在哪儿了? 那就是 <code>templates/NOTES.txt</code>. 上面提到过, 这个文件不会被当成Kubernetes Object渲染并安装到集群中, 因此不必担心这个问题. NOTES.txt 中同样也是模板语法, 并没有什么区别.</p>
+<p>如果你是一个后端组件, 你可以用它来告诉使用者该怎么调用你的API, 还可以告诉你的同事该如何去配置nginx等等.</p>
+<h1 id="crd与卸载">CRD与卸载</h1>
+<p>我们在安装某些特殊的Helm Chart时, 可能会创建CRD这种集群资源. 在过往的Helm2中, 这都是很难缠的:</p>
+<p>假设你在<code>templates</code>下的模板中创建了一个CRD, 那么, 当卸载它时, 它将删除集群资源CRD, 如果此时集群中同时还安装了另一个使用该集群的Controller, 那么Controller将会遇到错误.</p>
+<p>当在一个集群安装两个这样的Chart时, Helm将会报告CRD这种资源已经存在, 导致无法正常安装.</p>
+<p>在Helm2中, 使用的是一种叫做<code>crd-install</code>的钩子来解决这个问题,可以在<code>prometheus-operator</code>中看到这种遗留痕迹:</p>
+<pre tabindex="0"><code>{{- if and .Values.prometheusOperator.enabled .Values.prometheusOperator.createCustomResource -}}
+{{- range $path, $bytes := .Files.Glob &#34;crds/*.yaml&#34; }}
+{{ $.Files.Get $path }}
+---
+{{- end }}
+{{- end }}
+</code></pre><p>在Helm3中专门为此提供了<a href="https://helm.sh/docs/topics/chart_best_practices/custom_resource_definitions/#install-a-crd-declaration-before-using-the-resource">解决方案</a>. 通过在目录下增加一个叫做<code>crds</code>的文件夹.</p>
+<ol>
+<li>CRD不存在, 则Helm3安装所有的CRD</li>
+<li>CRD存在, 则Helm3跳过安装CRD并打印一个warning</li>
+<li>CRD存在, 指定 <code>--skip-crds</code>, 则跳过安装crd</li>
+</ol>
+<p>但默认情况下, 这仍然存在问题. 假设我们的程序从1.0升级到2.0, CRD定义必须更新才能正确匹配新版的Controller, 那么这时, Helm3并不能帮助我们更新CRD定义. 它所做的, 只是打印一个warning. 因此Helm2时代的钩子仍然有用武之地. 当然, 更简单的做法是在 NOTES.txt 中告诉用户, 记得 <code>kubectl apply -f crds/</code></p>
+<p>另一种做法, 就是将chart分离, 将这些集群资源分离成单独的chart包. 无疑这增加了安装步骤, 但也使得helm不必一次性使用集群级权限了.</p>
+<h1 id="helmignore-忽略文件不必打包">Helmignore: 忽略文件,不必打包</h1>
+<p><code>.helmignore</code>文件与<code>.gitignore</code>写法完全一样,所有匹配的文件都会在打包时被忽略</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Helm(3): 小技巧</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#用变量组合成新的模板">用变量组合成新的模板</a></li>
+    <li><a href="#安装完成后的叨逼叨">安装完成后的叨逼叨</a></li>
+    <li><a href="#crd与卸载">CRD与卸载</a></li>
+    <li><a href="#helmignore-忽略文件不必打包">Helmignore: 忽略文件,不必打包</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

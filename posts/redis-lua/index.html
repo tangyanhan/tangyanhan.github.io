@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go中通过Lua操纵Redis &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Go中通过Lua操纵Redis</h1>
+  <time datetime=2017-11-20T22:23:04&#43;0800 class="post-date">Mon, Nov 20, 2017</time>
+  <p>为了在我的一个基本库中降低与Redis的通讯成本，我将一系列操作封装到LUA脚本中，借助Redis提供的EVAL命令来简化操作。
+EVAL能够提供的特性：</p>
+<ol>
+<li>可以在LUA脚本中封装若干操作，如果有多条Redis指令，封装好之后只需向Redis一次性发送所有参数即可获得结果</li>
+<li>Redis可以保证Lua脚本运行期间不会有其他命令插入执行，提供像数据库事务一样的原子性</li>
+<li>Redis会根据脚本的SHA值缓存脚本，已经缓存过的脚本不需要再次传输Lua代码，减少了通信成本，此外在自己代码中改变Lua脚本，执行时Redis必定也会使用最新的代码。</li>
+</ol>
+<p>导入常见的Go库如	&ldquo;github.com/go-redis/redis&rdquo;，就可以实现以下代码。</p>
+<h2 id="生成一段lua脚本">生成一段Lua脚本</h2>
+<pre><code>// KEYS: key for record
+// ARGV: fieldName, currentUnixTimestamp, recordTTL
+// Update expire field of record key to current timestamp, and renew key expiration
+var updateRecordExpireScript = redis.NewScript(`
+redis.call(&quot;EXPIRE&quot;, KEYS[1], ARGV[3])
+redis.call(&quot;HSET&quot;, KEYS[1], ARGV[1], ARGV[2])
+return 1
+`)
+</code></pre>
+<p>该变量创建时，Lua代码不会被执行，也不需要有已存的Redis连接。
+Redis提供的Lua脚本支持，默认有KEYS、ARGV两个数组，KEYS代表脚本运行时传入的若干键值，ARGV代表传入的若干参数。由于Lua代码需要保持简洁，难免难以读懂，最好为这些参数写一些注释
+注意：上面一段代码使用``跨行，`所在的行虽然空白回车，也会被认为是一行，报错时不要看错代码行号。</p>
+<h2 id="运行一段lua脚本">运行一段Lua脚本</h2>
+<pre><code>    updateRecordExpireScript.Run(c.Client, []string{recordKey(key)}, 
+									expireField,
+									time.Now().UTC().UnixNano(), int64(c.opt.RecordTTL/time.Second)).Err()
+</code></pre>
+<p>运行时，Run将会先通过EVALSHA尝试通过缓存运行脚本。如果没有缓存，则使用EVAL运行，这时Lua脚本才会被整个传入Redis。</p>
+<h2 id="lua脚本的限制">Lua脚本的限制</h2>
+<ol>
+<li>Redis不提供引入额外的包，例如os等，只有redis这一个包可用。</li>
+<li>Lua脚本将会在一个函数中运行，所有变量必须使用local声明</li>
+<li>return返回多个值时，Redis将会只给你第一个</li>
+</ol>
+<h2 id="脚本中的类型限制">脚本中的类型限制</h2>
+<ol>
+<li>脚本返回nil时，Go中得到的是err = redis.Nil（与Get找不到值相同）</li>
+<li>脚本返回false时，Go中得到的是nil，脚本返回true时，Go中得到的是int64类型的1</li>
+<li>脚本返回{&ldquo;ok&rdquo;: &hellip;}时，Go中得到的是redis的status类型（true/false)</li>
+<li>脚本返回{&ldquo;err&rdquo;: &hellip;}时，Go中得到的是err值，也可以通过return redis.error_reply(&ldquo;My Error&rdquo;)达成</li>
+<li>脚本返回number类型时，Go中得到的是int64类型</li>
+<li>传入脚本的KEYS/ARGV中的值一律为string类型，要转换为数字类型应当使用to_number</li>
+</ol>
+<h2 id="如果脚本运行了很久会发生什么">如果脚本运行了很久会发生什么？</h2>
+<p>Lua脚本运行期间，为了避免被其他操作污染数据，这期间将不能执行其它命令，一直等到执行完毕才可以继续执行其它请求。当Lua脚本执行时间超过了lua-time-limit时，其他请求将会收到Busy错误，除非这些请求是SCRIPT KILL（杀掉脚本）或者SHUTDOWN NOSAVE（不保存结果直接关闭Redis）</p>
+<p>更多内容参考以下地址，我这里主要是根据使用Go的经验提供一些总结。
+<a href="https://redis.io/commands/eval">https://redis.io/commands/eval</a></p>
+<p>一段更“复杂”的脚本，它要求在获取一个key值时，如果该值访问较多，就延长生存周期。此外还要比较更新时间，如果不需要更新，则直接返回取到的值，否则返回redis.Nil</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#228b22">// KEYS: rec:key, key
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// ARGV: currentUnixTimestamp, hotHit, recordTTL, ttl
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// When there&#39;s a hit, 
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#8b008b;font-weight:bold">var</span> fetchRecordScript = redis.<span style="color:#008b45">NewScript</span>(<span style="color:#cd5555">`
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	local value = redis.call(&#34;GET&#34;, KEYS[2])
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	if(value == nil) then return nil end
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	local hit = redis.call(&#34;HINCRBY&#34;, KEYS[1], &#34;hit&#34;, 1)
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	redis.call(&#34;EXPIRE&#34;, KEYS[1], ARGV[3])
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	local minHotHit = tonumber(ARGV[2])
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	local keyTTL = tonumber(ARGV[4])
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	if(hit &gt; minHotHit)then
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">		keyTTL = keyTTL * 2
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	end
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	redis.call(&#34;EXPIRE&#34;, KEYS[2], keyTTL)
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	local expire = tonumber(redis.call(&#34;HGET&#34;, KEYS[1], &#34;expire&#34;))        
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	local unixTime = tonumber(ARGV[1])
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	if(expire == nil or expire &lt; unixTime) then
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">		return nil
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	else
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">		return value
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	end
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	`</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// KEYS: key for record
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// ARGV: fieldName, currentUnixTimestamp, recordTTL
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// Update expire field of record key to current timestamp, and renew key expiration
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#8b008b;font-weight:bold">var</span> updateRecordExpireScript = redis.<span style="color:#008b45">NewScript</span>(<span style="color:#cd5555">`
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	redis.call(&#34;EXPIRE&#34;, KEYS[1], ARGV[3])
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	redis.call(&#34;HSET&#34;, KEYS[1], ARGV[1], ARGV[2])
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	return 1
+</span></span></span><span style="display:flex;"><span><span style="color:#cd5555">	`</span>)
+</span></span></code></pre></div>
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Go中通过Lua操纵Redis</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#生成一段lua脚本">生成一段Lua脚本</a></li>
+        <li><a href="#运行一段lua脚本">运行一段Lua脚本</a></li>
+        <li><a href="#lua脚本的限制">Lua脚本的限制</a></li>
+        <li><a href="#脚本中的类型限制">脚本中的类型限制</a></li>
+        <li><a href="#如果脚本运行了很久会发生什么">如果脚本运行了很久会发生什么？</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

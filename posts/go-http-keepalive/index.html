@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go HTTP连接复用 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Go HTTP连接复用</h1>
+  <time datetime=2020-12-01T23:21:33&#43;0800 class="post-date">Tue, Dec 1, 2020</time>
+  <p>HTTP 1.1中给出了连接复用的方法，即通过设定Header为<code>Connection: keep-alive</code>，服务端如果支持此选项，那么会在返回中同样设置该Header，请求结束后不会立即关闭连接。</p>
+<p>HTTP的连接复用与TCP的reuse是两回事，两个使用不同的机制实现。</p>
+<p>这里描述的“连接”，包括TCP连接，也包含其上的TLS连接，因此HTTP的Keep Alive实现的连接复用，省去了TCP连接建立以及TLS连接建立的过程。</p>
+<h1 id="服务端">服务端</h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// If this was an HTTP/1.0 request with keep-alive and we sent a
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">// Content-Length back, we can make this a keep-alive response ...
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">if</span> w.wants10KeepAlive &amp;&amp; keepAlivesEnabled {
+</span></span><span style="display:flex;"><span>	sentLength := header.<span style="color:#008b45">get</span>(<span style="color:#cd5555">&#34;Content-Length&#34;</span>) != <span style="color:#cd5555">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">if</span> sentLength &amp;&amp; header.<span style="color:#008b45">get</span>(<span style="color:#cd5555">&#34;Connection&#34;</span>) == <span style="color:#cd5555">&#34;keep-alive&#34;</span> {
+</span></span><span style="display:flex;"><span>		w.closeAfterReply = <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h1 id="客户端">客户端</h1>
+<p>Golang的HTTP Client通过<code>net/http/trasnport.go</code>中的<code>Transport</code>对象实现底层TLS/TCP连接的封装。在<code>Transport</code>中，主要有以下几个参数：</p>
+<ul>
+<li><code>DisableKeepAlives</code>: 默认为false，如果设为<code>true</code>,那么所有连接复用的优化选项都无效</li>
+<li><code>MaxIdleConns</code>: 最大空闲连接数，该Transport可以维护最大这么多的空闲连接，用于连接复用, 为0时表示无限制</li>
+<li><code>MaxIdleConnsPerHost</code>: 连接到每个host的最大闲置连接数，如果为0，就会使用<code>DefaultMaxIdleConnsPerHost</code>，这个值在go1.15是2</li>
+<li><code>MaxConnsPerHost</code>: 连接单个host最大连接数，如果超了，那么超出的连接要等待</li>
+<li><code>IdleConnTimeout</code>: 如果一个连接一段时间没有用，那么会由客户端主动关闭，为0时表示没有限制</li>
+</ul>
+<p>在Dial建立连接后，就会开始进行读循环和写循环。在读循环中，能够获得HTTP Response，其中包括Header以及Body。当Body被读至末尾EOF，或者被手动关闭时，这个connection就被视为idle，可以回收用于其它请求了。</p>
+<p>在发送请求后，如果Body里有东西，那么必须手动读取Body至EOF，并手动Close才能使其TCP连接得到复用。</p>
+<p>在<code>net/http/transport.go</code>中，这一段描述了这个逻辑:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>		waitForBodyRead := <span style="color:#658b00">make</span>(<span style="color:#8b008b;font-weight:bold">chan</span> <span style="color:#00688b;font-weight:bold">bool</span>, <span style="color:#b452cd">2</span>)
+</span></span><span style="display:flex;"><span>		body := &amp;bodyEOFSignal{
+</span></span><span style="display:flex;"><span>			body: resp.Body,
+</span></span><span style="display:flex;"><span>			earlyCloseFn: <span style="color:#8b008b;font-weight:bold">func</span>() <span style="color:#00688b;font-weight:bold">error</span> {
+</span></span><span style="display:flex;"><span>				waitForBodyRead &lt;- <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>				&lt;-eofc <span style="color:#228b22">// will be closed by deferred call at the end of the function
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>				<span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>			},
+</span></span><span style="display:flex;"><span>			fn: <span style="color:#8b008b;font-weight:bold">func</span>(err <span style="color:#00688b;font-weight:bold">error</span>) <span style="color:#00688b;font-weight:bold">error</span> {
+</span></span><span style="display:flex;"><span>				isEOF := err == io.EOF
+</span></span><span style="display:flex;"><span>				waitForBodyRead &lt;- isEOF
+</span></span><span style="display:flex;"><span>				<span style="color:#8b008b;font-weight:bold">if</span> isEOF {
+</span></span><span style="display:flex;"><span>					&lt;-eofc <span style="color:#228b22">// see comment above eofc declaration
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>				} <span style="color:#8b008b;font-weight:bold">else</span> <span style="color:#8b008b;font-weight:bold">if</span> err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>					<span style="color:#8b008b;font-weight:bold">if</span> cerr := pc.<span style="color:#008b45">canceled</span>(); cerr != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>						<span style="color:#8b008b;font-weight:bold">return</span> cerr
+</span></span><span style="display:flex;"><span>					}
+</span></span><span style="display:flex;"><span>				}
+</span></span><span style="display:flex;"><span>				<span style="color:#8b008b;font-weight:bold">return</span> err
+</span></span><span style="display:flex;"><span>			},
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#228b22">/// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>				<span style="color:#228b22">// Before looping back to the top of this function and peeking on
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		<span style="color:#228b22">// the bufio.Reader, wait for the caller goroutine to finish
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		<span style="color:#228b22">// reading the response body. (or for cancellation or death)
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		<span style="color:#8b008b;font-weight:bold">select</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">case</span> bodyEOF := &lt;-waitForBodyRead:
+</span></span><span style="display:flex;"><span>			pc.t.<span style="color:#008b45">setReqCanceler</span>(rc.cancelKey, <span style="color:#8b008b;font-weight:bold">nil</span>) <span style="color:#228b22">// before pc might return to idle pool
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>			alive = alive &amp;&amp;
+</span></span><span style="display:flex;"><span>				bodyEOF &amp;&amp;
+</span></span><span style="display:flex;"><span>				!pc.sawEOF &amp;&amp;
+</span></span><span style="display:flex;"><span>				pc.<span style="color:#008b45">wroteRequest</span>() &amp;&amp;
+</span></span><span style="display:flex;"><span>				<span style="color:#008b45">tryPutIdleConn</span>(trace)
+</span></span><span style="display:flex;"><span>			<span style="color:#8b008b;font-weight:bold">if</span> bodyEOF {
+</span></span><span style="display:flex;"><span>				eofc &lt;- <span style="color:#8b008b;font-weight:bold">struct</span>{}{}
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">case</span> &lt;-rc.req.Cancel:
+</span></span><span style="display:flex;"><span>			alive = <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>			pc.t.<span style="color:#008b45">CancelRequest</span>(rc.req)
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">case</span> &lt;-rc.req.<span style="color:#008b45">Context</span>().<span style="color:#008b45">Done</span>():
+</span></span><span style="display:flex;"><span>			alive = <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>			pc.t.<span style="color:#008b45">cancelRequest</span>(rc.cancelKey, rc.req.<span style="color:#008b45">Context</span>().<span style="color:#008b45">Err</span>())
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">case</span> &lt;-pc.closech:
+</span></span><span style="display:flex;"><span>			alive = <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span></code></pre></div><p>在下面这一句中:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	alive = alive &amp;&amp;
+</span></span><span style="display:flex;"><span>		bodyEOF &amp;&amp;
+</span></span><span style="display:flex;"><span>		!pc.sawEOF &amp;&amp;
+</span></span><span style="display:flex;"><span>		pc.<span style="color:#008b45">wroteRequest</span>() &amp;&amp;
+</span></span><span style="display:flex;"><span>		<span style="color:#008b45">tryPutIdleConn</span>(trace)
+</span></span></code></pre></div><p>只有符合以下条件的前提下，才能尝试将连接回收放入连接池：</p>
+<ol>
+<li>开启KeepAlive</li>
+<li>Body读取到EOF</li>
+<li>TCP连接没有被关闭(<code>pc.sawEOF</code>)</li>
+<li>请求已经彻底发送并成功</li>
+</ol>
+<p>返回码非2XX不影响回收，因为这是业务层的成功失败，而非HTTP/TCP本身的成功或失败。</p>
+<h1 id="端口耗尽问题">端口耗尽问题</h1>
+<p>当使用Go client不断请求主机连接，而又没有合适的设定<code>MaxConnsPerHost</code>时，TCP连接将会不断被创建，每创建一个TCP连接，就要用掉一个主机端口。当<code>/etc/sysctl.conf</code>中的<code>net.ipv4.ip_local_port_range</code>指定范围端口全部耗尽时，新建立连接将会报错:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>connect: cannot assign requested address
+</span></span></code></pre></div><p>解决该问题，应当妥善设置最大连接数限制，在应用程序中设置适当的并发数。</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Go HTTP连接复用</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#服务端">服务端</a></li>
+    <li><a href="#客户端">客户端</a></li>
+    <li><a href="#端口耗尽问题">端口耗尽问题</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

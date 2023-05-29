@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>密码安全:存储/传输/安全问题设计 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>密码安全:存储/传输/安全问题设计</h1>
+  <time datetime=0001-01-01T00:00:00Z class="post-date">Mon, Jan 1, 0001</time>
+  <h1 id="存储设计">存储设计</h1>
+<p>设计原则: <strong>密码存储必须杜绝获取明文之可能</strong></p>
+<p>用户的密码通常具有一定规律,一般用户会对若干不同账户使用相同密码,不论以何种方式导致明文泄漏,就意味着用户的其他一系列账户也受到同样威胁. 在一些国家,对于用户密码存储有着相关规定.</p>
+<h3 id="1-密码不以明文存储">1. 密码不以明文存储</h3>
+<h3 id="2-密码不以简单hash方式存储">2. 密码不以简单hash方式存储</h3>
+<p>hash方式包括hash算法选型、混淆手段及迭代次数。</p>
+<h4 id="算法选型">算法选型</h4>
+<p>AES256是较安全的算法, MD5和SHA128属于较简单的算法, 一方面是因为它们的安全空间相对于如今的计算能力而言,  应对生日攻击(Birthdate Attack)的安全性已经变弱. 另一方面, 它们存在的年代已久, 已经有了较大规模的hash数据库, 可能通过简单的数据库查询就可以找到对应明文</p>
+<p><a href="https://zh.wikipedia.org/wiki/%E7%94%9F%E6%97%A5%E5%95%8F%E9%A1%8C">生日攻击:</a> 如果一个房间裡有23个或23个以上的人，那么至少有两个人的生日相同的概率要大于50%
+以MD5为例,理论上讲它存在2^64中可能性,但其实只需尝试2^32种可能就有很大可能找到碰撞,而借助一些方法还可以将尝试次数降低到2^16以内</p>
+<h3 id="混淆手段">混淆手段</h3>
+<p>直接对明文,或者是简单加上固定的一段字符串进行hash运算并存储是不明智的选择, 这带来两个问题:一方面, 攻击者获取到hash值后, 可以自行破解/查询数据库直接获取到明文, 另一方面, 如果你的数据库中有两个用户碰巧使用相同的密码,那么攻击者就会意识到这可能是一个弱密码(如123456). 获取到数据库的攻击者就很容易找到它,并进行集中破解.
+比较可靠的办法是对每个用户使用一段随机的字符串(通常称为salt),在运算hash时将其与明文连接运算.</p>
+<h3 id="迭代次数">迭代次数</h3>
+<p>如果只进行一次hash,以MD5为例,它存在2^64中可能,某个数据库中可能就存在着它的明文. 如果使用两次,那么就进一步缩小了攻击者直接通过hash找到明文的可能性. 当然,这并不能阻止攻击者通过字典攻击找出诸如&quot;abcd1234&quot;这样的简单密码.</p>
+<h3 id="密码传输">密码传输</h3>
+<p>密码传输存在于两个阶段: 注册和认证.</p>
+<h4 id="1-注册">1. 注册</h4>
+<p>Django和很多网站在注册期间密码都是通过明文传输的, 某些网站甚至没有使用HTTPS保护这些密码明文.</p>
+<p>防范措施:</p>
+<ul>
+<li>由服务器发出一段salt, 客户端将其与密码明文运算后发送给服务器.</li>
+<li>通过HTTPS保护注册过程</li>
+</ul>
+<p>服务端存储 K = hash( password, reg_salt )</p>
+<h4 id="2-认证">2. 认证</h4>
+<p>不论服务器上以和何种方式存储了用户密码, 用户和服务器之间总要通过一种方式进行验证. 这中间存在几种可能的攻击:</p>
+<ul>
+<li>
+<p><strong>重放攻击</strong>: 攻击者监听用户发出的内容, 并将其用于自己的认证.<br>
+防范方式:由服务器发送给用户一段随机数值(salt), 由用户运算后在服务端进行验证. 由于这个值每次都不同,攻击者无法将其用于自己的身份认证. 这种方式也被称为challenge</p>
+</li>
+<li>
+<p><strong>字典/穷举攻击</strong>: 攻击者监听整个通讯过程,得知了此次的salt和用户发送的hash值,自行进行穷举/字典查询. 对于某些简单密码, 例如纯数字密码, 这种穷举只需要极少运算即可. 例如在我上大学期间, 学校网络供应商提供的是一种6位数字密码的上网卡, 其密码验证方式就是通过此种方式进行, 只需要根据salt,穷举6位数字(10^6, 较差的电脑也只需要数秒), 即可获得密码明文.
+防范方式: 通过HTTPS进行通讯加密,防止嗅探到明文.</p>
+</li>
+<li>
+<p><strong>伪造服务器攻击</strong>: 攻击者谎称自己是服务器,并向用户发送一段有缺陷的salt. 假如混淆方法是字符串连接,那么攻击者指定salt为空字符串, 就获得了明文的直接hash值, 大大提高了攻击成功几率.
+防范方式:通过HTTPS进行对服务端的身份认证，使用字符串补齐等更复杂的方式</p>
+</li>
+</ul>
+<p>认证过程:</p>
+<ol>
+<li>服务端告知客户端注册时的盐值及本次盐值: reg_salt, challenge_salt , 并运算:
+server_k = hash( K, challenge_salt )</li>
+<li>客户端进行运算,并发送给服务端
+K = hash( password, reg_salt )
+client_k = hash( K, challenge_salt )</li>
+<li>服务端比较 client_k与server_k</li>
+</ol>
+<h1 id="重置密码安全问题设计">重置密码安全问题设计</h1>
+<p>现在比较流行的方法是使用手机或安全邮箱进行密码重置. 某些还会提供一种通过安全问题进行重置.</p>
+<p>考虑到密码的两种主要泄漏方式:偷看(shoulder surfing)和社会工程(social engineering), 查户口式的&quot;安全问题&quot;并不安全. 例如这些问题:</p>
+<ul>
+<li>你妈姓什么?</li>
+<li>你毕业于哪个大学?</li>
+<li>你喜欢的歌手叫什么名字?</li>
+<li>你喜欢的运动是什么?</li>
+</ul>
+<p>在某些情况下, 这些所谓的安全问题只需要简单的调查就可以得到答案. 有趣的是, 早年的网易邮箱就曾经使用过最后一个问题&quot;你喜欢的运动是什么&quot;, 然后我轻而易举的差点重置了临班某同学的邮箱密码</p>
+<p>安全问题设计上应当注意以下方面:</p>
+<ul>
+<li>能够通过某些文档获取的资料不应当用于安全问题
+例如很多公司面试期间会要求填写教育史,父母信息等, 这些问题不应当用于安全问题</li>
+<li>用户身边的人能够通过日常交往得到答案的, 不应成为安全问题
+例如在工作场合, 用户喜欢的食物/运动, 以及用户的家乡等,都是很容易打听到的. 相对而言,初恋的姓氏就不是一个容易泄漏的话题</li>
+<li>不应当设计某些隐私问题
+一旦泄漏可能对用户造成困扰. 较妥的办法是以hash形式存储这些问题的答案,并且问问题时不应当要求用户回答&quot;初恋的名字&quot;这种问题, 更好的问题是&quot;初恋的姓氏&quot;或者&quot;初恋的姓氏首字母&quot;</li>
+<li>不使用固定的问题. 例如可以存储6个问题的答案,每次随机抽取三个, 增加攻击者的打探难度.</li>
+</ul>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>密码安全:存储/传输/安全问题设计</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#存储设计">存储设计</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#1-密码不以明文存储">1. 密码不以明文存储</a></li>
+            <li><a href="#2-密码不以简单hash方式存储">2. 密码不以简单hash方式存储</a>
+              <ul>
+                <li><a href="#算法选型">算法选型</a></li>
+              </ul>
+            </li>
+            <li><a href="#混淆手段">混淆手段</a></li>
+            <li><a href="#迭代次数">迭代次数</a></li>
+            <li><a href="#密码传输">密码传输</a>
+              <ul>
+                <li><a href="#1-注册">1. 注册</a></li>
+                <li><a href="#2-认证">2. 认证</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#重置密码安全问题设计">重置密码安全问题设计</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

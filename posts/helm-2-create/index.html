@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Helm(2): 创建和语法 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Helm(2): 创建和语法</h1>
+  <time datetime=2020-02-21T11:45:13&#43;0800 class="post-date">Fri, Feb 21, 2020</time>
+  <p>首先, 创建一个Chart:  helm create mychart
+接下来, 讨论的假设前提是你已经熟悉Go Template的基本用法.</p>
+<h1 id="flatten">Flatten</h1>
+<pre tabindex="0"><code>configSvcName: mysrv
+configSvcUrl: http://example.com
+</code></pre><h1 id="use-flatten">Use Flatten</h1>
+<pre tabindex="0"><code>name: &#34;{{ .Values.configSvcName }}
+url: &#34;{{ .Values.configSvcUrl }}
+</code></pre><h1 id="nested">Nested</h1>
+<pre tabindex="0"><code>config:
+  svc:
+    name: mysrv
+    url: http://example.com
+</code></pre><h1 id="use-nested">Use Nested</h1>
+<p>name: &ldquo;{{ .Values.config.svc.name }}&rdquo;
+url: &ldquo;{{ .Values.config.svc.url }}&rdquo;
+移除左侧/右侧空格: -</p>
+<p>通过在分隔符左侧或右侧增加-, 能够起到移除左侧或右侧所有空白的效果, 例如:</p>
+<pre tabindex="0"><code>&#34;{{23 -}} &lt; {{- 45}}&#34;
+</code></pre><p>生成的字符串是:</p>
+<pre tabindex="0"><code>23&lt;45
+</code></pre><p>此外, -也可以用来减少空格浪费的空间, 例如一些带缩进的控制语句if/else/with/for等, 本身不会嵌入到最终生成的YAML中, 但我们为了查看方便, 会对其增加缩进和换行, 这些空白没有必要带进最终渲染出的YAML中:</p>
+<pre tabindex="0"><code>{{- with .Values.affinity }}
+  affinity:
+    {{- toYaml . | nindent 8 }}
+{{- end }}
+</code></pre><p>需要注意, 换行本身也是空白字符!</p>
+<p>管道: |</p>
+<p>与Linux下的命令管道类似, Go Template中同样也可以使用管道, 例如:</p>
+<pre tabindex="0"><code>{{ &#34;abc&#34; | upper }}
+</code></pre><p>生成:</p>
+<pre tabindex="0"><code>ABC
+</code></pre><p>转义字符串: <code>quote</code></p>
+<p>yaml在处理数字,字符串和注释时存在微妙的变化, 为了安全的转义它们, 可以使用quote:</p>
+<pre tabindex="0"><code>{{ .Values.text | quote }}
+</code></pre><p>或</p>
+<pre tabindex="0"><code>{{ quote .Values.text }}
+</code></pre><p>左侧增加N个空格缩进: <code>nindent N</code></p>
+<p>由于yaml通过缩进来区分层级, 在编写Kubernetes的yaml文件时, 可以结合 - 和 nindent, 来精确的制造偏移, 防止直接编辑空格出现失误, 而肉眼难以检查.</p>
+<pre tabindex="0"><code>affinity:
+  {{- toYaml . | nindent 8 }}
+</code></pre><p>默认值: <code>default XXX</code></p>
+<pre tabindex="0"><code>drink: {{ .Values.favorite.drink | default &#34;tea&#34; | quote }}
+</code></pre>
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Helm(2): 创建和语法</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#flatten">Flatten</a></li>
+    <li><a href="#use-flatten">Use Flatten</a></li>
+    <li><a href="#nested">Nested</a></li>
+    <li><a href="#use-nested">Use Nested</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

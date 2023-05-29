@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>漫谈密码 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>漫谈密码</h1>
+  <time datetime=2019-10-19T15:45:40&#43;0800 class="post-date">Sat, Oct 19, 2019</time>
+  <p>这篇文章主要介绍一些常见的编码算法, Hash算法, 对称加密算法, 非对称加密算法, 它们基础是个什么样子, 以及如何选择它们. 如果已经熟悉相关内容, 对大家的帮助应该就不大了.</p>
+<h1 id="常见编码算法">常见编码算法</h1>
+<p>在传输过程中, 常常有小片断二进制编码需要在JSON/XML中传输这类需求, 这时候就需要一种 <strong>编码算法</strong>, 将二进制内容编码为可打印的字符(Printable Characters), 这就是所谓编码算法. 常见的有 Base64, Hex 等.</p>
+<h2 id="base64">Base64</h2>
+<p>Base64 将二进制内容编码为64个可打印字符组成的信息, 故名.
+64个字符能够使用8bit编码6bit长度的信息, 因此 Base64 编码后长度会使信息增加 \(\frac{1}{3}\)长度.</p>
+<p>求得8与6的最小公倍数为24, 因此Base64的基本编码过程, 就是每3字节原文, 编码为4字节Base64.</p>
+<p>Base64中包含字符 &lsquo;/&rsquo; 和 &lsquo;+&rsquo;, 因此并不算适合放在URL中作为一部分.</p>
+<p>使用 Bash 命令进行编解码:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#00688b">encoded</span>=<span style="color:#cd5555">`</span><span style="color:#658b00">echo</span> -n <span style="color:#cd5555">&#39;Hello World&#39;</span> | base64<span style="color:#cd5555">`</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">echo</span> <span style="color:#00688b">$encoded</span>
+</span></span><span style="display:flex;"><span><span style="color:#658b00">echo</span> -n <span style="color:#00688b">$encoded</span> | base64 -d
+</span></span></code></pre></div><p>Base64也拥有一些变种, 可以使用不同字符集进行编码.</p>
+<h2 id="hex">Hex</h2>
+<p>Hex 将二进制内容编码为16进制. 十六进制编码能够使用8bit编码 4bit 长度的信息, 因此 Hex 编码会导致长度增加一倍.</p>
+<p>Base64 和 Hex 都不能作为加密算法, 只能算作编码算法, 因为在知道算法的情况下, 发送方与接收方不需要了解任何其他信息, 就可以获取到明文.</p>
+<p>其它编码算法, 如针对图像和视频的编码. 这类编码的优先目的, 是减少信息冗余, 缩减信息的体积, 因此对其作压缩往往不能取得良好效果.</p>
+<h1 id="常见hash算法">常见Hash算法</h1>
+<p>Hash算法, 国内也称消息摘要算法,哈希算法, 杂凑算法. 目前常见的有MD和SHA两族, 国内则有SM-3等. 除了出于安全性考虑外, 在特殊场合下也需要考虑法律法规, 选择特定的算法族.</p>
+<p>Hash算法是一种单向函数, 即给定任意长度明文 x, 通过函数 F , 输出固定长度的摘要:</p>
+<p>$$ F(x) \Rightarrow z$$</p>
+<p>以MD5为例, 即使是输入1Gb长度的信息, 也只会输出 128bit 长度的摘要, 因此单独获得摘要, 并不可能逆推出原文. 因此, 哈希算法不可能作为一种加密算法, 因为它不可能有对应的解密算法.</p>
+<p>Hash一般用做信息的&quot;指纹&quot;, 验证信息的完整性, 以确保信息没有发生丢失. 针对它的攻击, 主要是为了信息篡改, 即找到信息 x&rsquo;, 使 F(x&rsquo;) = F(x). 从数学上讲, 这是可行的. 一段长达200kb的信息, 必然存在若干不同的消息片段X和X&rsquo;, 存在 F(X) = F(X&rsquo;). 如果我们能够了解明文X, 就有一定几率在不严重破坏X基本结构的前提下, 篡改其内容, 例如在正常软件中隐藏木马病毒.</p>
+<p>如果存在不同的明文x和x&rsquo;, 能够产生相同的摘要 (F(x)=F(x&rsquo;)), 则称x&rsquo;是x的一个碰撞(Collision).</p>
+<p>Hash的另一个使用场景是比对用户密码. 用户的明文密码通常隐含了用户自身的一些密码使用习惯以及隐私,一旦数据库遭到泄露, 受害范围将不会仅仅是这一个数据库以及它的系统, 用户在其它系统的账号密码也将容易被推断出来. 因此在数据库中存储明文密码, 是极其不明智的. 在欧洲和美国的一些法律中, 会规定禁止存储用户的明文密码. 由于相同的明文能够产生相同的信息摘要, 而反之使用摘要则不能反推明文, 因此系统数据库中通常会存储用户密码明文若干轮后的摘要:</p>
+<p>$$Hash(x)^n=digest$$</p>
+<p>如果是许多年前, 那么只经过一轮Hash还是比较安全的. 然而随着时间的推移, 攻击者已经针对简单密码建立了各种各样的数据库, 只经过一轮Hash的摘要存在被攻击者从数据库中找到碰撞的可能.</p>
+<p>那么我们姑且设n=3000, 这就安全了吗? 攻击者了解到这一点后, 只要针对弱密码建立字典, 那么就有几率从中找到碰撞, 从而发现一个用户的明文密码. 要知道, Hash函数都被设计的非常之快, 正向建立一个字典是非常快的. 如果我们为其增加一段固定的文本 y:</p>
+<p>$$Hash(x+y)^n=digest$$</p>
+<p>那么攻击者只要了解到y的值, 仍能建立字典并进行碰撞, 这并没有带来任何安全性提升. 此外, 当有两个用户正好使用了相同的密码时, 攻击者将发现, 他们的摘要值相等, 只要推断出一个, 就等于获得了另一个.</p>
+<p>因此, 实际数据库存储密码摘要时, 为每个记录使用不同的文本, 这就是所谓的&quot;盐(Salt)&quot;:</p>
+<p>$$Hash(x+salt_x)=digest$$</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>漫谈密码</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#常见编码算法">常见编码算法</a>
+      <ul>
+        <li><a href="#base64">Base64</a></li>
+        <li><a href="#hex">Hex</a></li>
+      </ul>
+    </li>
+    <li><a href="#常见hash算法">常见Hash算法</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

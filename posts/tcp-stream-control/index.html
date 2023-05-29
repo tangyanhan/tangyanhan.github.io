@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>TCP流量控制 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>TCP流量控制</h1>
+  <time datetime=2020-12-29T19:23:20&#43;0800 class="post-date">Tue, Dec 29, 2020</time>
+  <h2 id="延迟确认">延迟确认</h2>
+<p>根据TCP协议的设定，发送端每发出一个数据段，接收端就要返回一个ACK。如果发送端和接收端本就存在<em>频繁的数据互动</em>，不携带数据的<code>ACK</code>无疑会浪费半个<code>RTT</code>的时间。</p>
+<p>所以，可以在接收到数据之后，稍微等待一段时间（少于200ms），如果这时接收端正好也有数据要发送，将其<code>ACK</code>位置1，这样我们就同时完成了数据发送和对之前的确认。</p>
+<p>这看起来会会造成一定的延时，但现实中一些基于TCP的&quot;回合制&quot;协议，如HTTP协议，客户端向服务器发送请求后，服务器必须直到客户端的请求，才能给予回应（状态码+Body等），当服务器从缓冲区拿出请求时，这部分信息必然已经被确认，才可能来到应用层，这时启用延迟确认并无意义。</p>
+<p>与延迟确认(Delay Ack)对应的，是快速确认(Quick Ack)，Linux在默认情况下打开延迟确认，可以手动设置<code>TCP_QUICKACK</code>来禁用延迟确认, <code>TCP_QUICKACK</code>默认关闭，需要用时每次都要手动重置。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#1e889b">#define TCP_DELACK_MAX	((unsigned)(HZ/5))	</span><span style="color:#228b22">/* maximal time to delay before sending an ACK */</span><span style="color:#1e889b">
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#if HZ &gt;= 100
+</span></span></span><span style="display:flex;"><span><span style="color:#1e889b">#define TCP_DELACK_MIN	((unsigned)(HZ/25))	</span><span style="color:#228b22">/* minimal time to delay before sending an ACK */</span><span style="color:#1e889b">
+</span></span></span></code></pre></div><h2 id="nagle算法">Nagle算法</h2>
+<p>Nagle算法要求一个TCP连接中有在传数据时，小的报文段就不能被发送（小于SMSS），当发送数据还没有完全得到确认之前，尽可能收集小的数据段，并在下次将其一起发送。这是一种自时钟算法，RTT越小，ACK就越快，发送速度也就越快，在低RTT环境中，Nagle并不会有显著影响。</p>
+<p>Golang中默认禁用Nagle算法，需要时应当手动打开:</p>
+<pre tabindex="0"><code>tcpConn, _ := conn.(*net.TCPConn)
+tcpConn.SetNoDelay(noDelay)
+</code></pre><p>Nagle算法能够在RTT较高的环境中避免传输太小的数据报，在与延迟确认结合使用时，由于TCP连接中只要有在传数据就不能发送小报文段，会让TCP连接变成一种类似竞态资源的存在，最长可能延迟到<code>TCP_DELACK_MAX</code>，即最大延迟确认的超时，在Linux中<code>HZ=100</code>时，为<code>HZ/5=20ms</code>。</p>
+<p>这使得Nagle算法并不适合小数据报文需要及时传输的场景，例如游戏中的按键操作。Nagle对于传输大文件是无效的，对于HTTP 1.1这种一次性会话也是无效的。</p>
+<h2 id="流量控制与窗口管理">流量控制与窗口管理</h2>
+<p>TCP的流量控制目的是协调发送端与接收端两者之间的发送/接收速率，使之能够匹配对方的能力。如果接收端缓冲区已满，将会丢弃后续接收到的数据包，白白浪费发送效率。两端的收发数据量是通过窗口结构来协调的，就像一卷很长的胶卷，我们通过一个小窗不断在胶卷移动，发送端在这个窗口里放已经发送但还没确认的数据，以及待发送的数据；接收端在窗口里存放还没有上传到应用层的数据包，比如还没有排序的数据，这就是<em>滑动窗口</em>。</p>
+<p>当接收端缓冲区已满时，接收端将会向发送端发送一个<em>零窗口通告</em>，告知其停止继续发送数据。当发送端收到<em>零窗口通告</em>后，停止发送数据，并随后每隔一段时间发送<em>窗口探测</em>，来尝试恢复传输。</p>
+<p><em>糊涂窗口综合征</em>(Silly Window Syndrome, SWS),是指由于发送端和接收端的一些行为，导致窗口小于实际可用窗口，或在窗口中每次只发送很少的数据，导致数据传输效率降低的现象。接收端可以避免通告较小的窗口，发送端可以尝试组合较小的报文使其成为全长。</p>
+<h3 id="linux的缓存自动调优">Linux的缓存自动调优</h3>
+<p>流量缓存是在内核层面进行调控的，默认情况下，Linux对于每个TCP连接都有自动调优机制。</p>
+<p>通过<code>sysctl &lt;参数名&gt;</code> 可以查看默认的TCP窗口调优参数</p>
+<h4 id="接收缓存">接收缓存</h4>
+<p>TCP接收缓存，分为 min, default, max三个值， 单位为字节。
+其中 default 会覆盖 <code>net.core.rmem_default</code>
+max 不能超过 <code>net.core.rmem_max</code>，如果通过设置<code>SO_RCVBUF</code>设置了具体值，这个最大值就无法生效。</p>
+<pre tabindex="0"><code>net.ipv4.tcp_rmem = min default max
+</code></pre><h4 id="发送缓存">发送缓存</h4>
+<p>发送缓存与接收类似， 也分为三个值， max不能高于 <code>net.core.wmem_max</code>， <code>default</code>会覆盖<code>net.core.rmem_default</code>。
+如果通过设置<code>SO_SNDBUF</code>来设定了缓存大小，最大值设定会失效，转而使用设置的值，</p>
+<pre tabindex="0"><code>net.ipv4.tcp_wmem = min default max
+</code></pre><h4 id="大内存与大宽带的调优">大内存与大宽带的调优</h4>
+<p>在内存比较充裕、宽带足够的情况下，可以调大上述参数来进行调优。在Golang中，可以通过手动设定缓存大小来覆盖掉系统中的最大缓存:</p>
+<pre tabindex="0"><code>conn.SetReadBuffer(1024)
+conn.SetWriteBuffer(1024)
+</code></pre><p>每个TCP连接都会消耗一定内存。需要注意的是在传输效率不高的情况下，调高缓存并不能有效的提高传输效率。在带宽较高时，我们可以通报较大的初始窗口(min, default)，避免窗口过小导致传输效率下降。</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>TCP流量控制</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#延迟确认">延迟确认</a></li>
+        <li><a href="#nagle算法">Nagle算法</a></li>
+        <li><a href="#流量控制与窗口管理">流量控制与窗口管理</a>
+          <ul>
+            <li><a href="#linux的缓存自动调优">Linux的缓存自动调优</a>
+              <ul>
+                <li><a href="#接收缓存">接收缓存</a></li>
+                <li><a href="#发送缓存">发送缓存</a></li>
+                <li><a href="#大内存与大宽带的调优">大内存与大宽带的调优</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

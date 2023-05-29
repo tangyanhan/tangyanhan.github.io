@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>C&#43;&#43;数值运算与类型安全 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>C&#43;&#43;数值运算与类型安全</h1>
+  <time datetime=2012-04-12T10:00:00&#43;0800 class="post-date">Thu, Apr 12, 2012</time>
+  <p>在理想情况下，对类型的错误应用会导致一些错误，并让我们第一时间发觉；在最糟的情况下，其错误在很久之后才被发现，而且那时我们的系统已经遭受了足够多的攻击。</p>
+<h1 id="cc几个基本的类型规则">C/C++几个基本的类型规则：</h1>
+<h2 id="类型转换规则">类型转换规则：</h2>
+<p>系统将精度高低规定如箭头所示。
+char,short -&gt; int -&gt; unsigned -&gt; long -&gt;double &lt;- float
+A.在运算中的自动转换：</p>
+<ol>
+<li>任何两个长度低于int类型的值运算时必然转换为int类型（包括==、&gt;=等逻辑判断）</li>
+<li>等级等于或高于int的同类型运算时，仍为原类型</li>
+<li>两个不同类型数据参与运算时，两个数据都转换为其中较高级别的类型（两个值都长度低于int则遵从第一条）</li>
+<li>对于表达式中的常数，默认为int类型，如果该值为正数且超过INT_MAX(在头文件 limits.h中），则默认为 unsigned int （源文件中一般不允许常数超过long，故不讨论更大的数值)。</li>
+<li>如果一个值为64位，则另一个也会向上转换为64位，无符号的64位值是这些64位值的上限。</li>
+</ol>
+<h2 id="强制类型转换">强制类型转换：</h2>
+<p>1.强制类型转换不对目标变量进行直接的转换，而是产生了一个中间量</p>
+<h2 id="notice">Notice：</h2>
+<p>1.在类型转换中，如果将长类型转换为短类型，则将其截断。
+2.对于短类型转换为长类型：
+a.无符号类型转换为符号类型，中间不发生符号拓展（原本就没有符号）
+b.符号类型向一个更长类型转换，如果符号类型符号位为1（对大部分系统而言为负数），则在长类型中多出的空位中补充1</p>
+<p>示例（全部假定为32位机）：
+1.一个条件判断中的类型转换问题</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">int</span> flagA =<span style="color:#b452cd">0x7f</span>;
+</span></span><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">char</span> flagB =<span style="color:#b452cd">0x80</span>;
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span>( (<span style="color:#00688b;font-weight:bold">char</span>)(flagA ^ flagB) == <span style="color:#b452cd">0xff</span>)
+</span></span><span style="display:flex;"><span>printf(<span style="color:#cd5555">&#34;Worked!&#34;</span>);
+</span></span></code></pre></div><p>真实执行情况是：</p>
+<p>根据A-3,flagB转换为int类型;
+根据C-2-b,flagB发生符号拓展。
+故</p>
+<pre tabindex="0"><code>flagA =0x0000007f;
+flagB =0xffffff80;
+flagA ^ flagB =0xffffffff
+</code></pre><p>强制类型转换之后，发生截断，于是左侧值此时为 0xff(char)
+根据A-4，0xff默认视为int类型，因此0xff(char)需要转换为int类型才能进行 ==比较。
+0xff(char)转换后，经过符号拓展，结果为 0xffffffff(int)
+故示例表达式始终为假。</p>
+<p>PS：本例出自《软件安全的24宗罪——编程缺陷与修复之道》(清华大学出版社，2010.6) P106，本例中略有改动。原例中条件表达式有误。译文为 if( (char) flags ^ LowByte == 0xff),这个表达式应该是漏掉了在 flags ^ LowByte外加一层括号，这种写法不会导致符号拓展（至少根据目前的C++语法是这样），最终条件判断通过，有兴趣的可以试一试。</p>
+<h1 id="运算">运算</h1>
+<p>在数值运算中，主要考虑其二进制变化即可。</p>
+<h2 id="加减运算">加减运算</h2>
+<p>N位无符号数从0-2^N-1变化，N位有符号数从 -2^(N-1) - 2^(N-1)-1,如果加减运算超过上限或下限，则可以将数值范围视为一个环来推算。</p>
+<h2 id="乘法运算">乘法运算</h2>
+<ul>
+<li>
+<p>无符号数的乘法结果超过 UINT_MAX( limits.h )时，即使使用一个足够长的类型接收结果，结果都是错的 【在G++4.4.3中验证】
+对于这种情况，一种稳妥的检测方法是检验 b&gt;UINT_MAX/a，更有效的方法是将结果存放在一个更大的整数中，查看是否存在溢出
+PS.《软件安全的24宗罪》P105中原文为 a*b&gt;MAX_INT，不知道原作者的表达式是否跟MS编译器有关，或者另有所指。</p>
+</li>
+<li>
+<p>两个无符号短整数相乘，根据之前所述的类型转换原则，两个数最终会得到一个整型数</p>
+</li>
+<li>
+<p>有符号数的乘法应当做额外检查，以确保结果的符号没有变 【未能写出验证】</p>
+</li>
+<li>
+<p>对于无符号32位或者64位整数与带负号的整数之间的运算，及短类型负数（如8位整数-1）与整数的运算，注意类型转换会导致出现意料之外的结果。
+例如 -1/UINT_MAX =1; 在该运算中，-1被视为整型数，运算中提升为无符号整数，其值为0xffffffff，与UINT_MAX相等，故结果为1.
+此外，取模运算中返回值的符号依赖于具体的实现方案，对于 -1%4，有的得到1，有的得到-1</p>
+</li>
+<li>
+<p>对于比较运算，如果使用有符号数，首先确保待比较的数大于或等于0，然后确定它比上限小（可借助无符号类型完成）。例如：</p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span> <span style="color:#00688b;font-weight:bold">char</span>* <span style="color:#008b45">someCopy</span>( <span style="color:#00688b;font-weight:bold">char</span> *str) {
+</span></span><span style="display:flex;"><span> <span style="color:#00688b;font-weight:bold">char</span> result[<span style="color:#b452cd">20</span>];
+</span></span><span style="display:flex;"><span> <span style="color:#00688b;font-weight:bold">int</span> len = strlen(str);
+</span></span><span style="display:flex;"><span> <span style="color:#8b008b;font-weight:bold">if</span>(len &lt;<span style="color:#b452cd">20</span>) {
+</span></span><span style="display:flex;"><span> ...
+</span></span><span style="display:flex;"><span> }
+</span></span><span style="display:flex;"><span> ...
+</span></span><span style="display:flex;"><span> }
+</span></span></code></pre></div><p>注意strlen的返回类型为size_t，这通常是一个unsigned long类型，如果传入字符串长度超过了INT_MAX,如当长度为INT_MAX+1时，根据A中的规则可知，这时len会变成一个负数，从而使接下来的len&lt;20始终为真，攻击者如果传入一个2G的数据，则可使其发生溢出。</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>C&#43;&#43;数值运算与类型安全</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#cc几个基本的类型规则">C/C++几个基本的类型规则：</a>
+      <ul>
+        <li><a href="#类型转换规则">类型转换规则：</a></li>
+        <li><a href="#强制类型转换">强制类型转换：</a></li>
+        <li><a href="#notice">Notice：</a></li>
+      </ul>
+    </li>
+    <li><a href="#运算">运算</a>
+      <ul>
+        <li><a href="#加减运算">加减运算</a></li>
+        <li><a href="#乘法运算">乘法运算</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

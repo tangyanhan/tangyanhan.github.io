@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>TCP超时重传 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  <link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/contrib/auto-render.min.js"></script></script>
+<script>
+    window.onload = function() {
+        renderMathInElement(document.body,
+                        {
+                            delimiters: [
+                                {left: "$$", right: "$$", display: true},
+                                {left: "\\[", right: "\\]", display: true},
+                                {left: "$", right: "$", display: false},
+                                {left: "\\(", right: "\\)", display: false}
+                            ]
+                        }
+                    );
+    }
+</script>
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>TCP超时重传</h1>
+  <time datetime=2020-12-24T09:07:42&#43;0800 class="post-date">Thu, Dec 24, 2020</time>
+  <p>当TCP发出报文之后一段时间后，没能收到对方的确认包，那么可以认为时数据包已经<strong>超时</strong>，这时就需要<strong>重传</strong>。
+在数据的发送方与接收方之间，需要协调发送与接收速率：发送太快接收太慢，那么接收方数据来不及处理缓冲区不足，数据包可能会被丢弃;发送太慢，就白白浪费带宽，占用发送方的时间，这就是流量控制(Stream Control)。
+但网络中并不止我们自己建立的一个TCP连接，还有大量其它的连接以及中间设备，如果所有TCP连接都自行其是，那么网络将会发生阻塞。如何避免阻塞，发现阻塞时如何退避缓解阻塞，如何避免阻塞的同时充分利用网络，这就是所谓拥塞控制(Congestion Control)。</p>
+<h2 id="超时重传">超时重传</h2>
+<p>一个报文段从发送方发出, 再到从接收方得到<code>ACK</code>，这一轮经过的时间称为一个<code>RTT</code>，即<code>Round Trip Time</code>，依据通信通常的<code>RTT</code>，我们可以推断通信<code>RTT</code>的上限，当超出这个上限就认为数据包已经<strong>超时</strong>，需要<strong>重传</strong>, 这个时间就是<code>RTO</code>，即<code>Retransimission Timeout</code>.</p>
+<p>当数据包需要重传时，很可能是由于对面已经意外关闭，网络连接断开，或者中间网络恶化等等。重试1次不一定成功，因此需要每隔一段时间重试一次。TCP一般实现，每次重传间隔时间加倍，这被称为<strong>二进制指数退避(binary exponential backoff)</strong>，多次重试后就应当考虑放弃连接。</p>
+<p>在建立连接时，我们可能遇到发起<code>SYN</code>失败，或对<code>SYN</code>返回<code>ACK</code>失败：</p>
+<p><code>net.ipv4.tcp_syn_retries</code> 用于控制<code>SYN</code>发送失败多少次应该放弃连接
+<code>net.ipv4.tcp_asynack_retries</code> 用于控制对<code>SYN</code>的<code>ACK</code>发送失败多少次应该放弃连接</p>
+<p>TCP定义了<code>R1</code>和<code>R2</code>两个阈值来决定如何重传同一个报文段，当达到<code>R1</code>时，IP层将需要考虑重新评估当前的IP传输路径；当达到<code>R2</code>时，则放弃当前连接。在Linux中，他们分别是：</p>
+<p><code>net.ipv4.tcp_retries1</code> 以及 <code>net.ipv4.tcp_retries2</code>.</p>
+<h3 id="rto估值的传统方法">RTO估值的传统方法</h3>
+<p>这个估值方法没有被现在的Linux协议栈采用，但是其思路简单，有一定的参考意义，因此做一下记录。</p>
+<p>对于RTT的估计值，根据历史取样加权计算出的<strong>平滑的RTT</strong>称为<code>SRTT</code>：</p>
+<p>$$SRTT\longleftarrow\alpha(SRTT)+(1-\alpha)RTT_{s}$$</p>
+<p>这里<code>SRTT</code>基于现存值和新的样本值$SRTT_{s}$得到更新结果。常量$\alpha$为平滑因子，推荐取值 0.8~0.9，这样估算<code>SRTT</code>时，一部分来自现存值，一部分来自新测量值，这种估算方式被称为<strong>加权移动平均</strong>或者<strong>低通过滤器</strong>.</p>
+<p>计算<code>RTO</code>时， 如果直接使用<code>RTT</code>，会导致<code>RTO</code>随着<code>RTT</code>不断变化，因此可以采用建议公式计算:</p>
+<p>$$RTO=min(ubound, max(lbound, (SRTT)\beta))$$</p>
+<p>其中$\beta$为离散因子， 推荐值为 1.3~2.0, ubound为上界，如1分钟，lbound为<code>RTO</code>下界，如1秒，这称为<em>经典方法</em>，在<code>RTT</code>稳定的网络中可以获得比较好的性能，但在<code>RTT</code>变化巨大的网络中，<strong>无法获得预期的效果</strong>。</p>
+<p>现在Linux采用的是一种通过采样获得<code>srtt</code>，以及绝对值偏差<code>rttvar</code>，偏差越大，<code>srtt</code>波动越剧烈，其计算比较复杂，在此不表，我也不打算掌握。在Linux 5.9内核，相关代码放在<code>net/sctp/transport.c:sctp_transport_update_rto</code>函数中。</p>
+<h3 id="重传二义性">重传二义性</h3>
+<p>在理想情况下，只要我们记录数据包发出的时间<code>T1</code>，然后记录返回<code>ACK</code>的时间<code>T2</code>，计算<code>T2-T1</code>就得到了<code>RTT</code>。但现实中，如果发生了数据包重传，那么发送端得到<code>ACK</code>时，我们不能确定它是重传的<code>ACK</code>，我们也不能确定它是第一个<code>ACK</code>, 因为重传时，两个<code>ACK</code>可能经过不同的路径先后到达发送端。这就是<strong>重传二义性</strong>。</p>
+<p>当发生超时时，通过一个退避系数(backoff factor)加倍，直到收到正常的非重传数据为止重置退避系数为1。这是<code>Karn算法</code>的重要部分，在发生超时时，同时会引发拥塞控制机制。</p>
+<h3 id="基于时间戳的rtt测量">基于时间戳的RTT测量</h3>
+<p>在Linux中开启sysctl选项<code>net.ipv4.tcp_timestamps=1</code>即可开启TCP的时间戳选项。Linux通过精度为<code>1ms</code>的时间戳来估计RTT，这同时也可以规避上面的重传二义性问题。</p>
+<p>在通信两端<em>都开启时间戳</em>的情况下, 发起方将会在TCP Option中加入一个Timestamps选项，设定一个32位数<code>TSval</code>(Timestamp value)为发送时的系统时间戳， 如果服务端也支持，那么会在Option中加入<code>TSecr</code>(Timestamp echo reply)将这个值原封不动放入，并放入自己的<code>TSval</code>。这样任意一方收到数据包时，就可以知道对方的<code>ACK</code>是针对自己什么时候发送的数据包做出的回应，从而精确到计算出<code>RTT</code>值。</p>
+<h3 id="linux-rto估计行为">Linux RTO估计行为</h3>
+<p>Linux中RTO的上下限分别为<code>TCP_RTO_MAX</code>和<code>TCP_RTO_MIN</code>，分别为120s和200ms。在特殊网络环境下，如同一机房内的集群，机器间通信RTT可能低于1ms。由于<code>rttvar</code>在默认情况下权重过大，当RTT减少可能反而导致<code>RTO</code>升高，以200ms作为下限。此时，如果网络中出现丢包，由于RTO远远超过实际RTT，重传将会严重降低网络性能。在Linux中，当出现这种情况时，可以通过削弱<code>rttvar</code>的比重来降低影响。在<a href="https://www.researchgate.net/publication/4287790_A_Performance_Study_of_Loss_DetectionRecovery_in_Real-world_TCP_Implementations">RKS07</a>中，作者发现将Linux的<code>TCP_RTO_MIN</code>从200ms调整到100ms的效果几乎可以忽略，但是调整<code>rttvar</code>在计算<code>RTO</code>时的比重可以有效的改变效率。</p>
+<h2 id="快速重传">快速重传</h2>
+<p>快速重传与超时重传在Linux网络实现中同时存在。当观察到有至少<code>dupthreshold</code>个重复<code>ACK</code>后，不必等到超时计时器生效，就可以重传数据。当然，也可以同时发送新的数据。这种方式的优点是不必等到超时再重传数据包，缺点是如果网络只是偶发的出现了重传，可能会导致不必要的重传。</p>
+<h2 id="带选择确认的重传">带选择确认的重传</h2>
+<p><code>SACK</code>选项允许TCP选择重传哪些数据包。当发送端收到一个<code>ACK</code>时，这个<code>ACK</code>与缓冲区其它数据（还没有收到ACK的）之间就形成了一个“空缺”，通过报告这个空缺，可以让对方有效的进行选择重传。</p>
+<p><code>SACK</code>在接收端，通过报告缓存中的“空缺”，从而让发送端知道该重传哪些数据。 <code>SACK</code>在发送端，在接收到了<code>SACK</code>或重复<code>ACK</code>时，可以<em>推断</em>需要重传的空缺数据。 由于这些行为在两端都是“建议性”的，因此可能出现变更，导致不必要的重传。</p>
+<h2 id="伪超时与伪重传">伪超时与伪重传</h2>
+<p>很多时候，即使没有出现数据包丢失也可能出现重传,这种不必要的重传被称为<em>伪重传</em>(spurious retransmission)，其主要造成的原因是<em>伪超时</em>(spurious timeout)，即过早的判定超时。在RTT显著增长超过当前RTO，或者出现包失序，丢失时可能出现这种伪重传。</p>
+<p>在接收端发现伪重传时，发送<code>DSACK</code>，从而告知发送方发生了伪重传，但这需要等到接收端发现并返回。也可以通过<strong>Eifel响应算法</strong>来提前检测出伪超时。</p>
+<h2 id="linux下查看当前的tcp连接rtt状态">Linux下查看当前的TCP连接RTT状态</h2>
+<pre tabindex="0"><code>ip tcp_metrics
+</code></pre><pre tabindex="0"><code>202.89.233.100 age 840.896sec cwnd 10 rtt 105537us rttvar 63949us source 10.8.4.106
+</code></pre>
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>TCP超时重传</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#超时重传">超时重传</a>
+          <ul>
+            <li><a href="#rto估值的传统方法">RTO估值的传统方法</a></li>
+            <li><a href="#重传二义性">重传二义性</a></li>
+            <li><a href="#基于时间戳的rtt测量">基于时间戳的RTT测量</a></li>
+            <li><a href="#linux-rto估计行为">Linux RTO估计行为</a></li>
+          </ul>
+        </li>
+        <li><a href="#快速重传">快速重传</a></li>
+        <li><a href="#带选择确认的重传">带选择确认的重传</a></li>
+        <li><a href="#伪超时与伪重传">伪超时与伪重传</a></li>
+        <li><a href="#linux下查看当前的tcp连接rtt状态">Linux下查看当前的TCP连接RTT状态</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Ethan Tang</title>
+  <meta name="description" content="Ethan Tang technical share" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  <link href="https://tangyanhan.github.io/index.xml" rel="alternate" type="application/rss+xml" title="Ethan Tang" />
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="posts">
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/runc-container/">Runc容器运行过程及容器逃逸原理</a>
+  </h1>
+  <time datetime="2021-01-28T09:13:11&#43;0800" class="post-date">Thu, Jan 28, 2021</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/">TCP保活机制闲扯</a>
+  </h1>
+  <time datetime="2021-01-19T22:20:28&#43;0800" class="post-date">Tue, Jan 19, 2021</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/dns/">DNS懒人包</a>
+  </h1>
+  <time datetime="2021-01-19T10:58:43&#43;0800" class="post-date">Tue, Jan 19, 2021</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/tcp-congestion-control/">TCP拥塞控制</a>
+  </h1>
+  <time datetime="2021-01-06T20:00:00&#43;0800" class="post-date">Wed, Jan 6, 2021</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/tcp-stream-control/">TCP流量控制</a>
+  </h1>
+  <time datetime="2020-12-29T19:23:20&#43;0800" class="post-date">Tue, Dec 29, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/kubebuilder/">Kubebuilder</a>
+  </h1>
+  <time datetime="2020-12-29T13:58:33&#43;0800" class="post-date">Tue, Dec 29, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/tcp-rto-retrans/">TCP超时重传</a>
+  </h1>
+  <time datetime="2020-12-24T09:07:42&#43;0800" class="post-date">Thu, Dec 24, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/tcp-rst/">TCP重置报文段</a>
+  </h1>
+  <time datetime="2020-12-21T14:08:37&#43;0800" class="post-date">Mon, Dec 21, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/tcp-basic/">TCP协议基础:连接建立，关闭与状态转移</a>
+  </h1>
+  <time datetime="2020-12-03T18:40:15&#43;0800" class="post-date">Thu, Dec 3, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/basic-network-tools/">有关端口的基本网络工具</a>
+  </h1>
+  <time datetime="2020-12-03T14:00:51&#43;0800" class="post-date">Thu, Dec 3, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/go-http-keepalive/">Go HTTP连接复用</a>
+  </h1>
+  <time datetime="2020-12-01T23:21:33&#43;0800" class="post-date">Tue, Dec 1, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/linux-network-basic/">Linux组网基础:虚拟设备</a>
+  </h1>
+  <time datetime="2020-12-01T23:20:34&#43;0800" class="post-date">Tue, Dec 1, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/bpf-tutorial-2/">eBPF入门-2: bpftrace</a>
+  </h1>
+  <time datetime="2020-07-04T20:24:33&#43;0800" class="post-date">Sat, Jul 4, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/bpf-tutorial-1/">eBPF入门-1: 概要，bcc工具包</a>
+  </h1>
+  <time datetime="2020-06-29T11:43:33&#43;0800" class="post-date">Mon, Jun 29, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/k8s-election/">Kubernetes源码分析:选举实现</a>
+  </h1>
+  <time datetime="2020-06-17T15:25:01&#43;0800" class="post-date">Wed, Jun 17, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/go-chan/">Go源码分析: chan 实现</a>
+  </h1>
+  <time datetime="2020-05-13T11:16:24&#43;0800" class="post-date">Wed, May 13, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/k8s-scheduler/">K8S Scheduler原理及扩展</a>
+  </h1>
+  <time datetime="2020-05-12T10:55:30&#43;0800" class="post-date">Tue, May 12, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/go-map/">Go源码分析: map</a>
+  </h1>
+  <time datetime="2020-05-07T12:05:24&#43;0800" class="post-date">Thu, May 7, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/helm-4-cap/">Helm(4) 让编排兼容不同版本K8S</a>
+  </h1>
+  <time datetime="2020-04-25T13:09:47&#43;0800" class="post-date">Sat, Apr 25, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/go-escape-analysis/">Go源码分析: 逃逸分析</a>
+  </h1>
+  <time datetime="2020-04-05T23:25:07&#43;0800" class="post-date">Sun, Apr 5, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/go-growslice/">Go源码分析: Slice内存增长方式</a>
+  </h1>
+  <time datetime="2020-04-04T22:41:18&#43;0800" class="post-date">Sat, Apr 4, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/calico-multicard/">Calico 多网卡解决方式</a>
+  </h1>
+  <time datetime="2020-03-30T16:19:15&#43;0800" class="post-date">Mon, Mar 30, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/retrospect/">微服务,DevOps设计与协作反思</a>
+  </h1>
+  <time datetime="2020-03-12T14:47:30&#43;0800" class="post-date">Thu, Mar 12, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/helm-3-tips/">Helm(3): 小技巧</a>
+  </h1>
+  <time datetime="2020-02-24T20:51:00&#43;0800" class="post-date">Mon, Feb 24, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/helm-2-create/">Helm(2): 创建和语法</a>
+  </h1>
+  <time datetime="2020-02-21T11:45:13&#43;0800" class="post-date">Fri, Feb 21, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/helm-1-use/">Helm(1):安装和使用</a>
+  </h1>
+  <time datetime="2020-02-21T11:40:26&#43;0800" class="post-date">Fri, Feb 21, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/istio-install/">Istio安装</a>
+  </h1>
+  <time datetime="2020-01-08T14:58:11&#43;0800" class="post-date">Wed, Jan 8, 2020</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/virtualbox-cluster/">使用Virtualbox&#43;kubeadm搭建k8s集群</a>
+  </h1>
+  <time datetime="2019-11-10T20:11:43&#43;0800" class="post-date">Sun, Nov 10, 2019</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/kubernetes-install-binary/">二进制安装Kubernetes</a>
+  </h1>
+  <time datetime="2019-11-04T21:43:03&#43;0800" class="post-date">Mon, Nov 4, 2019</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/redis-lock/">Redis分布式锁</a>
+  </h1>
+  <time datetime="2019-10-20T22:25:41&#43;0800" class="post-date">Sun, Oct 20, 2019</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/linux-desktop/">搭建适合日常工作的Linux桌面环境</a>
+  </h1>
+  <time datetime="2019-10-19T22:15:16&#43;0800" class="post-date">Sat, Oct 19, 2019</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/go-js-ws/">Go,Javascript与Websocket</a>
+  </h1>
+  <time datetime="2019-10-19T15:45:40&#43;0800" class="post-date">Sat, Oct 19, 2019</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/password/">漫谈密码</a>
+  </h1>
+  <time datetime="2019-10-19T15:45:40&#43;0800" class="post-date">Sat, Oct 19, 2019</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/redis-lua/">Go中通过Lua操纵Redis</a>
+  </h1>
+  <time datetime="2017-11-20T22:23:04&#43;0800" class="post-date">Mon, Nov 20, 2017</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/cpp-type-safe/">C&#43;&#43;数值运算与类型安全</a>
+  </h1>
+  <time datetime="2012-04-12T10:00:00&#43;0800" class="post-date">Thu, Apr 12, 2012</time>
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://tangyanhan.github.io/posts/password-security/">密码安全:存储/传输/安全问题设计</a>
+  </h1>
+  <time datetime="0001-01-01T00:00:00Z" class="post-date">Mon, Jan 1, 0001</time>
+</article>
+</div>
+    </main>
+
+    
+  </body>
+</html>

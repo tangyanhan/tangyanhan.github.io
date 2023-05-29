@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go源码分析: Slice内存增长方式 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Go源码分析: Slice内存增长方式</h1>
+  <time datetime=2020-04-04T22:41:18&#43;0800 class="post-date">Sat, Apr 4, 2020</time>
+  <p>源文件: runtime/slice.go</p>
+<p>slice 是一个连续的内存结构, 由3部分组成: 内存区域, 长度 和 可用长度(cap):</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">type</span> slice <span style="color:#8b008b;font-weight:bold">struct</span> {
+</span></span><span style="display:flex;"><span>	array unsafe.Pointer
+</span></span><span style="display:flex;"><span>	len   <span style="color:#00688b;font-weight:bold">int</span>
+</span></span><span style="display:flex;"><span>	cap   <span style="color:#00688b;font-weight:bold">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h1 id="make">make</h1>
+<p>创建一个slice， 实际上有3个参数： <code>make([]type, len, cap)</code></p>
+<p>当省略参数cap时，默认cap=len</p>
+<p>cap决定了实际分配内存区域的大小， 在进行 append/copy等操作时， 如果长度没有超过cap， 则不需要重新分配内存， 也不需要在内存中移动数据</p>
+<p>make slice原型： func makeslice</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">makeslice</span>(et *_type, len, cap <span style="color:#00688b;font-weight:bold">int</span>) unsafe.Pointer {
+</span></span><span style="display:flex;"><span>	mem, overflow := math.<span style="color:#008b45">MulUintptr</span>(et.size, <span style="color:#658b00">uintptr</span>(cap))
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">if</span> overflow || mem &gt; maxAlloc || len &lt; <span style="color:#b452cd">0</span> || len &gt; cap {
+</span></span><span style="display:flex;"><span>		<span style="color:#228b22">// NOTE: Produce a &#39;len out of range&#39; error instead of a
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		<span style="color:#228b22">// &#39;cap out of range&#39; error when someone does make([]T, bignumber).
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		<span style="color:#228b22">// &#39;cap out of range&#39; is true too, but since the cap is only being
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		<span style="color:#228b22">// supplied implicitly, saying len is clearer.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		<span style="color:#228b22">// See golang.org/issue/4085.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		mem, overflow := math.<span style="color:#008b45">MulUintptr</span>(et.size, <span style="color:#658b00">uintptr</span>(len))
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">if</span> overflow || mem &gt; maxAlloc || len &lt; <span style="color:#b452cd">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#008b45">panicmakeslicelen</span>()
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#008b45">panicmakeslicecap</span>()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#008b45">mallocgc</span>(mem, et, <span style="color:#8b008b;font-weight:bold">true</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h1 id="append">append</h1>
+<p>当调用 append 向 slice 添加元素时, 会发生什么?</p>
+<p>在所需新的cap低于1024时, 每次slice达到极限, 需要扩充时, 都会乘以原来长度的两倍.</p>
+<p>当超过1024时, 每次都会增长原长度的 1/4, 直至新的长度 &gt; 预期长度 为止.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	newcap := old.cap
+</span></span><span style="display:flex;"><span>	doublecap := newcap + newcap
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">if</span> cap &gt; doublecap {
+</span></span><span style="display:flex;"><span>		newcap = cap
+</span></span><span style="display:flex;"><span>	} <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">if</span> old.len &lt; <span style="color:#b452cd">1024</span> {
+</span></span><span style="display:flex;"><span>			newcap = doublecap
+</span></span><span style="display:flex;"><span>		} <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#228b22">// Check 0 &lt; newcap to detect overflow
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>			<span style="color:#228b22">// and prevent an infinite loop.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>			<span style="color:#8b008b;font-weight:bold">for</span> <span style="color:#b452cd">0</span> &lt; newcap &amp;&amp; newcap &lt; cap {
+</span></span><span style="display:flex;"><span>				newcap += newcap / <span style="color:#b452cd">4</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#228b22">// Set newcap to the requested cap when
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>			<span style="color:#228b22">// the newcap calculation overflowed.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>			<span style="color:#8b008b;font-weight:bold">if</span> newcap &lt;= <span style="color:#b452cd">0</span> {
+</span></span><span style="display:flex;"><span>				newcap = cap
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><p>验证扩充长度变化:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">TestAppend</span>(t *testing.T) {
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">var</span> s []<span style="color:#00688b;font-weight:bold">int</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	t.<span style="color:#008b45">Log</span>(<span style="color:#658b00">cap</span>(s))
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">for</span> i := <span style="color:#b452cd">0</span>; i &lt; <span style="color:#b452cd">1025</span>; i++ {
+</span></span><span style="display:flex;"><span>		s = <span style="color:#658b00">append</span>(s, i)
+</span></span><span style="display:flex;"><span>		t.<span style="color:#008b45">Log</span>(<span style="color:#658b00">cap</span>(s))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>此外, 每次扩张都会需要内存迁移 memmove 进行迁移.</p>
+<p>因此, 当slice发生扩容时, 实际包含了:</p>
+<ol>
+<li>计算新的长度</li>
+<li>分配内存</li>
+<li>memmove</li>
+</ol>
+<p>在进行 memmove 时, 不会对原内存区域进行清零. 因此, 假如原 slice 包含敏感信息, 此时对内存进行dump, 是可以找到残留信息的 (密码学实现需要关注这一点).</p>
+<p>另一个问题, 分配内存时是否一定会通过系统调用分配内存? 需要在单独研究中分析.</p>
+<h1 id="启示">启示</h1>
+<p>从以上分析中, 我们知道 growslice 是一个代价较高的过程. 如何避免或者减少这种影响呢?</p>
+<p>答案就是在分配时尽可能预设合适的cap. 如无必要, 避免在不预分配cap的情况下不断append.</p>
+<h2 id="append-slice">append slice</h2>
+<p>以下代码, 源slice一经确定, 但 s 最终 cap为16, 浪费了空间, 且发生了多次调整: 0-&gt; 1 -&gt; 2 -&gt; 4 -&gt; 8 -&gt; 16</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">TestAppend</span>(t *testing.T) {
+</span></span><span style="display:flex;"><span>	src := []<span style="color:#00688b;font-weight:bold">int</span>{<span style="color:#b452cd">1</span>, <span style="color:#b452cd">2</span>, <span style="color:#b452cd">3</span>, <span style="color:#b452cd">4</span>, <span style="color:#b452cd">5</span>, <span style="color:#b452cd">6</span>, <span style="color:#b452cd">7</span>, <span style="color:#b452cd">8</span>, <span style="color:#b452cd">9</span>, <span style="color:#b452cd">10</span>}
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">var</span> s []<span style="color:#00688b;font-weight:bold">int</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	t.<span style="color:#008b45">Log</span>(<span style="color:#658b00">cap</span>(s))
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">for</span> _, v := <span style="color:#8b008b;font-weight:bold">range</span> src {
+</span></span><span style="display:flex;"><span>		s = <span style="color:#658b00">append</span>(s, v)
+</span></span><span style="display:flex;"><span>		t.<span style="color:#008b45">Log</span>(<span style="color:#658b00">cap</span>(s))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="buffer-缓存">Buffer 缓存</h2>
+<p>bytes.Buffer 一般认为比直接将字符串相加效率更高, 但其存储使用的 byte slice, 也需要同样的扩容过程. 因此较好的策略是, 初始化时给它一个适度大小的slice作为起始内存区域.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>    <span style="color:#228b22">// 在某段函数中, 尝试计算和预测所需buf长度
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	totalLen += <span style="color:#658b00">len</span>(l)*<span style="color:#b452cd">4</span> + <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>	buf := <span style="color:#658b00">make</span>([]<span style="color:#00688b;font-weight:bold">byte</span>, totalLen)
+</span></span><span style="display:flex;"><span>	b := bytes.<span style="color:#008b45">NewBuffer</span>(buf)
+</span></span></code></pre></div>
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Go源码分析: Slice内存增长方式</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#make">make</a></li>
+    <li><a href="#append">append</a></li>
+    <li><a href="#启示">启示</a>
+      <ul>
+        <li><a href="#append-slice">append slice</a></li>
+        <li><a href="#buffer-缓存">Buffer 缓存</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

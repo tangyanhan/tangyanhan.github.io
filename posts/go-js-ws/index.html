@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go,Javascript与Websocket &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Go,Javascript与Websocket</h1>
+  <time datetime=2019-10-19T15:45:40&#43;0800 class="post-date">Sat, Oct 19, 2019</time>
+  <h1 id="js中建立websocket连接">JS中建立Websocket连接</h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">var</span> ws = <span style="color:#8b008b;font-weight:bold">new</span> WebSocket(<span style="color:#cd5555">&#34;ws://hostname/path&#34;</span>, [<span style="color:#cd5555">&#34;protocol1&#34;</span>, <span style="color:#cd5555">&#34;protocol2&#34;</span>])
+</span></span></code></pre></div><h2 id="参数说明">参数说明</h2>
+<p>第一个参数是服务端websocket地址，如果是https+websocket，那么前缀写成wss</p>
+<p>第二个参数并不是必须的，它约定了双方通讯使用的自定义子协议，会被放到这个Header中： Sec-WebSocket-Protocol</p>
+<p>子协议在某些场合是很必要的，例如服务端要与多个客户端版本兼容，那么若干个版本之后，服务端设定支持子协议 v1.5, v2.0, 而客户端发送的却是 v1.0，那么他们就可以在握手阶段失败，不会继续通信下去导致奇奇怪怪的错误。</p>
+<h2 id="携带额外信息及认证">携带额外信息及认证</h2>
+<p>WebSocket构造函数只有两个变量，不能提供通过设置自定义Header的方式来携带其它信息，但仍可以通过一些取巧的办法携带额外的信息，用于认证等：</p>
+<ol>
+<li>
+<p>通过ws地址填写形如 ws://username:password@hostname/path， 即构造出了 Authorization Header</p>
+</li>
+<li>
+<p>通过ws地址填写形如 ws://:password@hostname/path ，即构造出了 Bearer Token Header</p>
+</li>
+<li>
+<p>通过在Cookie中加入值，也能够携带额外的信息</p>
+</li>
+</ol>
+<p>因此，在服务端设计握手阶段认证时，应当避免使用这三种方式外携带的信息来进行认证（例如设置一个自定义的头部），当然也可以在websocket连接建立后，再通过自定义的认证协议，走websocket进行认证。</p>
+<h1 id="go中提供websocket服务">Go中提供Websocket服务</h1>
+<p>Google自己提供一个Websocket包 : golang.org/x/net/websocket</p>
+<p>不过他们亲口承认这个包缺乏一些特性，也缺乏维护，他们推荐用 github.com/gorilla/websocket (原文见 <a href="https://godoc.org/golang.org/x/net/websocket">https://godoc.org/golang.org/x/net/websocket</a>)</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// 这里代码使用了go-restful 作为http框架，换成http也无妨
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>conn, err := websocket.<span style="color:#008b45">Upgrade</span>(resp.ResponseWriter, req.Request, <span style="color:#8b008b;font-weight:bold">nil</span>, <span style="color:#b452cd">0</span>, <span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>    resp.<span style="color:#008b45">WriteError</span>(http.StatusBadRequest, err)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">defer</span> conn.<span style="color:#008b45">Close</span>()
+</span></span></code></pre></div><p>也可以手动创建一个 Upgrader 来处理子协议协商问题, 如果协商通过，就可以很容易的获得最终协商好的子协议，从而使用正确版本的数据格式和处理方法。</p>
+<h1 id="数据发送">数据发送</h1>
+<p>WebSocket发送的数据都是“帧（Frames）”，主要有这么几种：</p>
+<ul>
+<li>持续帧（用于数据分片，一般不明确使用）</li>
+<li>文本帧（传输文本数据）</li>
+<li>二进制帧（传输二进制数据）</li>
+<li>Ping/Pong帧 （用于心跳等，简单检测连接存活状态）</li>
+<li>控制帧（关闭连接等）</li>
+</ul>
+<p>JS中提供了send方法，能够发送文本帧或二进制帧：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span>ws.send(<span style="color:#cd5555">&#39;{&#34;abc&#34;:&#34;def&#34;}&#39;</span>)
+</span></span></code></pre></div><p>通过调用 ws.close(code, msg)， 可以发送关闭信息，如果不提供，那么默认code为1005（正常关闭），而不明确关闭，那么服务端收到的可能是1006.</p>
+<p>当服务端对连接发起Ping时，浏览器中活跃的WebSocket对象会自动回复Pong, 这可以用于连接的活跃检测。</p>
+<p>服务端向客户端发送的数据就要自由的多了，在此不多讲，参考包文档即可。</p>
+<h1 id="数据接收">数据接收</h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span>ws.onmessage = <span style="color:#8b008b;font-weight:bold">function</span>(event) {
+</span></span><span style="display:flex;"><span>    graphData = JSON.parse(event.data)
+</span></span><span style="display:flex;"><span>    console.log(<span style="color:#cd5555">&#39;Received graph data:&#39;</span>, graphData)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span>(graphData.error != <span style="color:#8b008b;font-weight:bold">null</span>) {
+</span></span><span style="display:flex;"><span>        loadGraphData(<span style="color:#8b008b;font-weight:bold">null</span>, graphData.error)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    loadGraphData(graphData, <span style="color:#cd5555">&#39;success&#39;</span>)
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>在服务端的数据接收一般需要一个单独的go routine进行处理，可以使用 NextReader, ReadMessage, ReadJSON这几个方法进行读取。需要注意的是，对于同一个WebSocket连接， 这些读取方法应当在同一个go routine中顺序执行，否则读取操作将导致上一个进行中的读取失败。</p>
+<h1 id="websocket的关闭">WebSocket的关闭</h1>
+<p>JS和Go中都提供了WebSocket的关闭事件监听，如:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span>ws.onclose = <span style="color:#8b008b;font-weight:bold">function</span>(event) {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> (event.wasClean) {
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">//alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    } <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>        console.log(<span style="color:#cd5555">&#39;WSError:&#39;</span>, event)
+</span></span><span style="display:flex;"><span>        showError(<span style="color:#cd5555">&#39;服务暂不可用，请稍后刷新&#39;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>conn.<span style="color:#008b45">SetCloseHandler</span>(<span style="color:#8b008b;font-weight:bold">func</span>(code <span style="color:#00688b;font-weight:bold">int</span>, msg <span style="color:#00688b;font-weight:bold">string</span>) <span style="color:#00688b;font-weight:bold">error</span> {
+</span></span><span style="display:flex;"><span>    c.closed &lt;- msg
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><p>但是需要知道的是，WebSocket的关闭事件是<strong>基于收到明确的关闭消息</strong>情况下才会出现的。换言之， 你在服务端监听WebSocket关闭事件，当浏览器页面刷新或关闭时，服务端并不能及时发现旧的WebSocket已经关闭，甚至向它们发送信息仍然不会收到任何错误（浏览器不关闭的情况下）。
+同样的，当服务器突然关闭，而关闭前又没有明确关闭所有WebSocket连接时，那么在JS中写的onclose事件也不会起作用。</p>
+<p>因此，服务端要想避免无用的WebSocket占用资源，应当维护一种心跳机制，而WebSocket协议已经提供了Ping/Pong帧用于做这件事，而JS中的WebSocket对象也默认能够回应Ping帧，因此心跳方案是：</p>
+<ul>
+<li>在服务端建立WebSocket连接后，每隔一个心跳周期T，向连接发送Ping，设定回应时限小于T（建议设置为 T/2)</li>
+<li>当Ping返回错误时，表明客户端已离线，或因种种原因未能在时限内回应Ping，服务端关闭连接，并将其移除</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>heartbeat := time.<span style="color:#008b45">Duration</span>(s.cfg.Heartbeat) * time.Second
+</span></span><span style="display:flex;"><span>tick := time.<span style="color:#008b45">NewTicker</span>(heartbeat)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">select</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">case</span> &lt;-tick.C:
+</span></span><span style="display:flex;"><span>        err := c.<span style="color:#008b45">WriteControl</span>(websocket.PingMessage, []<span style="color:#658b00">byte</span>(key), time.<span style="color:#008b45">Now</span>().<span style="color:#008b45">Add</span>(heartbeat/<span style="color:#b452cd">2</span>))
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>            log.<span style="color:#008b45">Printf</span>(<span style="color:#cd5555">&#34;Websocket Idle connection %s: Ping received error %s&#34;</span>, key, err.<span style="color:#008b45">Error</span>())
+</span></span><span style="display:flex;"><span>            <span style="color:#8b008b;font-weight:bold">return</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">case</span> &lt;-s.ctx.<span style="color:#008b45">Done</span>():
+</span></span><span style="display:flex;"><span>        log.<span style="color:#008b45">Printf</span>(<span style="color:#cd5555">&#34;Websocket closed for client %s: server is closing\n&#34;</span>, key)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">case</span> msg := &lt;-c.closed:
+</span></span><span style="display:flex;"><span>        log.<span style="color:#008b45">Printf</span>(<span style="color:#cd5555">&#34;Websocket closed for client %s: %s\n&#34;</span>, key, msg)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这种方案的优点是利用了JS自带的Pong回应，不需要写额外的JS代码，而服务端实现也比较简单。</p>
+<p>先前网上查了一些方案，是在客户端借助send发送数据帧来进行心跳，同样的服务端也要单独针对这种数据帧进行处理，有些过于复杂了。</p>
+<h1 id="js防止堵塞">JS防止堵塞</h1>
+<p>WebSocket连接建立后，客户端与服务端之间建立了一条长连接，其后所有的数据通讯都要在这一个socket上传输。当客户端频繁发送数据时，数据就可能会堵塞在本地，JS中提供了一种方法可以限制发送速率：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#228b22">// 每隔100毫秒发送数据， 这里限制为只有在没有缓存时才会发送数据
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>setInterval(() =&gt; {
+</span></span><span style="display:flex;"><span>  <span style="color:#8b008b;font-weight:bold">if</span> (socket.bufferedAmount == <span style="color:#b452cd">0</span>) {
+</span></span><span style="display:flex;"><span>    socket.send(moreData());
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}, <span style="color:#b452cd">100</span>);
+</span></span></code></pre></div><p>通过读取 bufferedAmount 就可以知道当前连接是否堵塞， 可以决定是否继续发送。</p>
+<h1 id="js中的错误处理">JS中的错误处理</h1>
+<p>握手阶段出现错误：</p>
+<p>如果由于子协议协商等原因，WebSocket未能成功升级，那么会在 onclose 事件中收到消息</p>
+<p>其它错误在ws.onerror 中处理</p>
+<p>ws.onclose 事件接收到的 event主要有 wasClean(bool), code(int), reason(string) 几个成员，主要作用是：</p>
+<p>wasClean 当js主动发起ws.close时，onclose接收到的事件中该值为true，其他情况不管服务器以什么状态码关闭，是false</p>
+<p>code: 关闭时的状态码</p>
+<p>reason: 关闭时发送的关闭消息，一般用于详细说明情况（如：服务器正在关闭/重启，等等）</p>
+<h1 id="关闭">关闭</h1>
+<p>在服务端调用 websocket.Conn.Close() 的作用是关闭底层socket， <strong>不能</strong>让client收到有效的消息，正确的关闭应当手动发送Close消息：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>conn.<span style="color:#008b45">WriteControl</span>(websocket.CloseMessage,
+</span></span><span style="display:flex;"><span>    websocket.<span style="color:#008b45">FormatCloseMessage</span>(websocket.CloseNormalClosure, <span style="color:#cd5555">&#34;Server is closing&#34;</span>),
+</span></span><span style="display:flex;"><span>    time.<span style="color:#008b45">Now</span>().<span style="color:#008b45">Add</span>(time.Second))
+</span></span></code></pre></div><p>同理，在JS客户端，不需要使用websocket时应当手动关闭WebSocket，页面刷新或离开时也应当关闭WebSocket：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#8b008b;font-weight:bold">body</span> <span style="color:#658b00">onunload</span>=<span style="color:#cd5555">&#34;leavePage()&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#8b008b;font-weight:bold">script</span>&gt;
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">function</span> leavePage() {
+</span></span><span style="display:flex;"><span>        ws.close(<span style="color:#b452cd">1000</span>, <span style="color:#cd5555">&#39;Client closed&#39;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#8b008b;font-weight:bold">script</span>&gt;
+</span></span></code></pre></div><p>WebSocket关闭的常用状态码，参见 websocket/conn.go 或RFC文档，几个常见的WebSocket关闭码：</p>
+<ul>
+<li>1000: 正常关闭</li>
+<li>1001: 服务端暂停服务，或客户端离开页面</li>
+<li>1005: 这次关闭没有状态码</li>
+<li>1006: 这是一次不正常关闭，没有发送关闭帧</li>
+</ul>
+<h1 id="网关配置">网关配置</h1>
+<p>在生产实践中, 会发现经常出现写入Websocket失败:</p>
+<pre tabindex="0"><code>write tcp xxx.xxx.xxx.xxx:9000-&gt; xxx.xxx.xxx.xxx:xxxx: write: broken pipe
+</code></pre><p>broken pipe 错误见于向一个已经关闭的socket写入数据. 但是服务端已经通过心跳确保客户端连接存活, 客户端也没有主动切断连接, 为什么还会出现这种错误呢?</p>
+<p>后来发现是网关nginx默认配置了连接超时, 超过这个时间, 连接就会被干掉.</p>
+<p>解决方案:</p>
+<ol>
+<li>网关对websocket延长超时</li>
+</ol>
+<p>上调 <code>proxy_read_timeout</code>, 默认为60秒</p>
+<ol start="2">
+<li>客户端增加重连机制</li>
+</ol>
+<p>当客户端发现无法连接到服务端时, 主动重连服务端. 因为在这种时候, 服务端不可能主动反向重连.</p>
+<ol start="3">
+<li>服务端有多实例, 而Websocket有状态时, 配置网关转发规则, 确保切断后仍能连回同一服务端.</li>
+</ol>
+<h1 id="参考文档">参考文档</h1>
+<p>JS： <a href="https://javascript.info/websocket#opening-a-websocket">https://javascript.info/websocket#opening-a-websocket</a></p>
+<p>Go： <a href="https://godoc.org/github.com/gorilla/websocket">https://godoc.org/github.com/gorilla/websocket</a></p>
+<p>WebSocket： <a href="https://github.com/HJava/myBlog/tree/master/WebSocket%20%E5%8D%8F%E8%AE%AE%20RFC%20%E6%96%87%E6%A1%A3">https://github.com/HJava/myBlog/tree/master/WebSocket%20%E5%8D%8F%E8%AE%AE%20RFC%20%E6%96%87%E6%A1%A3</a></p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Go,Javascript与Websocket</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#js中建立websocket连接">JS中建立Websocket连接</a>
+      <ul>
+        <li><a href="#参数说明">参数说明</a></li>
+        <li><a href="#携带额外信息及认证">携带额外信息及认证</a></li>
+      </ul>
+    </li>
+    <li><a href="#go中提供websocket服务">Go中提供Websocket服务</a></li>
+    <li><a href="#数据发送">数据发送</a></li>
+    <li><a href="#数据接收">数据接收</a></li>
+    <li><a href="#websocket的关闭">WebSocket的关闭</a></li>
+    <li><a href="#js防止堵塞">JS防止堵塞</a></li>
+    <li><a href="#js中的错误处理">JS中的错误处理</a></li>
+    <li><a href="#关闭">关闭</a></li>
+    <li><a href="#网关配置">网关配置</a></li>
+    <li><a href="#参考文档">参考文档</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

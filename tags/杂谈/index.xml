@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>杂谈 on Ethan Tang</title>
+    <link>https://tangyanhan.github.io/tags/%E6%9D%82%E8%B0%88/</link>
+    <description>Recent content in 杂谈 on Ethan Tang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 12 Mar 2020 14:47:30 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/%E6%9D%82%E8%B0%88/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>微服务,DevOps设计与协作反思</title>
+      <link>https://tangyanhan.github.io/posts/retrospect/</link>
+      <pubDate>Thu, 12 Mar 2020 14:47:30 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/retrospect/</guid>
+      <description>在此反思下我们用微服务来开发DevOps产品时, 设计开发中遇到的种种问题.
+拆分 我们一度把几乎每个模块(是的,模块),一组相对独立的功能都拆分成了一个&amp;quot;微服务&amp;quot;. 然而拆分粒度过小, 带来的后果就是互相之间依赖极高,形成了一张网.
+表面上看, 这带来的主要成本就是组件之间依赖关系多, 需要提供各种各样的内部API, 然而实践中发现, 拆分过细的微服务还带来了以下副作用:
+组件开发协同的时间代价, 这个时间代价=沟通API及数据格式+各自开发+debug 更多更复杂的安装组件, 不但为部署运维增加开发难度, 开发过程本身, 易用的调试环境就难以保障稳定运行. 更多的镜像. 某些客户环境是网络封闭的, 安装人员必须携带打包好的镜像去客户现场安装, 结果巨大的镜像每次都要花费较多时间. 理想状态下, 微服务应该是只需要少部分前置条件, 就能够独立的提供一部分功能. 开发者应当可以轻易的组建出自测环境. 一个比较好的例子, 在EMC Rubicon团队时, 每个微服务组件都自带一组docker-compose(当时我们部署还是在marathon上), 对自己的必要依赖进行mock或抽取, 每次进行更改代码时, 都能够轻易的搭建出简易的测试环境.
+包产到户 在实际开发中, 有些组件采取了一人一组件的开发方式, 短期内大家都没问题, 但这些组件的设计过程和开发过程, 很多实现细节, 都是对团队不透明的.
+由于没有良好的开发规范, 这些组件的开发过程完全对团队处于黑盒状态, 有时直到交付, 才发现从设计上就存在严重的问题. 而在代码开发过程中, 提交代码由于缺乏上下文, 代码难以Review, 质量更是无从谈起. 如此实行微服务开发, 在实际开发过程中, 由单人开发的组件, 其开发过程中往往更加不重视文档, 当人员发生流动时, 很多的细节都会丢失.
+我们有一个旧版本组件, 由单人负责进行了&amp;quot;3代单传&amp;quot;, 在流动到第三个人时彻底失去了可维护性. 某个组件设计开发过程中仅约束API, 最终合作调试时才发现, 这个组件由于设计缺陷, 存在严重的性能问题. 某组件的设计一直由初级工程师负责, 处于三不管状态, 某天突然发现对接是有问题的. 某组件由情侣档负责,平时几乎完全不透明,而他们的离职时间几乎是一致的 强烈建议在开发初期就搭建一套自动化的代码质量审查, 如Python的flake, Go的gometalinter, SonarQube等. SonarQube这些工具的一个最大好处, 可能就是在某人不得不独立开发组件, 别人又没时间review的情况下, 能够提供一个大家都能看懂的质量评估.</description>
+    </item>
+    
+    <item>
+      <title>搭建适合日常工作的Linux桌面环境</title>
+      <link>https://tangyanhan.github.io/posts/linux-desktop/</link>
+      <pubDate>Sat, 19 Oct 2019 22:15:16 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/linux-desktop/</guid>
+      <description>Linux稳定性好，Linux软件开放……不过等到决定把Linux当作日常工作用系统时，就一言难尽了……
+我日常工作的需求有：
+笔记本扩展屏幕
+Golang开发
+docker/kubernetes: 日常工作会使用Virtualbox启动1-1的K8S集群
+输入法
+Git及文件对比
+办公通信： Office365邮件，微信，企业微信
+娱乐需求： 网易云音乐，播放本地音乐
+无线投屏演示
+我目前使用的笔记本是华硕灵耀，在使用不同发行版过程中遇到的坑有：
+CentOS 安装完毕后无法使用无线网卡，推测是内核较老缺少无线网卡 Gnome用的是Gnome3, KDE用的还是10年前的塑料风KDE3,丑拒 Ubuntu Unity3 桌面下，每天至少出现一次界面卡死，切换终端无反应，只能选择重启，另一个同事在小米笔记本上也是类似，可能是某些软件的兼容性出现问题
+Lxde桌面下，不能支持Fn系列快捷键，自带软件不支持多屏幕，必须手动添加软件并手动设定
+KDE桌面下一切表现都比较良好，但是自从 18.04.2版本后的一次系统更新后，引导必定黑屏，至今未找到原因，即使将内核切换回更新前的版本也无效，累觉不爱
+Fedora 这是我目前使用的版本，自从Kubuntu发生引导黑屏后更换数个系统，发现还是这个比较好用。目前已稳定运行两个多月，日常使用无死机，不过还是有一些问题:
+Gnome3版本对一些特殊的投屏等支持不佳，因此仍旧使用KDE KDE桌面环境下，当使用IBus时，将使VSCode内无法鼠标选中多行代码, 目前使用Fcitx+pinyin 当使用多屏幕时，如果已经设定只显示外接显示器，那么拔下视频线后，KDE桌面将不会自动切换，笔记本屏幕保持黑屏，这时需要Fn盲操作才能让桌面切换回来 目前的软件解决方案 扩展屏幕及Fn键支持： KDE5桌面
+Golang IDE: VSCode/LiteIDE
+当使用go modules模式进行Golang开发时, VSCode 在Linux下存在gocode-mod占用超多内存的问题,因此在开了K8S集群后,有时候会比较卡,不得不用LiteIDE. LiteIDE作为一个Golang IDE对资源占用较小,勉强够用,但是代码提示并不进行缓存,因此经常出现跳转需要等几秒钟才能跳的问题.
+kubernetes: Virtualbox+kubeadm Ubuntu的microk8s文档有点少，用了一段时间之后放弃了。minikube 号称支持kvm或virtualbox，曾经试过kvm+minikube的组合，代替virtualbox+minikube，很坑，各种莫名其妙的错误防不胜防，已放弃。 kubeadm是正式kubernetes的简化版，不像microk8s/minikube能够自动适应笔记本换IP的问题，不适合在家/在办公室随便玩,因此我的办法是使用两台虚拟机构成局域网搭建了一个1 Master 1 Node集群. 对内存和CPU消耗并不是很高.
+Git/文件对比： gitg, meld (gitg有时会出现崩溃,并不是很靠谱)
+输入法: fcitx + pinyin
+经过实验, ibus和scim会在某些输入场合出现奇奇怪怪的bug,例如无法在vscode选中多行,这可能和GTK/KDE兼容性有关.
+办公通信： 邮件，微信，企业微信通过 Virtualbox+Win7+无缝模式的方式， 32位Win7对内存占用还没有Goland高，Virtualbox提供的无缝模式可以让微信的窗口像是Linux自己的一样
+截图: 使用KDE自带的 Spectacle , 曾经尝试过flameshot, 但flameshot会出现假死问题.</description>
+    </item>
+    
+  </channel>
+</rss>

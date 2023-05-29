@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Kubernetes源码分析:选举实现 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Kubernetes源码分析:选举实现</h1>
+  <time datetime=2020-06-17T15:25:01&#43;0800 class="post-date">Wed, Jun 17, 2020</time>
+  <p>Kubernetes 中有很多服务都是可以高可用部署的, 但有些需要对K8S资源进行创建/更新操作的服务, 在观察到资源变化后, 很容易同时对资源进行操作, 导致不必要的更新.</p>
+<p>虽然K8S有 ResourceVersion 这种锁存在, 多个实例同时进行资源的创建/更新操作也会浪费资源, 使得代码逻辑变得复杂. ControllerManagers, Scheduler 两个组件目前都是使用 client-go 中的 <code>leaderelection</code> 组件, 实现单个 leader 的选举.</p>
+<h2 id="竞态资源">竞态资源</h2>
+<p>我们知道, K8S的包括List-Watch机制, 以及数据一致性都是靠 ETCD 来保证的. 有了ETCD, K8S就可以假设自己有了一块可以保证数据一致性的区域, 允许各个组件通过向它写入/读取数据, 来完成选举过程.</p>
+<p>ETCD已经通过Raft实现了一致性的保证, 我们只需要借助K8S自带的某种资源, 所有候选人(Leader Candidate) 读写同一个 namespace/name 的某种资源即可.</p>
+<p>目前client-go 自带的竞态资源有 ConfigMap/Endpoints/Coordination, 都是结构比较简单的数据类型. 默认推荐为 Endpoints.</p>
+<p>围绕竞态资源的操作被封装为 <code>k8s.io/client-go/tools/leaderelection/resourcelock/interface.go:Interface</code></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">type</span> Interface <span style="color:#8b008b;font-weight:bold">interface</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// Get returns the LeaderElectionRecord
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#008b45">Get</span>() (*LeaderElectionRecord, []<span style="color:#00688b;font-weight:bold">byte</span>, <span style="color:#00688b;font-weight:bold">error</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// Create attempts to create a LeaderElectionRecord
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#008b45">Create</span>(ler LeaderElectionRecord) <span style="color:#00688b;font-weight:bold">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// Update will update and existing LeaderElectionRecord
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#008b45">Update</span>(ler LeaderElectionRecord) <span style="color:#00688b;font-weight:bold">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// RecordEvent is used to record events
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#008b45">RecordEvent</span>(<span style="color:#00688b;font-weight:bold">string</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// Identity will return the locks Identity
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#008b45">Identity</span>() <span style="color:#00688b;font-weight:bold">string</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// Describe is used to convert details on current resource lock
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// into a string
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#008b45">Describe</span>() <span style="color:#00688b;font-weight:bold">string</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>观察具体实现, 会发现主要通过对具体竞态资源的 annotations 字段进行更新来完成. 选举成功的Leader信息, 将会被以key <code>control-plane.alpha.kubernetes.io/leader</code> 写入annotation.</p>
+<p>每个候选人都持有一些信息, 一旦选举成功, 就会被写入:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">type</span> LeaderElectionRecord <span style="color:#8b008b;font-weight:bold">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// HolderIdentity is the ID that owns the lease. If empty, no one owns this lease and
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// all callers may acquire. Versions of this library prior to Kubernetes 1.14 will not
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// attempt to acquire leases with empty identities and will wait for the full lease
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// interval to expire before attempting to reacquire. This value is set to empty when
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">// a client voluntarily steps down.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    <span style="color:#228b22">// 候选人的唯一ID
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    HolderIdentity       <span style="color:#00688b;font-weight:bold">string</span>      <span style="color:#cd5555">`json:&#34;holderIdentity&#34;`</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 下一轮间隔
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    LeaseDurationSeconds <span style="color:#00688b;font-weight:bold">int</span>         <span style="color:#cd5555">`json:&#34;leaseDurationSeconds&#34;`</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 竞选成功的时间
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    AcquireTime          metav1.Time <span style="color:#cd5555">`json:&#34;acquireTime&#34;`</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 连任时间
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    RenewTime            metav1.Time <span style="color:#cd5555">`json:&#34;renewTime&#34;`</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// 竞态计数器, 不同的候选人竞选成功后, 会将该值+1
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	LeaderTransitions    <span style="color:#00688b;font-weight:bold">int</span>         <span style="color:#cd5555">`json:&#34;leaderTransitions&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="选举过程">选举过程</h2>
+<p>选举过程主要实现在 <code>k8s.io/client-go/tools/leaderelection.go</code> 中.</p>
+<ol start="0">
+<li>填写自己的选票, 将 RenewTime/AcquireTime 设置为当前时间</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>now := metav1.<span style="color:#008b45">Now</span>()
+</span></span><span style="display:flex;"><span>leaderElectionRecord := rl.LeaderElectionRecord{
+</span></span><span style="display:flex;"><span>    HolderIdentity:       le.config.Lock.<span style="color:#008b45">Identity</span>(),
+</span></span><span style="display:flex;"><span>    LeaseDurationSeconds: <span style="color:#658b00">int</span>(le.config.LeaseDuration / time.Second),
+</span></span><span style="display:flex;"><span>    RenewTime:            now,
+</span></span><span style="display:flex;"><span>    AcquireTime:          now,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol>
+<li>获取竞态资源, 如果资源不存在, 创建一个.</li>
+</ol>
+<ul>
+<li>创建成功, 则选举立即成功.</li>
+<li>创建失败, 选举结束, 等待下一轮重试.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>oldLeaderElectionRecord, oldLeaderElectionRawRecord, err := le.config.Lock.<span style="color:#008b45">Get</span>()
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> !errors.<span style="color:#008b45">IsNotFound</span>(err) {
+</span></span><span style="display:flex;"><span>        klog.<span style="color:#008b45">Errorf</span>(<span style="color:#cd5555">&#34;error retrieving resource lock %v: %v&#34;</span>, le.config.Lock.<span style="color:#008b45">Describe</span>(), err)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> err = le.config.Lock.<span style="color:#008b45">Create</span>(leaderElectionRecord); err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>        klog.<span style="color:#008b45">Errorf</span>(<span style="color:#cd5555">&#34;error initially creating leader election record: %v&#34;</span>, err)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    le.observedRecord = leaderElectionRecord
+</span></span><span style="display:flex;"><span>    le.observedTime = le.clock.<span style="color:#008b45">Now</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol start="2">
+<li>检查竞态资源, 如果目前的Leader不是自己, 而且现在还没有到Leader卸任时间, 则认可目前的Leader, 放弃竞选.</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// 2. Record obtained, check the Identity &amp; Time
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">if</span> !bytes.<span style="color:#008b45">Equal</span>(le.observedRawRecord, oldLeaderElectionRawRecord) {
+</span></span><span style="display:flex;"><span>    le.observedRecord = *oldLeaderElectionRecord
+</span></span><span style="display:flex;"><span>    le.observedRawRecord = oldLeaderElectionRawRecord
+</span></span><span style="display:flex;"><span>    le.observedTime = le.clock.<span style="color:#008b45">Now</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> <span style="color:#658b00">len</span>(oldLeaderElectionRecord.HolderIdentity) &gt; <span style="color:#b452cd">0</span> &amp;&amp;
+</span></span><span style="display:flex;"><span>    le.observedTime.<span style="color:#008b45">Add</span>(le.config.LeaseDuration).<span style="color:#008b45">After</span>(now.Time) &amp;&amp;
+</span></span><span style="display:flex;"><span>    !le.<span style="color:#008b45">IsLeader</span>() {
+</span></span><span style="display:flex;"><span>    klog.<span style="color:#008b45">V</span>(<span style="color:#b452cd">4</span>).<span style="color:#008b45">Infof</span>(<span style="color:#cd5555">&#34;lock is held by %v and has not yet expired&#34;</span>, oldLeaderElectionRecord.HolderIdentity)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol start="3">
+<li>如果自己是Leader, AcquireTime/LeaderTransitions保持不变, 否则 LeaderTransitions+1</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// 3. We&#39;re going to try to update. The leaderElectionRecord is set to it&#39;s default
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">// here. Let&#39;s correct it before updating.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">if</span> le.<span style="color:#008b45">IsLeader</span>() {
+</span></span><span style="display:flex;"><span>    leaderElectionRecord.AcquireTime = oldLeaderElectionRecord.AcquireTime
+</span></span><span style="display:flex;"><span>    leaderElectionRecord.LeaderTransitions = oldLeaderElectionRecord.LeaderTransitions
+</span></span><span style="display:flex;"><span>} <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>    leaderElectionRecord.LeaderTransitions = oldLeaderElectionRecord.LeaderTransitions + <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol start="4">
+<li>尝试将竞态资源更新成自己的选票</li>
+</ol>
+<ul>
+<li>更新失败, 则可能其它候选人已经成功, 竞选失败</li>
+<li>更新成功, 连任/选举成功</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// update the lock itself
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">if</span> err = le.config.Lock.<span style="color:#008b45">Update</span>(leaderElectionRecord); err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>    klog.<span style="color:#008b45">Errorf</span>(<span style="color:#cd5555">&#34;Failed to update lock: %v&#34;</span>, err)
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">false</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>le.observedRecord = leaderElectionRecord
+</span></span><span style="display:flex;"><span>le.observedTime = le.clock.<span style="color:#008b45">Now</span>()
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">true</span>
+</span></span></code></pre></div><h2 id="主动卸任">主动卸任</h2>
+<p>当组件退出时, 需要主动卸任. 通过将竞态资源更新为 LeaderTransitions保持不变, 其它为空的值.</p>
+<h2 id="边缘情况探讨">边缘情况探讨</h2>
+<ul>
+<li>初始启动</li>
+</ul>
+<p>谁成功创建了边缘资源, 就成功竞选Leader.</p>
+<ul>
+<li>Leader卸任/Leader失败</li>
+</ul>
+<p>Leader卸任和失败本质都差不多, 切换到其它候选人的时间差最大为 RetryPeriod.</p>
+<ul>
+<li>时钟不同步</li>
+</ul>
+<p>假设两个Controller分别运行于不同节点, 他们通过系统调用获得的时间取自各自的操作系统.</p>
+<p>当时钟不同步时, 将导致候选者尝试参加竞选时, 对竞选的时机产生不同意见.</p>
+<ol>
+<li>
+<p>候选者时钟落后于Leader, 将导致Leader卸任/失败后, 候选者迟迟不能参与竞选, 直到弥补这段时间差为止.</p>
+</li>
+<li>
+<p>候选者时钟超前于Leader, 将导致Leader任期内, 候选者尝试竞选. 这时由于只有一个候选者发起竞选, 它将顺利成功, 而此时Leader将直到下个RetryPeriod才能发现该问题, 期间将会出现两个Leader.</p>
+</li>
+</ol>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Kubernetes源码分析:选举实现</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#竞态资源">竞态资源</a></li>
+        <li><a href="#选举过程">选举过程</a></li>
+        <li><a href="#主动卸任">主动卸任</a></li>
+        <li><a href="#边缘情况探讨">边缘情况探讨</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

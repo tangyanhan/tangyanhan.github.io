@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>TCP重置报文段 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>TCP重置报文段</h1>
+  <time datetime=2020-12-21T14:08:37&#43;0800 class="post-date">Mon, Dec 21, 2020</time>
+  <p>本节是作为《TCP/IP详解·卷1:协议》中TCP连接管理一章中“重置报文段”的读书笔记及一部分自己的扩展。</p>
+<p>当TCP头部RST位字段置为1时，报文段就被称为“重置报文段”。在tcpdump监听流量时，会看到<code>R</code>字符标识。 这里介绍重置报文段的用途以及相关Linux配置。</p>
+<h1 id="重置报文段的用途">重置报文段的用途</h1>
+<h2 id="1-拒绝不存在端口的连接请求">1. 拒绝不存在端口的连接请求</h2>
+<p>首先，启动tcpdump，监听本机lo接口:</p>
+<p><img src="/images/post/tcp_syn/tcp_syn_conn_refused.png" alt="tcpdump"></p>
+<p>我们试着用curl访问本机上并未监听的端口8888，报告错误<code>Connection Refused</code>：</p>
+<p><img src="/images/post/tcp_syn/tcp_syn_conn_refused_2.png" alt="connrefused"></p>
+<p>可以看到两条报文，第一条报文是curl发出的<code>SYN</code>，随后是本机做出的回应，其标志符为<code>R</code>，拒绝了我们的连接。</p>
+<p>结论: 请求没有监听的端口，返回重置报文段，报错<code>Connection Refused</code></p>
+<h2 id="2-暴力终止连接">2. 暴力终止连接</h2>
+<p>之前在TCP连接建立与终止中讲到，TCP正常的终止是使用<code>FIN</code>报文，这也被成为<code>有序释放</code>，它需要通信两端4次报文段交换才能结束。
+但有时我们可以采用一种更暴力的手段来终止连接，比如服务端并不在意客户端是否收到了结束报文，因为它马上就要进行一次重启。通过<code>RST</code>报文终止连接，也被称为<code>终止释放</code>。终止发起方将会马上发出一个<code>RST</code>报文，并不再关注对方是否进行回复，而另一方收到时，会说明是收到了<code>RST</code>进行终止而非正常的<code>FIN</code>。</p>
+<p>在Socket建立时可以通过<code>SO_LINGER</code>来设定这种行为。在Linux中，可以通过<a href="https://linux.die.net/man/3/setsockopt">setsockopt</a>，将<code>SO_LINGER</code>设置为0，这样当调用<code>close</code>时，会直接发送重置报文段，不会等待缓存发送完成。在Golang中，对<code>TCPConn</code>对象调用<code>SetLinger(0)</code>即可。</p>
+<p>我们写一段简单的Go服务端程序，将TCP连接通过<code>SetLinger(0)</code>将其设定为关闭时发送<code>RST</code>，然后尝试读写:</p>
+<p><img src="/images/post/tcp_syn/conn_reset_by_peer.png" alt="conn_reset_by_peer">
+<img src="/images/post/tcp_syn/conn_reset_by_peer_client.png" alt="conn_reset_by_peer_client"></p>
+<p>结论: 一方通过重置报文段直接终止了连接，另一端报错<code>Connection reset by peer</code>.</p>
+<h2 id="3-半开连接">3. 半开连接</h2>
+<p>在通信过程中，通信一方关闭或终止连接，但不告知另一端，那么就会形成一个半开连接，例如一端电源被切断而非主动关机。在主机电源恢复后，由于已经不记得之前的TCP连接信息，对于另一端发来的TCP报文段，将会回复一个<code>RST</code>作为响应，另一端收到后将会主动关闭连接并反应情况。</p>
+<h2 id="4-时间等待错误">4. 时间等待错误</h2>
+<p>正常关闭时，主动关闭方最后维持<code>TIME_WAIT</code>状态等待<code>2MSL</code>后彻底关闭，但此时如果收到一条重置报文段，就会破坏该状态，导致提前进入<code>CLOSED</code>状态。默认被动关闭方（服务器）此时连接进入<code>TIME_WAIT</code>状态，如果此时收到了之前的旧报文，由于连接已经关闭，服务器不记得信息，就会回复重置报文段，从而导致状态被破坏。许多系统实现时，连接处于<code>TIME_WAIT</code>状态时不会对重置报文段做出反应。</p>
+<h1 id="linux内核实现中的重置报文段">Linux内核实现中的重置报文段</h1>
+<p>Linux中重置报文段的处理，在<code>net/ipv4/tcp_input.c:tcp_reset()</code>中:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#00688b;font-weight:bold">void</span> <span style="color:#008b45">tcp_reset</span>(<span style="color:#8b008b;font-weight:bold">struct</span> sock *sk)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">/* We want the right error as BSD sees it (and indeed as we do). */</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">switch</span> (sk-&gt;sk_state) {
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">case</span> TCP_SYN_SENT:
+</span></span><span style="display:flex;"><span>		sk-&gt;sk_err = ECONNREFUSED;
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">case</span> TCP_CLOSE_WAIT:
+</span></span><span style="display:flex;"><span>		sk-&gt;sk_err = EPIPE;
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">break</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">case</span> TCP_CLOSE:
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">return</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">default</span>:
+</span></span><span style="display:flex;"><span>		sk-&gt;sk_err = ECONNRESET;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">/* This barrier is coupled with smp_rmb() in tcp_poll() */</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#008b45">smp_wmb</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#008b45">tcp_write_queue_purge</span>(sk);
+</span></span><span style="display:flex;"><span>	<span style="color:#008b45">tcp_done</span>(sk);
+</span></span></code></pre></div><ol>
+<li>当主动建立请求时，得到<code>RST</code>，则报错 <code>ECONNREFUSED： Connection refused</code></li>
+<li>当服务端连接处于<code>CLOSE_WAIT</code>状态，收到<code>RST</code>,则报错 <code>EPIPE: Broken pipe</code></li>
+<li>连接已经关闭，处于<code>CLOSED</code>状态，忽略</li>
+<li>其他情况，一律报错 <code>ECONNRESET: Connection reset by peer</code></li>
+</ol>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>TCP重置报文段</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#重置报文段的用途">重置报文段的用途</a>
+      <ul>
+        <li><a href="#1-拒绝不存在端口的连接请求">1. 拒绝不存在端口的连接请求</a></li>
+        <li><a href="#2-暴力终止连接">2. 暴力终止连接</a></li>
+        <li><a href="#3-半开连接">3. 半开连接</a></li>
+        <li><a href="#4-时间等待错误">4. 时间等待错误</a></li>
+      </ul>
+    </li>
+    <li><a href="#linux内核实现中的重置报文段">Linux内核实现中的重置报文段</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

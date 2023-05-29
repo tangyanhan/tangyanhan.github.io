@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go源码分析: map &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  <link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/contrib/auto-render.min.js"></script></script>
+<script>
+    window.onload = function() {
+        renderMathInElement(document.body,
+                        {
+                            delimiters: [
+                                {left: "$$", right: "$$", display: true},
+                                {left: "\\[", right: "\\]", display: true},
+                                {left: "$", right: "$", display: false},
+                                {left: "\\(", right: "\\)", display: false}
+                            ]
+                        }
+                    );
+    }
+</script>
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Go源码分析: map</h1>
+  <time datetime=2020-05-07T12:05:24&#43;0800 class="post-date">Thu, May 7, 2020</time>
+  <h1 id="map-的基本构成">map 的基本构成</h1>
+<p>map的实现文件为 <code>src/runtime/map.go</code>. 它的基本结构是一个HashMap,实现方式为哈希桶, 根据key将数据散列到不同的桶中，每个桶中有固定的8个键值对.</p>
+<p>桶尾部可以挂载额外的桶(overflow buckets).</p>
+<p>由结构可知， Go map的访问复杂度为O(1), 假设哈希函数恶化, 所有key都映射到同一个bucket, map可以退化为单链表.</p>
+<h2 id="内存结构">内存结构</h2>
+<p>为了内存能够连续分配，以及访问高效， Go将hashmap中的桶及键值对摊平作为连续内存结构存储.</p>
+<p><img src="/images/post/hash-bucket-go.png" alt="内存结构"></p>
+<h1 id="初始化及空间复杂度">初始化及空间复杂度</h1>
+<p>在func makemap(make map的原型)中， 我们可以看到以下代码.
+假设我们现在有n个元素需要存储， 那么：</p>
+<ol>
+<li>
+<p>如果这个数量不超过8个， 那么一个桶就可以放得下</p>
+</li>
+<li>
+<p>如果数量超过了8个， 那么hashmap允许承受的最大负载因子(loadFactor)为6.5</p>
+</li>
+</ol>
+<p>即找到一个B, 使得:</p>
+<p>$$2^{B}\cdot\frac{13}{2}&gt;n$$</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// Find the size parameter B which will hold the requested # of elements.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">// For hint &lt; 0 overLoadFactor returns false since hint &lt; bucketCnt.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>B := <span style="color:#658b00">uint8</span>(<span style="color:#b452cd">0</span>)
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> <span style="color:#008b45">overLoadFactor</span>(hint, B) {
+</span></span><span style="display:flex;"><span>    B++
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>h.B = B
+</span></span></code></pre></div><h1 id="读取一个key">读取一个key</h1>
+<p>Go map 根据key获得值有几种方法：</p>
+<ol>
+<li>
+<p>a := m[key], 其实现原型为 mapaccess1()，返回一个值</p>
+</li>
+<li>
+<p>a, ok := m[key], 返回两个值， 其实现原型为 mapaccess2()</p>
+</li>
+</ol>
+<p>如果使用map存储指针， 指针与map存在强关联，会对GC产生影响. mapaccess1() 中有一段注释， 说的就是此类情形.假设我们从一个map中取出了一个指针， 那么map要一直等到指针不再被使用后才有可能被回收.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// NOTE: The returned pointer may keep the whole map live, so don&#39;t
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">// hold onto it for very long.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">mapaccess1</span>(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> h == <span style="color:#8b008b;font-weight:bold">nil</span> || h.count == <span style="color:#b452cd">0</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> t.<span style="color:#008b45">hashMightPanic</span>() {
+</span></span><span style="display:flex;"><span>        t.key.alg.<span style="color:#008b45">hash</span>(key, <span style="color:#b452cd">0</span>) <span style="color:#228b22">// see issue 23734
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">return</span> unsafe.<span style="color:#008b45">Pointer</span>(&amp;zeroVal[<span style="color:#b452cd">0</span>])
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在<code>mapaccess1</code>这一段,描述了从一个空的或nil的map中取值, 会返回空值. 那么为什么不直接返回0值, 要去尝试调用key的hash呢?</p>
+<p>查看 issue 23734, 会发现以前的代码还真就没有这一段. 之所以这样做, 是因为当从一个非空的map中取值时, 如果key为nil, 那么会导致一个panic, 但同样的操作在nil/空 map上就不会发生, 这可能会导致难以发现的bug, 所以就加上了 O_O.</p>
+<p>下面这一段, 意味着不同的goroutine同时进行写操作和读操作, 会导致panic.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> h.flags&amp;hashWriting != <span style="color:#b452cd">0</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#008b45">throw</span>(<span style="color:#cd5555">&#34;concurrent map read and map write&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Go map的写入非常复杂, 当多个goroutine同时对一个map进行读写操作, 可能会造成不可预知的效果.</p>
+<p>这里主要两种解决方案, 即通过<code>sync.Mutex</code>对map加锁, 以及使用<code>sync.Map</code>.</p>
+<p>那么如果是在一个单核处理器上, 这样是不是就可以避免panic了呢? 这也是不行的. 观察发现对 h.flags 修改和读操作都不是原子操作, 因此即使是单核处理器, 也仍可能会出现 goroutine 在写入过程中挂起, 另一个 goroutine 进行读取的情形.</p>
+<h1 id="遍历">遍历</h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> k, v := <span style="color:#8b008b;font-weight:bold">range</span> m {
+</span></span><span style="display:flex;"><span>    <span style="color:#228b22">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>}
+</span></span></code></pre></div><p>以上代码中， 通过range对map进行遍历的实现原型为 mapiterinit() 及 mapiternext()</p>
+<p>开始遍历时，会随机选取一个bucket开始遍历.
+因此，当map包含多个bucket时，每次遍历的顺序都是不一样的.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// decide where to start
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>r := <span style="color:#658b00">uintptr</span>(<span style="color:#008b45">fastrand</span>())
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">if</span> h.B &gt; <span style="color:#b452cd">31</span>-bucketCntBits {
+</span></span><span style="display:flex;"><span>    r += <span style="color:#658b00">uintptr</span>(<span style="color:#008b45">fastrand</span>()) &lt;&lt; <span style="color:#b452cd">31</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>it.startBucket = r &amp; <span style="color:#008b45">bucketMask</span>(h.B)
+</span></span><span style="display:flex;"><span>it.offset = <span style="color:#658b00">uint8</span>(r &gt;&gt; h.B &amp; (bucketCnt - <span style="color:#b452cd">1</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// iterator state
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>it.bucket = it.startBucket
+</span></span></code></pre></div><p>理论上讲， Go的bucket是可以确保这个顺序一致的，但是Go的底层实现无法保证在不同平台保持一致（在不同的CPU架构及操作系统下），也无法保证不同版本的一致.</p>
+<p>在察觉某些开发者尝试依赖这个一致性顺序后， Go决定在实现层面加入随机因素，使得开发者彻底不能够利用这个特性, 以避免隐形bug产生. 这种操作是不是很眼熟? 为了防止大家写出bug, 我们强行使其变得随机了.</p>
+<p>不过除了以上考虑外，在以下情形：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">for</span> k, v := <span style="color:#8b008b;font-weight:bold">range</span> m {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">if</span> v == N {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">break</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>假设根据某个遍历顺序，符合条件的v在遍历末尾， 随机遍历顺序能够防止这种劣化情况持续发生.</p>
+<h1 id="桶溢出">桶溢出</h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>m[a] = v1
+</span></span><span style="display:flex;"><span>m[b] = v2
+</span></span></code></pre></div><p>在 mapassign() 中， 会完成已存在键则覆盖，未存在键则插入的过程.</p>
+<p>在进行插入操作时， 可能会发生两种情况： 桶溢出(bucket overflow) 和 扩容(grow)</p>
+<p>已知Go map每个桶最多存放8个键值对， 那么如果插入一个bucket时， 发现它已经满了， 该怎么办呢?</p>
+<p>之前在内存布局图中可以看到，每个bucket末端都有一个指针空间，这个指针用于指向下一个溢出bucket.溢出bucket与buckets/oldbuckets中的bucket不同，它是游离在堆中的，理论上可以无限扩充.</p>
+<p>hmap会纪录这些溢出桶.如果一个桶下挂的溢出桶过多，指向它的查询性能将会急剧恶化，因此将会触发扩容.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">if</span> inserti == <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#228b22">// all current buckets are full, allocate a new one.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>		newb := h.<span style="color:#008b45">newoverflow</span>(t, b)
+</span></span><span style="display:flex;"><span>		inserti = &amp;newb.tophash[<span style="color:#b452cd">0</span>]
+</span></span><span style="display:flex;"><span>		insertk = <span style="color:#008b45">add</span>(unsafe.<span style="color:#008b45">Pointer</span>(newb), dataOffset)
+</span></span><span style="display:flex;"><span>		elem = <span style="color:#008b45">add</span>(insertk, bucketCnt*<span style="color:#658b00">uintptr</span>(t.keysize))
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h1 id="扩容与转移">扩容与转移</h1>
+<p>当我们尝试插入一个值时，可能待插入的桶需要溢出才能满足需求，同时，map中增加了一个值，负载因子变高了.</p>
+<p>当hash恶化，溢出桶过多，或负载因子超过阈值（6.5）时，Go map将会进行扩容.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#228b22">// If we hit the max load factor or we have too many overflow buckets,
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// and we&#39;re not already in the middle of growing, start growing.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#8b008b;font-weight:bold">if</span> !h.<span style="color:#008b45">growing</span>() &amp;&amp; (<span style="color:#008b45">overLoadFactor</span>(h.count+<span style="color:#b452cd">1</span>, h.B) || <span style="color:#008b45">tooManyOverflowBuckets</span>(h.noverflow, h.B)) {
+</span></span><span style="display:flex;"><span>		<span style="color:#008b45">hashGrow</span>(t, h)
+</span></span><span style="display:flex;"><span>		<span style="color:#8b008b;font-weight:bold">goto</span> again <span style="color:#228b22">// Growing the table invalidates everything, so try again
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>    }
+</span></span></code></pre></div><ul>
+<li>
+<p>如果是负载因子过高需要扩容，那么新的buckets会新扩张为原来的两倍.</p>
+</li>
+<li>
+<p>如果是溢出桶过多，则会保持会新建一组同样大小的buckets，查询会在oldbuckets/buckets中进行</p>
+</li>
+</ul>
+<p>扩容后，hash可能需要重建，桶内数据移动发生在 <code>growWork()</code>中，它调用了<code>evacuate()</code>，对数据进行移动及指针清理</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">hashGrow</span>(t *maptype, h *hmap) {
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// If we&#39;ve hit the load factor, get bigger.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// Otherwise, there are too many overflow buckets,
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// so keep the same number of buckets and &#34;grow&#34; laterally.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	bigger := <span style="color:#658b00">uint8</span>(<span style="color:#b452cd">1</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">if</span> !<span style="color:#008b45">overLoadFactor</span>(h.count+<span style="color:#b452cd">1</span>, h.B) {
+</span></span><span style="display:flex;"><span>		bigger = <span style="color:#b452cd">0</span>
+</span></span><span style="display:flex;"><span>		h.flags |= sameSizeGrow
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	oldbuckets := h.buckets
+</span></span><span style="display:flex;"><span>    newbuckets, nextOverflow := <span style="color:#008b45">makeBucketArray</span>(t, h.B+bigger, <span style="color:#8b008b;font-weight:bold">nil</span>)
+</span></span></code></pre></div><h1 id="删除与清除">删除与清除</h1>
+<p><code>delete(m, k)</code>的原型是mapdelete()，该操作<strong>不会</strong>影响原有的buckets布局，也不会导致hash散列重分布</p>
+<p>在一个map已经很大的情况下，删除一部分键值并<strong>不会</strong>导致map本身占用的内存回收.</p>
+<p>但由于map中存放的指针本身也存在强关联，存续会导致GC无法回收Object，因此能够让这些指针指向的内存空间得到释放</p>
+<p>mapclear()能够真正的释放map占有空间，但map所有键值也会被清除.</p>
+<p>我们没有办法直接调用mapclear（也没有意义），它由GC通过mapClear调用.在确认需要回收一个map时对其使用.</p>
+<h1 id="优化">优化</h1>
+<p>map对于Go的内存产生了双重压力： map自身占用内存的压力，以及对GC的压力.</p>
+<p>不合适的hash函数, 会导致hashmap退化成链表, 内存利用率降低.</p>
+<h2 id="hash-优化">Hash 优化</h2>
+<p>Go对内置类型(string, int等)使用了专门的hash函数, 避免map存储效率变低.</p>
+<h2 id="gc优化">GC优化</h2>
+<p>当map中的键值对包含指针时，map会与它们形成关联，GC需要扫描其中所有指针.</p>
+<p>如果map中不包含指针，那么GC将不会对map内的buckets进行扫描.</p>
+<p>启示：尽量避免 key/value 为指针的map，如果一定需要，从中取出值后尽量不要逃逸出map的视线.</p>
+<h2 id="编译优化">编译优化</h2>
+<p>在使用过程中，map是“只增不减”的，堆内存需要GC.对于小型的简单map，在编译期间通过逃逸分析，可以直接被分配到栈上.</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Go源码分析: map</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#map-的基本构成">map 的基本构成</a>
+      <ul>
+        <li><a href="#内存结构">内存结构</a></li>
+      </ul>
+    </li>
+    <li><a href="#初始化及空间复杂度">初始化及空间复杂度</a></li>
+    <li><a href="#读取一个key">读取一个key</a></li>
+    <li><a href="#遍历">遍历</a></li>
+    <li><a href="#桶溢出">桶溢出</a></li>
+    <li><a href="#扩容与转移">扩容与转移</a></li>
+    <li><a href="#删除与清除">删除与清除</a></li>
+    <li><a href="#优化">优化</a>
+      <ul>
+        <li><a href="#hash-优化">Hash 优化</a></li>
+        <li><a href="#gc优化">GC优化</a></li>
+        <li><a href="#编译优化">编译优化</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

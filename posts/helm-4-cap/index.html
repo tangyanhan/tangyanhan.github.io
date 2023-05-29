@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Helm(4) 让编排兼容不同版本K8S &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Helm(4) 让编排兼容不同版本K8S</h1>
+  <time datetime=2020-04-25T13:09:47&#43;0800 class="post-date">Sat, Apr 25, 2020</time>
+  <p>在使用Helm过程中, 经常会遇到编排需要兼容不同K8S版本的问题. 考虑如下场景:</p>
+<ol>
+<li>
+<p>以前编写的Deployment资源, 其apiVersion为 apps/v1beta1, 但后来新的版本中已经改为 apps/v1,希望能兼容</p>
+</li>
+<li>
+<p>在K8S 1.11以前, 默认CRD既不支持subResources, 也不能够通过 UpdateStatus 更新状态, 必须使用 Update. 而在这之后, 必须使用 UpdateStatus 才能更新状态.</p>
+</li>
+</ol>
+<p>Helm 内置了一系列<a href="https://helm.sh/docs/chart_template_guide/builtin_objects/">内部对象</a>,可以针对这些情况进行编排.</p>
+<h1 id="deployment兼容多版本k8s">Deployment兼容多版本K8S</h1>
+<p>针对以上第一个问题, 我们可以直接在 _helpers.tpl 中加入以下内容:</p>
+<pre tabindex="0"><code>{{/*
+Define apiVersion for Deployment
+*/}}
+{{- define &#34;deployApiVersion&#34; -}} 
+{{- if .Capabilities.APIVersions.Has &#34;apps/v1beta1/Deployment&#34; -}}
+apps/v1beta1
+{{- else -}}
+apps/v1
+{{- end -}}
+{{- end -}}
+</code></pre><p>这里判断这套K8S是否具备 apps/v1beta/Deployment , 如果有, 使用 apps/v1 ,否则就是旧版本的 apps/v1beta1</p>
+<p>然后, Deployment引用这一段即可:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">kind</span>:<span style="color:#bbb"> </span>Deployment<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span><span style="color:#8b008b;font-weight:bold">apiVersion</span>:<span style="color:#bbb"> </span>{{<span style="color:#bbb"> </span>include &#34;deployApiVersion&#34; . }}<span style="color:#bbb">
+</span></span></span></code></pre></div><h1 id="检测配置-disablesubresources-是否开启">检测配置 disableSubresources 是否开启</h1>
+<p>经过查询文档, disableSubresources 默认开启是在 1.11 版本, 因此我们可以简单一点, 只判断小版本是否大于等于 &ldquo;11&rdquo;, 当然这里没有判断大版本.</p>
+<pre tabindex="0"><code>disableSubresources: {{ if ge .Capabilities.KubeVersion.Minor &#34;11&#34; }}false{{ else }}true{{ end }}
+</code></pre><h1 id="capabilities-实现">Capabilities 实现</h1>
+<p>我们可能在某些场景下, 希望自己的程序能够直接去判断我们对接的K8S集群有哪些能力. 这部分实现我们可以参考 helm 源码. 在 <code>pkg/action/action.go</code>中揭示了其实现方式:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// capabilities builds a Capabilities from discovery information.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">func</span> (c *Configuration) <span style="color:#008b45">getCapabilities</span>() (*chartutil.Capabilities, <span style="color:#00688b;font-weight:bold">error</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> c.Capabilities != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">return</span> c.Capabilities, <span style="color:#8b008b;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        dc, err := c.RESTClientGetter.<span style="color:#008b45">ToDiscoveryClient</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">nil</span>, errors.<span style="color:#008b45">Wrap</span>(err, <span style="color:#cd5555">&#34;could not get Kubernetes discovery client&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// force a discovery cache invalidation to always fetch the latest server version/capabilities.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        dc.<span style="color:#008b45">Invalidate</span>()
+</span></span><span style="display:flex;"><span>        kubeVersion, err := dc.<span style="color:#008b45">ServerVersion</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">nil</span>, errors.<span style="color:#008b45">Wrap</span>(err, <span style="color:#cd5555">&#34;could not get server version from Kubernetes&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#228b22">// Issue #6361:
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#228b22">// Client-Go emits an error when an API service is registered but unimplemented.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#228b22">// We trap that error here and print a warning. But since the discovery client continues
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#228b22">// building the API object, it is correctly populated with all valid APIs.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#228b22">// See https://github.com/kubernetes/kubernetes/issues/72051#issuecomment-521157642
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        apiVersions, err := <span style="color:#008b45">GetVersionSet</span>(dc)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">if</span> err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> discovery.<span style="color:#008b45">IsGroupDiscoveryFailedError</span>(err) {
+</span></span><span style="display:flex;"><span>                        c.<span style="color:#008b45">Log</span>(<span style="color:#cd5555">&#34;WARNING: The Kubernetes server has an orphaned API service. Server reports: %s&#34;</span>, err)
+</span></span><span style="display:flex;"><span>                        c.<span style="color:#008b45">Log</span>(<span style="color:#cd5555">&#34;WARNING: To fix this, kubectl delete apiservice &lt;service-name&gt;&#34;</span>)
+</span></span><span style="display:flex;"><span>                } <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">return</span> <span style="color:#8b008b;font-weight:bold">nil</span>, errors.<span style="color:#008b45">Wrap</span>(err, <span style="color:#cd5555">&#34;could not get apiVersions from Kubernetes&#34;</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        c.Capabilities = &amp;chartutil.Capabilities{
+</span></span><span style="display:flex;"><span>                APIVersions: apiVersions,
+</span></span><span style="display:flex;"><span>                KubeVersion: chartutil.KubeVersion{
+</span></span><span style="display:flex;"><span>                        Version: kubeVersion.GitVersion,
+</span></span><span style="display:flex;"><span>                        Major:   kubeVersion.Major,
+</span></span><span style="display:flex;"><span>                        Minor:   kubeVersion.Minor,
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">return</span> c.Capabilities, <span style="color:#8b008b;font-weight:bold">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h1 id="dry-run-没问题的chart一定能够在集群上部署吗">dry-run 没问题的chart一定能够在集群上部署吗?</h1>
+<p>在解决第一个问题时, 我事先通过 -dry-run 测试我写出的chart, 结果安装到集群却失败了. 其实, 在Helm Chart进行dryrun时, 是不会与集群进行交互的.</p>
+<p>在 helm 源码中, 它的解释是编排chart的作者的期望可能是连接到集群,但用户却不一定如此期望:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>        <span style="color:#228b22">// A `helm template` or `helm install --dry-run` should not talk to the remote cluster.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#228b22">// It will break in interesting and exotic ways because other data (e.g. discovery)
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#228b22">// is mocked. It is not up to the template author to decide when the user wants to
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#228b22">// connect to the cluster. So when the user says to dry run, respect the user&#39;s
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#228b22">// wishes and do not connect to the cluster.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>        <span style="color:#8b008b;font-weight:bold">if</span> !dryRun &amp;&amp; c.RESTClientGetter != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>                rest, err := c.RESTClientGetter.<span style="color:#008b45">ToRESTConfig</span>()
+</span></span><span style="display:flex;"><span>                <span style="color:#8b008b;font-weight:bold">if</span> err != <span style="color:#8b008b;font-weight:bold">nil</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#8b008b;font-weight:bold">return</span> hs, b, <span style="color:#cd5555">&#34;&#34;</span>, err
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                files, err2 = engine.<span style="color:#008b45">RenderWithClient</span>(ch, values, rest)
+</span></span><span style="display:flex;"><span>        } <span style="color:#8b008b;font-weight:bold">else</span> {
+</span></span><span style="display:flex;"><span>                files, err2 = engine.<span style="color:#008b45">Render</span>(ch, values)
+</span></span><span style="display:flex;"><span>        }
+</span></span></code></pre></div>
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Helm(4) 让编排兼容不同版本K8S</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#deployment兼容多版本k8s">Deployment兼容多版本K8S</a></li>
+    <li><a href="#检测配置-disablesubresources-是否开启">检测配置 disableSubresources 是否开启</a></li>
+    <li><a href="#capabilities-实现">Capabilities 实现</a></li>
+    <li><a href="#dry-run-没问题的chart一定能够在集群上部署吗">dry-run 没问题的chart一定能够在集群上部署吗?</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

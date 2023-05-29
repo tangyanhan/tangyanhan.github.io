@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>TCP拥塞控制 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  <link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/contrib/auto-render.min.js"></script></script>
+<script>
+    window.onload = function() {
+        renderMathInElement(document.body,
+                        {
+                            delimiters: [
+                                {left: "$$", right: "$$", display: true},
+                                {left: "\\[", right: "\\]", display: true},
+                                {left: "$", right: "$", display: false},
+                                {left: "\\(", right: "\\)", display: false}
+                            ]
+                        }
+                    );
+    }
+</script>
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>TCP拥塞控制</h1>
+  <time datetime=2021-01-06T20:00:00&#43;0800 class="post-date">Wed, Jan 6, 2021</time>
+  <p>通过窗口管理，发送端与接收端能够协调彼此的发送和接收速率，避免出现超出接收端能力的丢包。但网络并非只有这一个TCP连接在使用，当数据报在发送端和接收端之间传输时，需要流转多个网络设备，这些网络设备的能力和使用情况也不同。你可以把网络设备看成是城市中的道路，数据报文就是其中的车辆，当车辆超过某一条道路的处理能力，由于数据报文并不是车辆可以提前选择别的道路，电信号只能被丢弃，于是这条道路直接将车辆扔进外太空，这种现象叫做拥塞。
+但数据报文并不是现实世界的车辆，并不具备观察拥塞自动避让的能力。如何避免发生拥塞，以及发生堵塞时如何合理避让，这就是TCP的拥塞控制(Congestion Control)。</p>
+<p>拥塞控制需要关注的几个问题：</p>
+<ol>
+<li>拥塞控制是怎么工作的？</li>
+<li>当网络出问题的时候，怎么看是不是拥塞的问题？</li>
+<li>高速网络如何避免拥塞控制导致的传输效率降低？</li>
+</ol>
+<h2 id="拥塞征兆怎么知道发生了拥塞">拥塞征兆：怎么知道发生了拥塞？</h2>
+<p>在内核算法层面， 丢包、收到重复的<code>ACK</code>、收到<code>SACK</code>, 都可以认为是网络中发生了拥塞。而ECN算法通过一个扩展位协商，允许一个TCP发送端向网络报告拥塞状况，而无需检测丢包，也可以用作拥塞检测的方法。</p>
+<p>ECN在Linux下可以通过<code>net.ipv4.tcp_ecn</code>与<code>net.ipv4.tcp_ecn_fallback</code>两个值配置。作为一个扩展，并非网络中所有的设备都支持该功能，因此并不能保证起作用。当<code>net.ipv4.tcp_ecn=1</code>时，TCP连接默认开启ECN，当其为2时，Linux将只对accept且开启了ECN的TCP连接启用ECN。 <code>net.ipv4.tcp_ecn_fallback</code>置为1，可以使TCP在尝试ECN失败时尝试不使用ECN。</p>
+<p>大部分拥塞控制算法都是基于以上方法，如reno, cubic等。也有一些算法尝试通过检测RTT的增大来预判拥塞的发生，例如vegas, westwood等。</p>
+<p>在日常生活中，也会经常听到说法“网络不好”，那么可以使用iperf测试TCP/UDP的网络状况：</p>
+<p><img src="/images/post/Screenshot_20210106_183456.png" alt="iperf"></p>
+<p>图中的TCP Server可以用go通过<a href="https://github.com/tangyanhan/u235/tree/master/go/advanced/cmd/delay-nagle">我写的一端简单代码</a>运行，随便选一个公网，是不会允许随意写入的。</p>
+<p>我们还可以通过tc来模拟网络延迟和丢包，例如下载对lo网卡增加100ms延迟，发现传输变慢了:</p>
+<p><img src="/images/post/Screenshot_20210106_184353.png" alt="delay"></p>
+<p>tc对lo网卡造成的负面影响可以通过<code>sudo tc qdisc delete dev lo root</code>消除。</p>
+<p>更多tc的使用可以参考: <a href="https://blog.csdn.net/duanbeibei/article/details/41250029">linux下使用tc模拟网络延迟</a></p>
+<h2 id="拥塞窗口congestion-window">拥塞窗口(Congestion Window)</h2>
+<p>在Linux上使用命令<code>ip tcp_metrics</code>，就会获得一个列表，代表了我们与其它主机的TCP连接相关数据。其中的<code>rtt</code>以及<code>rttvar</code>在超时重传中已经介绍过，这里出现了一个<code>cwnd</code>参数，即拥塞窗口(Congestion Window)，它表示我们向该IP发送TCP数据报时，没有收到<code>ACK</code>回复的数据量不能大于10.</p>
+<p><img src="/images/post/Screenshot_20210105_093124.png" alt="cwnd"></p>
+<p>在TCP流量控制中，还有一个通知窗口<code>awnd</code>，取:</p>
+<p>$$W=min(cwnd, awnd)$$</p>
+<p>这样，我们对外发送但没有收到<code>ACK</code>的数据量不能多于W, 已经发出但还没确认的数据量大小，也叫做<em>在外数据值</em>(flight size)，总是小于等于W.</p>
+<p>W 不能过大或过小，我们一般希望能够接近<em>带宽延迟积</em>(Bandwidth-Delay Product, BDP)，也被称作最佳窗口大小, 因为这时发送数据能够最大化利用带宽。</p>
+<p>$$BDP=Bandwidth * Delay$$</p>
+<h2 id="慢启动">慢启动</h2>
+<p>传输初始阶段，由于不清楚网络传输能力，需要缓慢探测可用传输资源，防止短时间内注入大量数据导致拥塞。这个缓慢探测的过程，就是慢启动，它主要目的是预防拥塞。</p>
+<p>取$SMSS=min(接收方MSS, MTU)$, 初始窗口(Initial Window, IW)设置约1SMSS, 然后每次发送上次数据报的两倍，等到接收到<code>ACK</code>之后，再发上次的两倍，直到出现丢包停止增长。上面我们说过拥塞窗口取<code>cwnd</code>和<code>awnd</code>中的较小值，当接收方的<code>awnd</code>足够大时，<code>cwnd</code>就是决定因素。这时如果采用延时确认，TCP会直到慢启动结束才返回<code>ACK</code>，会导致<code>cwnd</code>增长较慢。</p>
+<p>慢启动主要目的是帮助确定一个慢启动阈值(ssthresh)，当达到这个阈值时，就要开始进行拥塞避免。</p>
+<h2 id="拥塞避免">拥塞避免</h2>
+<p>当慢启动达到阈值时，可能有更多的传输资源，但我们不能再像慢启动时的指数增长那样一下子占用很多资源，导致其它连接出现拥塞丢包。 这时，每接收到一个<code>ACK</code>，这样更新<code>cwnd</code>：</p>
+<p>$$cwnd_{t+1} = cwnd_{t} + SMSS *SMSS/cwnd_{t}$$</p>
+<p>我们通常认为慢启动阶段，<code>cwnd</code>呈<em>指数增长</em>, 而拥塞避免阶段，<code>cwnd</code>呈<em>线性增长</em>.</p>
+<h2 id="慢启动和拥塞避免的选择">慢启动和拥塞避免的选择</h2>
+<p>一般慢启动和拥塞避免在同一时刻只会使用一个。当<code>cwnd &lt; ssthresh</code>， 使用慢启动算法；当<code>cwnd &gt; ssthresh</code>，使用拥塞避免算法；当 <code>cwnd = ssthresh</code>，任一都可使用。慢启动阈值<code>ssthresh</code>并不是固定值，而是记录了上次没有丢包情况下“最好的”操作窗口估计值。</p>
+<h2 id="拥塞窗口校验cwv">拥塞窗口校验(CWV)</h2>
+<p>拥塞窗口校验(Congestion Window Validation, CWV)，这种机制主要目的是防止TCP连接由于长期空闲，之前已经较高的<code>cwnd</code>无法准确反映网络状况，导致网络拥塞。因此CWV机制就是在TCP停止发送一端时间后，开始衰减<code>cwnd</code>。但CWV在尝试衰减<code>cwnd</code>时，需要弄清楚TCP连接是空闲（idle，暂时没有数据需要发送）还是应用受限（application-limited,因为CPU竞争等原因，有数据需要发送但是暂时没轮上），这两种情况下，<code>cwnd</code>都有必要适度衰减。当TCP是空闲时，空闲一段时间之后，网络可能已经进入了严重拥堵状态，因此需要比较快的衰减。当应用受限时，虽然资源竞争对TCP的影响力不太可能有闲置那么久，但仍有必要对其做相对较慢的衰减。</p>
+<h2 id="linux内核中的拥塞控制算法">Linux内核中的拥塞控制算法</h2>
+<h3 id="拥塞控制算法的配置和选择">拥塞控制算法的配置和选择</h3>
+<p>在较新的Linux内核中，可以在<code>net/ipv4/Kconfig</code>文件中看到以下内容：</p>
+<pre tabindex="0"><code class="language-config" data-lang="config">config DEFAULT_TCP_CONG
+	string
+	default &#34;bic&#34; if DEFAULT_BIC
+	default &#34;cubic&#34; if DEFAULT_CUBIC
+	default &#34;htcp&#34; if DEFAULT_HTCP
+	default &#34;hybla&#34; if DEFAULT_HYBLA
+	default &#34;vegas&#34; if DEFAULT_VEGAS
+	default &#34;westwood&#34; if DEFAULT_WESTWOOD
+	default &#34;veno&#34; if DEFAULT_VENO
+	default &#34;reno&#34; if DEFAULT_RENO
+	default &#34;dctcp&#34; if DEFAULT_DCTCP
+	default &#34;cdg&#34; if DEFAULT_CDG
+	default &#34;bbr&#34; if DEFAULT_BBR
+	default &#34;cubic&#34;
+</code></pre><p>在如今的Linux内核参数中(2.6.13开始)，有三个参数可以控制拥塞控制算法:</p>
+<pre tabindex="0"><code>net.ipv4.tcp_allowed_congestion_control = reno cubic
+net.ipv4.tcp_available_congestion_control = reno cubic
+net.ipv4.tcp_congestion_control = cubic
+</code></pre><p>这表明目前系统设定可用的拥塞控制算法有 reno， cubic两种，默认为cubic。那么如何选择他们？这就需要了解这些算法的特点，来根据自己的使用场景进行设置了。</p>
+<p>我们可以通过<code>modprobe</code>命令动态加载内核模块，这样就可以增加可选的拥塞控制算法了，例如我们使用<code>modprobe tcp_highspeed</code>：</p>
+<p><img src="/images/post/Screenshot_20210106_160534.png" alt="tcp_highspeed"></p>
+<p>在编写代码时，可以通过setsockopt手动设置socket使用的拥塞控制算法。对于监听连接，会从之前继承拥塞控制算法。</p>
+<h3 id="linux内核中拥塞控制算法的主要组成部分">Linux内核中拥塞控制算法的主要组成部分</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">struct</span> tcp_congestion_ops tcp_reno = {
+</span></span><span style="display:flex;"><span>	.flags		= TCP_CONG_NON_RESTRICTED,
+</span></span><span style="display:flex;"><span>	.name		= <span style="color:#cd5555">&#34;reno&#34;</span>,
+</span></span><span style="display:flex;"><span>	.owner		= THIS_MODULE,
+</span></span><span style="display:flex;"><span>	.ssthresh	= tcp_reno_ssthresh,
+</span></span><span style="display:flex;"><span>	.cong_avoid	= tcp_reno_cong_avoid,
+</span></span><span style="display:flex;"><span>	.undo_cwnd	= tcp_reno_undo_cwnd,
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>对于每个拥塞控制算法，都有类似上面的代码，它有点像C++的抽象类，每个算法都实现对应的部分。<code>reno</code>算法的拥塞参数代表了该拥塞控制算法的主要组成部分：</p>
+<ul>
+<li><code>name</code> 字段表明算法名字</li>
+<li><code>ssthresh</code> 用于确定慢启动阈值</li>
+<li><code>cong_avoid</code> 用于拥塞避免</li>
+<li><code>undo_cwnd</code> 用于取消<code>cwnd</code>增长或衰退</li>
+<li>其它算法中还可能看到<code>init</code>，<code>pkts_acked</code>等，用于处理初始化、收到<code>ACK</code>包等（因为有些算法是通过<code>ACK</code>来进行拥塞避免等操作的）</li>
+</ul>
+<h2 id="tahoereno与快速恢复">Tahoe,Reno与快速恢复</h2>
+<p>Tahoe算法是早起BSD采用的算法。连接一开始处于慢启动状态，当出现丢包时，重新将<code>cwnd</code>设定为初始值，重新开始慢启动。这个算法的问题是在<code>BDP</code>较大的链路来说，会使得TCP发送方经常重新慢启动，不能有效的利用带宽。
+根据包守恒原理（数据包从发送端到接收端，总会以某种形式存在于某个地方，当发送方和接收方达成平衡，并将链路塞满时，就能达到理想的传输状态），只要能够收到<code>ACK</code>（包括重传<code>ACK</code>），就有可能传输新的数据包。因此，Reno算法中加入了<em>快速恢复机制</em>, 在恢复阶段，每收到一个<code>ACK</code>，<code>cwnd</code>就能临时增长1 SMSS, 因此拥塞窗口会在一段时间内急速增长，直到接收一个好的<code>ACK</code>。不重复的<code>ACK</code>（好的）表明TCP结束恢复阶段，拥塞已经减少到之前状态。</p>
+<p>Reno算法在Linux内核中总是一个可用的选择，也是作为一个“TCP标准”实现的。Reno的特点是能够比较公平的分配带宽，也能够比较好的利用带宽。</p>
+<h2 id="标准tcp">标准TCP</h2>
+<p>在<a href="https://tools.ietf.org/html/rfc5681">RFC5681</a>中描述了一个基础的方法，被许多基础的TCP实现所使用。</p>
+<p>慢启动阶段, <code>ssthresh</code>取较大值（&gt;=<code>awnd</code>），当收到一个好的<code>ACK</code>时，执行以下更新:</p>
+<p>$$cwnd += SMSS (若cwnd&lt;ssthresh,执行慢启动)$$
+$$cwnd += SMSS *SMSS/cwnd (若cwnd&gt;ssthresh，执行拥塞避免)$$</p>
+<p>当收到三次重复<code>ACK</code>，或其它表明需要重传的信号时：</p>
+<ol>
+<li><code>ssthresh</code>更新为大于以下等式的值:</li>
+</ol>
+<p>$$ssthresh = max(flightSize/2, 2 * SMSS)$$</p>
+<ol start="2">
+<li>
+<p>启用快速重传算法，设置 $cwnd=(ssthresh+3*SMSS)$</p>
+</li>
+<li>
+<p>每接收一个重复<code>ACK</code>，$cwnd+=1SMSS$</p>
+</li>
+<li>
+<p>当接收到一个好的<code>ACK</code>, $cwnd=ssthresh$</p>
+</li>
+</ol>
+<p>标准TCP每接收到一个好的<code>ACK</code>，<code>cwnd</code>增加<code>1/cwnd</code>，每出现一次丢包，<code>cwnd</code>减半，这被称为<em>和式增加/积式减少</em>（Additive Increase/Multiplicative Decrease, AIMD）拥塞控制。通过将<code>1/cwnd</code>替换为<code>a</code>, <code>1/2</code>替换为<code>b</code>，得到AIMD一般化等式：</p>
+<p>$$cwnd_{t+1}=cwnd_{t}+a/cwnd_{t}$$</p>
+<p>$$cwnd_{t+1}=cwnd_{t}-b*cwnd_{t}$$</p>
+<p>设p为丢包率[0, 0.1]，故每个RTT内发包个数为:</p>
+<p>$$T=\frac{ \sqrt{ \frac{a(2-b)}{2b} } }{\sqrt{p}}$$</p>
+<p>对于标准TCP， a=1, b=0.5, 故而可以简化为 $T=1.2/\sqrt{p}$</p>
+<h2 id="高速网络环境下的hstcphighspeed-tcp">高速网络环境下的HSTCP(Highspeed TCP)</h2>
+<p>在高速网络环境下，传统的TCP使用AIMD拥塞控制，面临以下问题：</p>
+<ol>
+<li>在线性增加阶段，高速网络下<code>cwnd</code>很容易变得很大，导致到达临界点时，下一次增长立即导致积式减少，不能探知理想的边界。</li>
+<li>在积式减少阶段，高速网络下的<code>cwnd</code>马上衰减成一个较小的值，严重降低宽带利用率。</li>
+</ol>
+<p>为了解决上述问题，<a href="https://tools.ietf.org/html/rfc3649">RFC3649</a>定义了一种高速环境下能够充分利用带宽，低速环境下与标准TCP一致的算法。</p>
+<p>HSTCP修改了慢启动阶段，称为“受限的慢启动”，引入新的参数<code>max_ssthresh</code>，当 <code>cwnd&lt;=max_ssthresh</code>, 增长方式与传统TCP相同。当超过这个阈值，<code>cwnd</code>每次只能增长<code>max_ssthresh/2</code>个SMSS，规避以单斜率线性增长导致无法探知正确边界的问题。</p>
+<p>另外，通过之前的每隔RTT发包个数计算公式，在不同的丢包率下，通过调整a和b的值，可以有效的增大发包效率。HSTCP通过设定不同的比率，优化了其发送效率。在丢包率较大时或窗口较低时，HSTCP与传统TCP发送效率基本一致。</p>
+<p>Linux内核中，HSTCP的配置算法名为<code>highspeed</code>,代码实现在<code>net/ipv4/tcp_highspeed.c</code>中。</p>
+<p>HSTCP在拥有大BDP的网络中，能够让低RTT的TCP连接得到更高的带宽，当有多个不同RTT的连接竞争时，高RTT的连接将会遭到不公平的对待。</p>
+<h2 id="二进制增长拥塞控制bic和cubic">二进制增长拥塞控制：BIC和CUBIC</h2>
+<p>上面提到了HSTCP的不公平性， 而BIC和CUBIC则尝试在有效利用高速网络的时候同时兼顾公平性。最开始是BIC，在此基础上，Linux内核现在默认使用的是CUBIC。</p>
+<h3 id="bic">BIC</h3>
+<p>BIC的核心思想是在和式增加上增加了BI，即二分搜索增加(Binary Increase)，思路是取无丢包的窗口为A,,取有丢包的窗口为B,然后找到中间值看是否丢包，如果发生丢包，则取之为B，反之则为A，以此类推，直到两者之间的差值低于临界值$S_{min}$时停止，就能在对数时间内找到合适的窗口。这种方式越接近临界值，增长越慢，容易找到饱和点。但是，在一个RTT内突然将<code>cwnd</code>提升到中值，可能会导致严重的拥塞，因此当最大值与最小值之间的差值大于临界值$S_{max}$时，就不再使用二分搜索直接取中值，而是采用和式增加，每次增加不超过$S_{max}$。</p>
+<h3 id="cubic">CUBIC</h3>
+<p>BIC使用固定的临界值来决定何时使用BI，何时使用AI，不能很好的自动适应不同的网络环境，另外也存在某些情况下增长过快的问题。在BIC基础上，CUBIC通过一个高阶多项式函数来控制窗口的增大：</p>
+<p>$$W(t)=C(t-K)^{3}+W_{max}$$</p>
+<p>在表达式中，t是距离最近的一次窗口减小所经过的时间，以秒为单位, W(t)代表时刻t的窗口大小，C是一个常量（默认为0.4）。$W_{max}$是最后一次调整前的窗口大小, K是在没有丢包的情况下窗口从W增长到$W_{max}$所用的时间。</p>
+<p>CUBIC还增加了“TCP友好性”功能，当发现CUBIC的窗口增长不如标准TCP时，可以采用标准TCP的，这样就实现了在低速网络环境下的性能优化。</p>
+<h2 id="基于延迟的拥塞控制算法">基于延迟的拥塞控制算法</h2>
+<p>之前的拥塞控制算法都是利用丢包，SACK，重复ACK等探测拥塞，从而启动拥塞避免过程。当拥塞即将发生时，RTT也会逐渐增大，因此有一类拥塞算法，利用RTT增长趋势来检测拥塞并生效。</p>
+<h3 id="vegas算法">Vegas算法</h3>
+<p>在拥塞避免阶段，Vegas算法测量每个RTT所传输的数据量，并将该数据除以网络中观察到的最小延迟时间，得到$v=T/RTT_{min}$。算法维护两个阈值$\alpha$和$\beta$，其中$\alpha&lt;\beta$。当$v&lt;\alpha$,增大拥塞窗口；当$v&gt;\beta$，减小拥塞窗口。若$\alpha\le v \le \beta$，窗口保持不变。其中拥塞窗口的改变是现行的，即<em>和式增加/和式减少</em>(Additive Increase/Additive Decrease, AIAD)的拥塞控制策略。</p>
+<p>由于Vegas是通过RTT来评估是否需要拥塞避免，当发送端与接收端往返的链路不同，而<code>ACK</code>的链路发生拥塞时，Vegas会误判认为需要减少发送端的数据发送，过度降低发送窗口。</p>
+<p>Vegas与其它的Vegas TCP链接共用链路时，是平等的。但是与标准TCP共用链路时，由于标准TCP的目标是占满等待队列，而Vegas则是尝试通过预判来使队列相对空闲，这时Vegas将会自动降低发送速率，导致在竞争中处于劣势。</p>
+<p>Vegas目前在Linux内核中设置$\alpha=2$, $\beta=4$且不可动态调整，需要手动加载模块<code>tcp_vegas</code>后，修改<code>net.ipv4.tcp_congestion_control</code>来启用它。</p>
+<h3 id="westwood算法">Westwood算法</h3>
+<p>Westwood是基于延迟在New Reno算法基础上进行了改进，从而实现对大带宽延迟积链路的处理。当发生丢包时，Westwood不会直接将<code>cwnd</code>减半，而是根据$RTT_{min}$计算出一个估算BDP，然后将<code>ssthresh</code>值更新成该值。在慢启动阶段，它是呈指数增加的。</p>
+<p>westwood 也可以通过类似vegas的方式在Linux中启用。</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>TCP拥塞控制</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#拥塞征兆怎么知道发生了拥塞">拥塞征兆：怎么知道发生了拥塞？</a></li>
+        <li><a href="#拥塞窗口congestion-window">拥塞窗口(Congestion Window)</a></li>
+        <li><a href="#慢启动">慢启动</a></li>
+        <li><a href="#拥塞避免">拥塞避免</a></li>
+        <li><a href="#慢启动和拥塞避免的选择">慢启动和拥塞避免的选择</a></li>
+        <li><a href="#拥塞窗口校验cwv">拥塞窗口校验(CWV)</a></li>
+        <li><a href="#linux内核中的拥塞控制算法">Linux内核中的拥塞控制算法</a>
+          <ul>
+            <li><a href="#拥塞控制算法的配置和选择">拥塞控制算法的配置和选择</a></li>
+            <li><a href="#linux内核中拥塞控制算法的主要组成部分">Linux内核中拥塞控制算法的主要组成部分</a></li>
+          </ul>
+        </li>
+        <li><a href="#tahoereno与快速恢复">Tahoe,Reno与快速恢复</a></li>
+        <li><a href="#标准tcp">标准TCP</a></li>
+        <li><a href="#高速网络环境下的hstcphighspeed-tcp">高速网络环境下的HSTCP(Highspeed TCP)</a></li>
+        <li><a href="#二进制增长拥塞控制bic和cubic">二进制增长拥塞控制：BIC和CUBIC</a>
+          <ul>
+            <li><a href="#bic">BIC</a></li>
+            <li><a href="#cubic">CUBIC</a></li>
+          </ul>
+        </li>
+        <li><a href="#基于延迟的拥塞控制算法">基于延迟的拥塞控制算法</a>
+          <ul>
+            <li><a href="#vegas算法">Vegas算法</a></li>
+            <li><a href="#westwood算法">Westwood算法</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

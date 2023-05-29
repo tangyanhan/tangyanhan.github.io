@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>DNS懒人包 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>DNS懒人包</h1>
+  <time datetime=2021-01-19T10:58:43&#43;0800 class="post-date">Tue, Jan 19, 2021</time>
+  <p>一般的，DNS(Domain Name System)，是为了解决IP地址难记的问题而提出的解决方案，提供从域名到若干IP地址的转换。</p>
+<p>现存的DNS当然不只有这些功能，本文尝试把现实生活中可能会遇到的DNS相关问题与知识点结合起来。</p>
+<h2 id="dns-服务器">DNS 服务器</h2>
+<p>DNS服务器存放了DNS域名系统的数据库，收到客户端请求时可以进行对应的查询，返回结果。
+Linux下的DNS服务器设置存放于 <code>/etc/resolv.conf</code>中，这个文件是自动生成的，修改这个文件的效果，在重启后会丢失。
+可以通过如<code>systemd-resolve --set-dns=114.114.114.114 --interface=enp0s31f6</code>这种命令增加dns，或者通过<a href="https://devilbox.readthedocs.io/en/latest/howto/dns/add-custom-dns-server-on-linux.html">这些方法</a>暂时或永久的改变DNS服务器。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan:/etc$ cat resolv.conf 
+</span></span><span style="display:flex;"><span>nameserver 223.5.5.5
+</span></span><span style="display:flex;"><span>nameserver 8.8.8.8
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>nameserver 127.0.0.53
+</span></span></code></pre></div><h3 id="域名覆盖">域名覆盖</h3>
+<p>DNS服务器提供了一个动态查询域名对应IP的方式，在我们自己制定域名时，也可以直接指定某个IP为某个域名，这时可以改写 <code>/etc/hosts</code>文件,在其中添加记录：</p>
+<pre tabindex="0"><code>127.0.0.1       localhost
+127.0.1.1       ethan
+192.168.99.101  node-1
+</code></pre><p>在Kubernetes中，对于Pod，可以通过指定<code>spec.hostAliases</code>增加记录：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">hostAliases</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb"></span>- <span style="color:#8b008b;font-weight:bold">hostnames</span>:<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">  </span>- node-1<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">  </span>- node-one<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span><span style="color:#bbb">  </span><span style="color:#8b008b;font-weight:bold">ip</span>:<span style="color:#bbb"> </span><span style="color:#b452cd">192.168.99.101</span><span style="color:#bbb">
+</span></span></span></code></pre></div><p>但这需要每个需要解析的部署都增加配置才行。我们也可以修改DNS，这样所有的Pod只要通过CoreDNS进行域名解析，就可以起到域名覆盖的效果了。</p>
+<p>如果使用CoreDNS，可以通过<code>hosts</code><a href="https://coredns.io/plugins/hosts/">配置</a>，起到类似hosts的效果：</p>
+<pre tabindex="0"><code>        hosts /etc/myhosts {
+           fallthrough
+        }
+</code></pre><p>然后挂载到CoreDNS中一个 <code>/etc/myhosts</code>文件即可。</p>
+<h2 id="缓存与查询顺序">缓存与查询顺序</h2>
+<p>DNS进行一次解析后，会在本地内存中记录缓存，在缓存过期之前，并不需要重新请求DNS，这样可以起到提高性能，减少查询的作用。</p>
+<p>glibc进行DNS查询时，会通过<code>/etc/nsswitch.conf</code>控制查询的顺序：</p>
+<pre tabindex="0"><code>hosts:          files mdns4_minimal [NOTFOUND=return] dns mdns4
+</code></pre><p><a href="https://ubuntu.com/server/docs/network-configuration">这一行的含义是:</a></p>
+<ul>
+<li>
+<p><code>files</code> 意思是首先找<code>/etc/hosts</code>中的静态域名</p>
+</li>
+<li>
+<p><code>mdns4_minimal</code> 尝试通过多播DNS解析域名</p>
+</li>
+<li>
+<p><code>[NOTFOUND=return]</code> 意味着如果前面的步骤都得不到应答，应该认为这个结果就是无解，不应该继续下去</p>
+</li>
+<li>
+<p><code>dns</code>含义时通过旧的单播DNS查询域名</p>
+</li>
+<li>
+<p><code>mdns4</code> 含义是多播DNS查询</p>
+</li>
+</ul>
+<p>然而有些特殊的容器镜像，如<code>alpine</code>镜像，使用musl libc代替了glibc，<code>alpine</code>镜像中默认是没有<code>nsswitch.conf</code>的。</p>
+<p>Golang静态编译的程序不使用glibc链接库时，会使用自己的逻辑来进行DNS查询。首先它会查询<code>/etc/nsswitch.conf</code>，如果找不到，那么它会默认使用DNS，然后使用文件。即DNS优先，<code>/etc/hosts</code>往后排。</p>
+<p>当一个Go静态编译的程序放入<code>alpine</code>镜像时，由于找不到<code>/etc/nsswitch.conf</code>，此时就会优先使用DNS查询，查询失败才会查询<code>/etc/hosts</code>。这样会导致每次总会有一定的DNS查询延迟。</p>
+<p>在<a href="https://mp.weixin.qq.com/s/VYBs8iqf0HsNg9WAxktzYQ">这篇文章</a>中描述了一个<code>conntrack</code>导致DNS查询丢包的问题，表面现象就是通过DNS查询时，偶发几秒钟的延迟。</p>
+<h2 id="查询">查询</h2>
+<p>DNS查询是一种构建于传输层之上的协议，可以使用TCP或UDP传输。在使用glibc进行DNS查询时，通过<code>man resolf.conf</code>可知，默认具有5秒的超时时间。Golang目前总是使用TCP进行DNS查询(dnsclient_unix.go)。</p>
+<p>glibc在进行域名查询时，会同时发起<code>A</code>(IPv4)和<code>AAAA</code>(IPv6)两种记录的解析请求，在<code>musl libc</code>的实现中，有些特定机器下会出现并发请求id冲突，而被拦截的情况，从而导致请求失败。<a href="https://www.bookstack.cn/read/kubernetes-practice-guide/troubleshooting-cases-dns-resolution-abnormal.md">DNS解析异常</a>。这个问题在不使用<code>musl libc</code>时可以得到解决，方法是不使用<code>alpine</code>基础镜像，如go程序，可以禁用cgo，从而使用golang自己的逻辑，通过TCP并发请求。</p>
+<h2 id="资源记录类型">资源记录类型</h2>
+<p>DNS通常用来确认域名对应的IP地址，但也可以用于从IP地址找到域名，从域名找到别名，获得IPv4和IPv6地址，以及其它非互联网数据提供分布式数据库功能。</p>
+<p>使用<code>nslookup</code>命令进入交互模式，通过<code>set type=&lt;&gt;</code>可以控制DNS解析资源类型</p>
+<ul>
+<li>A/AAAA型记录</li>
+</ul>
+<p><code>A</code>型记录为IPv4地址，<code>AAAA</code>型记录为IPv6地址。在使用glibc进行DNS解析时，会并发发出这两种类型的查询。在阿里云的DNS解析中，也可以看到这类的记录</p>
+<p><img src="/images/post/Screenshot_20210119_104944.png" alt="Aliyun"></p>
+<ul>
+<li>CNAME记录</li>
+</ul>
+<p>CNAME即规范名称(Canonical name)，会将单一域名的别名记录进系统中。很多网站为了避免用户typo进错网站，或者出于其它目的，会将一组域名关联到自己的主机上。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan:~$ host -t any cn.bing.com
+</span></span><span style="display:flex;"><span>cn.bing.com is an <span style="color:#658b00">alias</span> <span style="color:#8b008b;font-weight:bold">for</span> cn-bing-com.cn.a-0001.a-msedge.net.
+</span></span></code></pre></div><ul>
+<li>逆向DNS查询: PTR指针记录</li>
+</ul>
+<p>PTR记录查询可以反向找出对应域名。由于域名是域名服务器树状结构构成的，需要一层层取解析。可以通过<code>.in-addr.arpa.</code>域来找出对应。</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>DNS懒人包</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#dns-服务器">DNS 服务器</a>
+          <ul>
+            <li><a href="#域名覆盖">域名覆盖</a></li>
+          </ul>
+        </li>
+        <li><a href="#缓存与查询顺序">缓存与查询顺序</a></li>
+        <li><a href="#查询">查询</a></li>
+        <li><a href="#资源记录类型">资源记录类型</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

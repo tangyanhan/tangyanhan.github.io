@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go源码分析: 逃逸分析 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>Go源码分析: 逃逸分析</h1>
+  <time datetime=2020-04-05T23:25:07&#43;0800 class="post-date">Sun, Apr 5, 2020</time>
+  <h1 id="什么是逃逸分析">什么是逃逸分析</h1>
+<p>逃逸分析(Escape Analysis)是Go在编译程序时执行的过程, 由编译器通过分析, 决定变量应当分配在栈上还是堆上.</p>
+<h1 id="在编译中进行逃逸分析">在编译中进行逃逸分析</h1>
+<p>目前有代码如下:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">package</span> main
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#cd5555">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">type</span> User <span style="color:#8b008b;font-weight:bold">struct</span> {
+</span></span><span style="display:flex;"><span>	name <span style="color:#00688b;font-weight:bold">string</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">GetUsername</span>(u *User) <span style="color:#00688b;font-weight:bold">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">return</span> u.name
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">escapeSimple</span>() <span style="color:#00688b;font-weight:bold">int</span> {
+</span></span><span style="display:flex;"><span>	i := <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>	j := i + <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">return</span> j
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">main</span>() {
+</span></span><span style="display:flex;"><span>	fmt.<span style="color:#008b45">Println</span>(<span style="color:#008b45">escapeSimple</span>())
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>通过在编译时增加gcflags参数, 使用类似如下命令编译:</p>
+<pre tabindex="0"><code>go build -gcflags &#39;-m -N -l&#39; ./advanced/cmd/escape-analysis
+</code></pre><p>然后获得输出如下:</p>
+<pre tabindex="0"><code># github.com/tangyanhan/u235/advanced/cmd/escape-analysis
+advanced/cmd/escape-analysis/main.go:11:18: leaking param: u to result ~r1 level=1
+advanced/cmd/escape-analysis/main.go:22:13: main ... argument does not escape
+advanced/cmd/escape-analysis/main.go:22:26: escapeSimple() escapes to heap
+</code></pre><p>这些信息,表明 GetUsername 将参数&quot;泄露&quot;到了返回值中, 而 escapeSimple 则逃逸到了堆中.</p>
+<h2 id="编译时参数是怎么来的">编译时参数是怎么来的?</h2>
+<p>在 go build 命令执行时, 其实包含了编译(compile), 连接(link)等多个步骤, 这里 <code>-gcflags</code> 实际上是传递给 <code>go tool compile</code>的参数, 相关列表可以通过以下命令获得:</p>
+<pre tabindex="0"><code>go tool compile --help
+</code></pre><p>类似的, 在连接时, 通过<code>-ldflags</code> 传递给<code>go tool link</code>, 对应参数列表, 可以通过以下命令获得:</p>
+<pre tabindex="0"><code>go tool link --help
+</code></pre><h1 id="源码中的逃逸分析">源码中的逃逸分析</h1>
+<p>在Go源码中, 通过注释解释了逃逸分析的运行机制. 1.14源码中, 这段注释出现在 <code>src/cmd/compile/internal/gc/escape.go</code> 开头.</p>
+<p>第一段如下:</p>
+<pre tabindex="0"><code>这里我们通过分析函数来决定Go变量应当分配到栈上, 包括那些明确调用了 new 和 make 的语句. 我们必须要保证的两点不变条件是:
+1. 指向栈对象的指针不能被存在堆里
+2. 指向栈对象的指针,生命周期不能超出栈对象本身(因为声明栈对象的函数在返回时已经摧毁栈帧,或者它的空间被复用于循环中的局部变量)
+</code></pre><p>这里揭示了几点:</p>
+<ul>
+<li>即使是明确调用 new/make 创建出来的变量, 也可能被分配到栈上</li>
+<li>当函数中的变量被返回时, 它将不可能被分配到栈上. 循环中的局部变量不会被分配到堆上(一般情况)</li>
+</ul>
+<h2 id="newmake-不一定逃逸">new/make 不一定逃逸</h2>
+<p>对于第一点, 以下面的代码为例, 就会发现 GetUsername 中通过 new 创建出的 p, 实际生命周期并没有超出函数范围. 而 return u.name, 导致参数 u 被抛出了范围.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">GetUsername</span>(u *User) <span style="color:#00688b;font-weight:bold">string</span> {
+</span></span><span style="display:flex;"><span>	p := <span style="color:#658b00">new</span>(User)
+</span></span><span style="display:flex;"><span>	p.name = <span style="color:#cd5555">&#34;John&#34;</span>
+</span></span><span style="display:flex;"><span>	fmt.<span style="color:#008b45">Println</span>(p.name)
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">return</span> u.name
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>而分析结果也如我们所料:</p>
+<pre tabindex="0"><code>advanced/cmd/escape-analysis/main.go:11:18: leaking param: u to result ~r1 level=1
+advanced/cmd/escape-analysis/main.go:12:10: GetUsername new(User) does not escape
+advanced/cmd/escape-analysis/main.go:14:13: GetUsername ... argument does not escape
+</code></pre><h2 id="循环逃逸">循环逃逸</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">loop</span>() {
+</span></span><span style="display:flex;"><span>	m := <span style="color:#8b008b;font-weight:bold">map</span>[<span style="color:#00688b;font-weight:bold">string</span>]<span style="color:#00688b;font-weight:bold">string</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#cd5555">&#34;a&#34;</span>: <span style="color:#cd5555">&#34;A&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#cd5555">&#34;b&#34;</span>: <span style="color:#cd5555">&#34;B&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#cd5555">&#34;c&#34;</span>: <span style="color:#cd5555">&#34;C&#34;</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#8b008b;font-weight:bold">for</span> k, v := <span style="color:#8b008b;font-weight:bold">range</span> m {
+</span></span><span style="display:flex;"><span>		fmt.<span style="color:#008b45">Println</span>(k, v)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>分析结果如下:</p>
+<pre tabindex="0"><code>advanced/cmd/escape-analysis/main.go:27:24: loop map[string]string literal does not escape
+advanced/cmd/escape-analysis/main.go:33:14: loop ... argument does not escape
+advanced/cmd/escape-analysis/main.go:33:14: k escapes to heap
+advanced/cmd/escape-analysis/main.go:33:14: v escapes to heap
+</code></pre><p>首先, m 虽然是个map, 但它很小, 而且 loop 自产自销, 在栈空间足够的情况下, 是可以使用的.
+其次, k, v 在循环中被复用, 因此也被分配到了堆上.</p>
+<h3 id="循环逃逸带来的一个小问题">循环逃逸带来的一个小问题</h3>
+<p>假设现有 Obj Slice, 其内部的Val如下: 1, 2, 3, 4, 5. 通过下面代码, 调用 print 后打印结果是什么?</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">type</span> Obj <span style="color:#8b008b;font-weight:bold">struct</span> {
+</span></span><span style="display:flex;"><span>    Val <span style="color:#00688b;font-weight:bold">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#658b00">print</span>(objs []*Obj) {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">for</span> _, v := <span style="color:#8b008b;font-weight:bold">range</span> objs {
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">defer</span> fmt.<span style="color:#008b45">Println</span>(v.Val)
+</span></span><span style="display:flex;"><span>        <span style="color:#8b008b;font-weight:bold">defer</span> <span style="color:#8b008b;font-weight:bold">func</span>() {
+</span></span><span style="display:flex;"><span>            fmt.<span style="color:#008b45">Println</span>(v.Val)
+</span></span><span style="display:flex;"><span>        }()
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="闭包引用变量逃逸">闭包引用变量逃逸</h2>
+<p>对于生命周期, 主要就是围绕着返回值, 那么如果是闭包呢?</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">closure</span>() {
+</span></span><span style="display:flex;"><span>	x := <span style="color:#cd5555">&#34;hello&#34;</span>
+</span></span><span style="display:flex;"><span>	fn := <span style="color:#8b008b;font-weight:bold">func</span>() {
+</span></span><span style="display:flex;"><span>		fmt.<span style="color:#008b45">Println</span>(x)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#008b45">fn</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>分析发现, x 被分配到了堆上, 闭包中引用的变量会被分配到堆上.</p>
+<pre tabindex="0"><code>advanced/cmd/escape-analysis/main.go:20:8: closure func literal does not escape
+advanced/cmd/escape-analysis/main.go:21:14: closure.func1 ... argument does not escape
+advanced/cmd/escape-analysis/main.go:21:14: x escapes to heap
+</code></pre><p>这里又引出了另一个问题, 关于闭包的实现问题&hellip; 以后再说.</p>
+<h2 id="newmake-等被判定分配到栈上的阈值是多少">new/make 等被判定分配到栈上的阈值是多少?</h2>
+<p>我们知道, 栈的大小是有限的, 如果系统限制栈长度为8mb, 那么我们就不可能分配一个10mb的slice到栈上. 之前我们提到过有些语句, 即使我们明确使用了new/make, 创建出的对象还是可能被分配到栈上.</p>
+<p>那么问题来了, Go依据什么决定new/make分配到栈上呢?</p>
+<p>1.14 <code>src/cmd/compile/internal/gc/esc.go:mustHeapALloc</code> 描述了这个逻辑:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8b008b;font-weight:bold">func</span> <span style="color:#008b45">mustHeapAlloc</span>(n *Node) <span style="color:#00688b;font-weight:bold">bool</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// TODO(mdempsky): Cleanup this mess.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#8b008b;font-weight:bold">return</span> n.Type != <span style="color:#8b008b;font-weight:bold">nil</span> &amp;&amp;
+</span></span><span style="display:flex;"><span>		(n.Type.Width &gt; maxStackVarSize ||
+</span></span><span style="display:flex;"><span>			(n.Op == ONEW || n.Op == OPTRLIT) &amp;&amp; n.Type.<span style="color:#008b45">Elem</span>().Width &gt;= maxImplicitStackVarSize ||
+</span></span><span style="display:flex;"><span>			n.Op == OMAKESLICE &amp;&amp; !<span style="color:#008b45">isSmallMakeSlice</span>(n))
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#228b22">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">var</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// maximum size variable which we will allocate on the stack.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// This limit is for explicit variable declarations like &#34;var x T&#34; or &#34;x := ...&#34;.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// Note: the flag smallframes can update this value.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	maxStackVarSize = <span style="color:#658b00">int64</span>(<span style="color:#b452cd">10</span> * <span style="color:#b452cd">1024</span> * <span style="color:#b452cd">1024</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// maximum size of implicit variables that we will allocate on the stack.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">//   p := new(T)          allocating T on the stack
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">//   p := &amp;T{}            allocating T on the stack
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">//   s := make([]T, n)    allocating [n]T on the stack
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">//   s := []byte(&#34;...&#34;)   allocating [n]byte on the stack
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// Note: the flag smallframes can update this value.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	maxImplicitStackVarSize = <span style="color:#658b00">int64</span>(<span style="color:#b452cd">64</span> * <span style="color:#b452cd">1024</span>)
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><ol>
+<li>Object 自身长度不能超过栈长度</li>
+<li>Object不超过最大栈变量长度(目前64位linux上是 64k)</li>
+</ol>
+<p>事实上, slice/map 只是一个普通的struct, 往往实际分配都在堆上. map 在逃逸分析时只是被作为一个普通的struct, 因为其内元素大小/增长, 并不会影响其struct本身.</p>
+<p>slice略微特殊, slice在分配和增长中有一套自己的逻辑, 如果对很小的slice也统统分配到堆上, 可能会造成大量的内存碎片. slice目前的分配阈值是64k(linux 64, Go1.14, 且未通过smallframes变更 maxImplicitStackVarSize的值). 即不超过64k, 且经过逃逸分析未逃逸的slice, 会被分配到栈上, 而不是堆上.</p>
+<h1 id="相关代码">相关代码</h1>
+<p>相关代码放在我的github仓库中: <a href="https://github.com/tangyanhan/u235/blob/master/go/advanced/cmd/escape-analysis/main.go">advanced/cmd/escape-analysis/main.go</a></p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>Go源码分析: 逃逸分析</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#什么是逃逸分析">什么是逃逸分析</a></li>
+    <li><a href="#在编译中进行逃逸分析">在编译中进行逃逸分析</a>
+      <ul>
+        <li><a href="#编译时参数是怎么来的">编译时参数是怎么来的?</a></li>
+      </ul>
+    </li>
+    <li><a href="#源码中的逃逸分析">源码中的逃逸分析</a>
+      <ul>
+        <li><a href="#newmake-不一定逃逸">new/make 不一定逃逸</a></li>
+        <li><a href="#循环逃逸">循环逃逸</a>
+          <ul>
+            <li><a href="#循环逃逸带来的一个小问题">循环逃逸带来的一个小问题</a></li>
+          </ul>
+        </li>
+        <li><a href="#闭包引用变量逃逸">闭包引用变量逃逸</a></li>
+        <li><a href="#newmake-等被判定分配到栈上的阈值是多少">new/make 等被判定分配到栈上的阈值是多少?</a></li>
+      </ul>
+    </li>
+    <li><a href="#相关代码">相关代码</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

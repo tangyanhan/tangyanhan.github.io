@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.112.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>eBPF入门-1: 概要，bcc工具包 &middot; Ethan Tang</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>Ethan Tang</h1></a>
+      <p class="lead">
+       Ethan Tang technical share 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 7
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>eBPF入门-1: 概要，bcc工具包</h1>
+  <time datetime=2020-06-29T11:43:33&#43;0800 class="post-date">Mon, Jun 29, 2020</time>
+  <h1 id="什么是bpfebpf">什么是BPF，eBPF</h1>
+<p>BPF全程是 Berkeley Packet Filters， 由McCanne于1992年提出，并加入到Unix中。 从名称可以看出， 这就是个包过滤器。它是 libpcap/tcpdump/wireshark这些 Linux 嗅探器包的基石。</p>
+<p>BPF在Linux内核中由两个部分组成： Network Tap 和 过滤器。Network Tap就像一个水龙头分流阀一样， 从物理接口传来的数据包，都会同时被Network Tap和网络栈(Network Stack)各自处理，符合过滤器条件的数据包， 会被BPF复制到缓冲区，提供给对应的用户空间程序， 例如tcpdump。</p>
+<p>过滤器部分本质上是一个虚拟机(Pseudo Machine), 它规定了一种不依赖具体协议的过滤器语言，能够将用户传来的代码编译成有限步骤的高效过滤器。</p>
+<p><img src="/images/post/bpf-overview.png" alt="BPF Overview"></p>
+<p>过滤器允许用户通过系统调用，将一段编译好的代码嵌入到内核态的BPF过滤器中，成为一个新的过滤器，这样过滤器就好像TCP网络栈一样，可以让应用程序在用户态直接源源不断的获得到网络数据包。</p>
+<p>从这个架构可以看出， BPF可以用于流量监听， 但不能影响网络栈的处理过程。 不能影响正常的应用程序处理。</p>
+<p>eBPF，即Extened BPF， 原理与BPF基本一致，但范围大大扩展了，不单独是网络流量， 系统调用等信息也可以流入BPF的虚拟机中。</p>
+<h1 id="ebpf可以做什么">eBPF可以做什么？</h1>
+<ul>
+<li>经典的BPF部分，可以做网络流量分析</li>
+<li>经典的BPF部分，必要时也可以做流量复制转发</li>
+<li>新增的eBPF，可以做系统行为分析和系统性能/应用程序性能分析等</li>
+</ul>
+<h1 id="安装bcc工具包">安装bcc工具包</h1>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt install -y bpfcc-tools
+</span></span></code></pre></div><p>实验一下是否安装好了：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo /usr/sbin/opensnoop-pbfcc
+</span></span></code></pre></div><p>opensnoop 是bcc工具包的一部分，作用是监听指定或所有进程的open()系统调用，我们可以获得进程的文件访问行为，用来进行进程行为分析等。</p>
+<h1 id="bcc工具包使用">bcc工具包使用</h1>
+<p>以下部分由我翻译自 <a href="https://github.com/iovisor/bcc/blob/master/docs/tutorial.md">bcc Tutorial</a></p>
+<h2 id="opensnoop">opensnoop</h2>
+<p>opensnoop 监听所有open()系统调用行为。可以从中分析出进程的数据文件，日志文件等。也可以判断出进程的违规行为，或者某些使用不当导致的性能问题，例如频繁访问一个不存在的文件。</p>
+<h2 id="execsnoop">execsnoop</h2>
+<p>execsnoop 监听所有exec()系统调用行为。需要注意的是它监听 exec()而不是fork()，因此并不能监听所有新起的进程。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan-kali:~$ sudo execsnoop-bpfcc 
+</span></span><span style="display:flex;"><span>PCOMM            PID    PPID   RET ARGS
+</span></span><span style="display:flex;"><span>chrome-sandbox   <span style="color:#b452cd">11239</span>  <span style="color:#b452cd">2300</span>     <span style="color:#b452cd">0</span> /opt/google/chrome/chrome-sandbox --adjust-oom-score <span style="color:#b452cd">11238</span> <span style="color:#b452cd">300</span>
+</span></span></code></pre></div><h2 id="ext4slower或者-brtfsslower-xfsslower-zfsslower">ext4slower(或者 brtfsslower, xfsslower, zfsslower)</h2>
+<p>用于监听对应文件系统的访问行为，找出进程缓慢的文件系统访问操作。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan-kali:~$ sudo xfsslower-bpfcc 
+</span></span><span style="display:flex;"><span>Tracing XFS operations slower than <span style="color:#b452cd">10</span> ms
+</span></span><span style="display:flex;"><span>TIME     COMM           PID    T BYTES   OFF_KB   LAT(ms) FILENAME
+</span></span><span style="display:flex;"><span>15:00:40 b<span style="color:#cd5555">&#39;code&#39;</span>        <span style="color:#b452cd">6480</span>   S <span style="color:#b452cd">0</span>       <span style="color:#b452cd">0</span>          49.63 b<span style="color:#cd5555">&#39;19b178a2d49de9d093180fc06588a7e5&#39;</span>
+</span></span><span style="display:flex;"><span>15:00:48 b<span style="color:#cd5555">&#39;code&#39;</span>        <span style="color:#b452cd">6480</span>   S <span style="color:#b452cd">0</span>       <span style="color:#b452cd">0</span>          10.17 b<span style="color:#cd5555">&#39;state.vscdb&#39;</span>
+</span></span></code></pre></div><h2 id="biosnoop">biosnoop</h2>
+<p>biosnoop主要用于打印出每次磁盘IO及延迟。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan-kali:~$ sudo biosnoop-bpfcc 
+</span></span><span style="display:flex;"><span>TIME(s)     COMM           PID    DISK    T SECTOR     BYTES  LAT(ms)
+</span></span><span style="display:flex;"><span>0.000000    kworker/4:2    <span style="color:#b452cd">7497</span>           R <span style="color:#b452cd">18446744073709551615</span> <span style="color:#b452cd">8</span>         0.53
+</span></span><span style="display:flex;"><span>0.003048    AioMgr0-N      <span style="color:#b452cd">2618</span>   nvme0n1 R <span style="color:#b452cd">395545048</span>  <span style="color:#b452cd">4096</span>      4.95
+</span></span><span style="display:flex;"><span>0.003368    AioMgr0-N      <span style="color:#b452cd">2618</span>   nvme0n1 R <span style="color:#b452cd">395547840</span>  <span style="color:#b452cd">8192</span>      0.11
+</span></span><span style="display:flex;"><span>0.003398    AioMgr0-N      <span style="color:#b452cd">2618</span>   nvme0n1 R <span style="color:#b452cd">394532376</span>  <span style="color:#b452cd">4096</span>      0.13
+</span></span><span style="display:flex;"><span><span style="color:#b452cd">0</span>
+</span></span></code></pre></div><h2 id="cachestat">cachestat</h2>
+<p>cachestat 用于分析每秒（或指定间隔）文件系统缓存的命中率。可以通过分析命中率和失误率，分析文件系统缓存对性能的影响。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan-kali:~$ sudo cachestat-bpfcc 
+</span></span><span style="display:flex;"><span>    HITS   MISSES  DIRTIES HITRATIO   BUFFERS_MB  CACHED_MB
+</span></span><span style="display:flex;"><span>      <span style="color:#b452cd">26</span>        <span style="color:#b452cd">0</span>        <span style="color:#b452cd">0</span>  100.00%            <span style="color:#b452cd">3</span>       <span style="color:#b452cd">3512</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#b452cd">20</span>        <span style="color:#b452cd">0</span>        <span style="color:#b452cd">0</span>  100.00%            <span style="color:#b452cd">3</span>       <span style="color:#b452cd">3508</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#b452cd">20</span>        <span style="color:#b452cd">0</span>        <span style="color:#b452cd">0</span>  100.00%            <span style="color:#b452cd">3</span>       <span style="color:#b452cd">3508</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#b452cd">20</span>        <span style="color:#b452cd">0</span>        <span style="color:#b452cd">0</span>  100.00%            <span style="color:#b452cd">3</span>       <span style="color:#b452cd">3508</span>
+</span></span></code></pre></div><h2 id="tcpconnect">tcpconnect</h2>
+<p>通过跟踪connect()系统调用，每次有活跃TCP连接建立时打印， 可以用于分析出程序错误配置导致TCP连接低效使用，或者是入侵等问题。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan-kali:~$ sudo tcpconnect-bpfcc 
+</span></span><span style="display:flex;"><span>Tracing connect ... Hit Ctrl-C to end
+</span></span><span style="display:flex;"><span>PID    COMM         IP SADDR            DADDR            DPORT
+</span></span><span style="display:flex;"><span><span style="color:#b452cd">2343</span>   Chrome_Child <span style="color:#b452cd">4</span>  127.0.0.1        127.0.0.1        <span style="color:#b452cd">1080</span>
+</span></span><span style="display:flex;"><span><span style="color:#b452cd">2343</span>   Chrome_Child <span style="color:#b452cd">4</span>  127.0.0.1        127.0.0.1        <span style="color:#b452cd">1080</span>
+</span></span><span style="display:flex;"><span><span style="color:#b452cd">10707</span>  shadowsocks- <span style="color:#b452cd">4</span>  10.8.1.36        47.103.69.196    <span style="color:#b452cd">59012</span>
+</span></span><span style="display:flex;"><span><span style="color:#b452cd">10707</span>  shadowsocks- <span style="color:#b452cd">4</span>  10.8.1.36        47.103.69.196    <span style="color:#b452cd">59012</span>
+</span></span></code></pre></div><h2 id="tcpaccept">tcpaccept</h2>
+<p>同上， 只是追踪外界主动连接过来的请求。</p>
+<h2 id="tcpretrans">tcpretrans</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan-kali:~$ sudo tcpretrans-bpfcc 
+</span></span><span style="display:flex;"><span>Tracing retransmits ... Hit Ctrl-C to end
+</span></span><span style="display:flex;"><span>TIME     PID    IP LADDR:LPORT          T&gt; RADDR:RPORT          STATE
+</span></span><span style="display:flex;"><span>15:13:40 <span style="color:#b452cd">0</span>      <span style="color:#b452cd">4</span>  10.8.1.36:59540      R&gt; 180.149.145.248:443  LAST_ACK
+</span></span><span style="display:flex;"><span>15:13:41 <span style="color:#b452cd">0</span>      <span style="color:#b452cd">4</span>  10.8.1.36:59540      R&gt; 180.149.145.248:443  LAST_ACK
+</span></span><span style="display:flex;"><span><span style="color:#b452cd">1</span>
+</span></span></code></pre></div><p>tcpretrans 打印出每个重传的TCP包。TCP重传会导致延迟和吞吐量问题。</p>
+<p>ESTABLISHED 重传， 可能由于网络问题导致。SYN_SENT 可能是由于CPU占用过高或内核丢包过多导致的。</p>
+<p>TODO: 搞清楚上述原理。</p>
+<h2 id="runqlat">runqlat</h2>
+<p>runqlat 用于跟踪一段时间内进程/线程的调度延迟，开始一段时间后， 按下Ctrl+C, 可以打印出这段时间的CPU调度延迟分布图。</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan-kali:~$ sudo runqlat-bpfcc 
+</span></span><span style="display:flex;"><span>Tracing run queue latency... Hit Ctrl-C to end.
+</span></span><span style="display:flex;"><span>^C
+</span></span><span style="display:flex;"><span>     usecs               : count     distribution
+</span></span><span style="display:flex;"><span>         <span style="color:#b452cd">0</span> -&gt; <span style="color:#b452cd">1</span>          : <span style="color:#b452cd">624175</span>   |**********************************      |
+</span></span><span style="display:flex;"><span>         <span style="color:#b452cd">2</span> -&gt; <span style="color:#b452cd">3</span>          : <span style="color:#b452cd">514640</span>   |****************************            |
+</span></span><span style="display:flex;"><span>         <span style="color:#b452cd">4</span> -&gt; <span style="color:#b452cd">7</span>          : <span style="color:#b452cd">541942</span>   |*****************************           |
+</span></span><span style="display:flex;"><span>         <span style="color:#b452cd">8</span> -&gt; <span style="color:#b452cd">15</span>         : <span style="color:#b452cd">285838</span>   |***************                         |
+</span></span><span style="display:flex;"><span>        <span style="color:#b452cd">16</span> -&gt; <span style="color:#b452cd">31</span>         : <span style="color:#b452cd">185164</span>   |**********                              |
+</span></span><span style="display:flex;"><span>        <span style="color:#b452cd">32</span> -&gt; <span style="color:#b452cd">63</span>         : <span style="color:#b452cd">723860</span>   |****************************************|
+</span></span><span style="display:flex;"><span>        <span style="color:#b452cd">64</span> -&gt; <span style="color:#b452cd">127</span>        : <span style="color:#b452cd">56832</span>    |***                                     |
+</span></span><span style="display:flex;"><span>       <span style="color:#b452cd">128</span> -&gt; <span style="color:#b452cd">255</span>        : <span style="color:#b452cd">18260</span>    |*                                       |
+</span></span><span style="display:flex;"><span>       <span style="color:#b452cd">256</span> -&gt; <span style="color:#b452cd">511</span>        : <span style="color:#b452cd">9960</span>     |                                        |
+</span></span><span style="display:flex;"><span>       <span style="color:#b452cd">512</span> -&gt; <span style="color:#b452cd">1023</span>       : <span style="color:#b452cd">5129</span>     |                                        |
+</span></span><span style="display:flex;"><span>      <span style="color:#b452cd">1024</span> -&gt; <span style="color:#b452cd">2047</span>       : <span style="color:#b452cd">1916</span>     |                                        |
+</span></span><span style="display:flex;"><span>      <span style="color:#b452cd">2048</span> -&gt; <span style="color:#b452cd">4095</span>       : <span style="color:#b452cd">634</span>      |                                        |
+</span></span><span style="display:flex;"><span>      <span style="color:#b452cd">4096</span> -&gt; <span style="color:#b452cd">8191</span>       : <span style="color:#b452cd">137</span>      |                                        |
+</span></span><span style="display:flex;"><span>      <span style="color:#b452cd">8192</span> -&gt; <span style="color:#b452cd">16383</span>      : <span style="color:#b452cd">26</span>       |                                        |
+</span></span></code></pre></div><p>解读：</p>
+<p>usecs 表明这一列时间单位是us. count 即发生对应调度延迟的次数， distribution 是将count进行了更直观的图形化。</p>
+<p>由上图可知， 过去这段时间， 有18260次线程调度延迟在 128-255 us 之间。</p>
+<p>我们可以由此分析出花在CPU调度上的延迟， 从而决定水平扩展或物理扩展来提高性能。</p>
+<h2 id="profile">profile</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ethan@ethan-kali:~$ sudo profile-bpfcc
+</span></span><span style="display:flex;"><span>Sampling at <span style="color:#b452cd">49</span> Hertz of all threads by user + kernel stack... Hit Ctrl-C to end.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    b<span style="color:#cd5555">&#39;pcibios_pm_ops&#39;</span>
+</span></span><span style="display:flex;"><span>    b<span style="color:#cd5555">&#39;pcibios_pm_ops&#39;</span>
+</span></span><span style="display:flex;"><span>    ioctl
+</span></span><span style="display:flex;"><span>    [unknown]
+</span></span><span style="display:flex;"><span>    [unknown]
+</span></span><span style="display:flex;"><span>    [unknown]
+</span></span><span style="display:flex;"><span>    [unknown]
+</span></span><span style="display:flex;"><span>    [unknown]
+</span></span><span style="display:flex;"><span>    [unknown]
+</span></span><span style="display:flex;"><span>    start_thread
+</span></span><span style="display:flex;"><span>    -                EMT-0 (12255)
+</span></span><span style="display:flex;"><span>        <span style="color:#b452cd">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    fbGetScreenPrivateKey
+</span></span><span style="display:flex;"><span>    [unknown]
+</span></span></code></pre></div><p>profile 可以打印出进程的栈和系统调用，以及他们的发生次数， 可以用于分析进程行为。</p>
+<h1 id="参考文档">参考文档</h1>
+<ol>
+<li>BPF论文： <a href="https://www.tcpdump.org/papers/bpf-usenix93.pdf">The BSD Packet Filter:A New Architecture for User-level Packet Capture</a></li>
+</ol>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>eBPF入门-1: 概要，bcc工具包</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#什么是bpfebpf">什么是BPF，eBPF</a></li>
+    <li><a href="#ebpf可以做什么">eBPF可以做什么？</a></li>
+    <li><a href="#安装bcc工具包">安装bcc工具包</a></li>
+    <li><a href="#bcc工具包使用">bcc工具包使用</a>
+      <ul>
+        <li><a href="#opensnoop">opensnoop</a></li>
+        <li><a href="#execsnoop">execsnoop</a></li>
+        <li><a href="#ext4slower或者-brtfsslower-xfsslower-zfsslower">ext4slower(或者 brtfsslower, xfsslower, zfsslower)</a></li>
+        <li><a href="#biosnoop">biosnoop</a></li>
+        <li><a href="#cachestat">cachestat</a></li>
+        <li><a href="#tcpconnect">tcpconnect</a></li>
+        <li><a href="#tcpaccept">tcpaccept</a></li>
+        <li><a href="#tcpretrans">tcpretrans</a></li>
+        <li><a href="#runqlat">runqlat</a></li>
+        <li><a href="#profile">profile</a></li>
+      </ul>
+    </li>
+    <li><a href="#参考文档">参考文档</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

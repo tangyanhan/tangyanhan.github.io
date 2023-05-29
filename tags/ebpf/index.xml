@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>eBPF on Ethan Tang</title>
+    <link>https://tangyanhan.github.io/tags/ebpf/</link>
+    <description>Recent content in eBPF on Ethan Tang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 04 Jul 2020 20:24:33 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/ebpf/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>eBPF入门-2: bpftrace</title>
+      <link>https://tangyanhan.github.io/posts/bpf-tutorial-2/</link>
+      <pubDate>Sat, 04 Jul 2020 20:24:33 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/bpf-tutorial-2/</guid>
+      <description>本文由我翻译自The bpftrace One-Liner Tutorial.
+安装 sudo apt install -y bpftrace 1. 列出可用的追踪 sudo bpftrace -l &amp;#39;tracepoint:syscalls:sys_enter_*&amp;#39; bpftrace能够跟踪很多系统调用，这里是可以用 * 和 ? 查询的。
+2. Hello World ethan@ethan-kali:~$ sudo bpftrace -e &amp;#39;BEGIN {printf(&amp;#34;hello world\n&amp;#34;); }&amp;#39; Attaching 1 probe... hello world ^C BEGIN 就像awk的BEGIN一样， 可以用于设置变量， 打印事件头等 跟踪过程可以关联一些动作，它们定义在花括号里。 3. 跟踪打开的文件 ethan@ethan-kali:~$ sudo bpftrace -e &amp;#39;tracepoint:syscalls:sys_enter_openat { printf(&amp;#34;%s %s\n&amp;#34;, comm, str(args-&amp;gt;filename)); }&amp;#39; Attaching 1 probe... code /proc/6972/cmdline ksysguardd /proc/stat ksysguardd /proc/vmstat ksysguardd /proc/meminfo 开始是 tracepoint:syscalls:sys_enter_openat， 这是我们要监听的系统调用。在现代的Linux系统中(glibc&amp;gt;=2.26)，open总是会调用openat.</description>
+    </item>
+    
+    <item>
+      <title>eBPF入门-1: 概要，bcc工具包</title>
+      <link>https://tangyanhan.github.io/posts/bpf-tutorial-1/</link>
+      <pubDate>Mon, 29 Jun 2020 11:43:33 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/bpf-tutorial-1/</guid>
+      <description>什么是BPF，eBPF BPF全程是 Berkeley Packet Filters， 由McCanne于1992年提出，并加入到Unix中。 从名称可以看出， 这就是个包过滤器。它是 libpcap/tcpdump/wireshark这些 Linux 嗅探器包的基石。
+BPF在Linux内核中由两个部分组成： Network Tap 和 过滤器。Network Tap就像一个水龙头分流阀一样， 从物理接口传来的数据包，都会同时被Network Tap和网络栈(Network Stack)各自处理，符合过滤器条件的数据包， 会被BPF复制到缓冲区，提供给对应的用户空间程序， 例如tcpdump。
+过滤器部分本质上是一个虚拟机(Pseudo Machine), 它规定了一种不依赖具体协议的过滤器语言，能够将用户传来的代码编译成有限步骤的高效过滤器。
+过滤器允许用户通过系统调用，将一段编译好的代码嵌入到内核态的BPF过滤器中，成为一个新的过滤器，这样过滤器就好像TCP网络栈一样，可以让应用程序在用户态直接源源不断的获得到网络数据包。
+从这个架构可以看出， BPF可以用于流量监听， 但不能影响网络栈的处理过程。 不能影响正常的应用程序处理。
+eBPF，即Extened BPF， 原理与BPF基本一致，但范围大大扩展了，不单独是网络流量， 系统调用等信息也可以流入BPF的虚拟机中。
+eBPF可以做什么？ 经典的BPF部分，可以做网络流量分析 经典的BPF部分，必要时也可以做流量复制转发 新增的eBPF，可以做系统行为分析和系统性能/应用程序性能分析等 安装bcc工具包 sudo apt install -y bpfcc-tools 实验一下是否安装好了：
+sudo /usr/sbin/opensnoop-pbfcc opensnoop 是bcc工具包的一部分，作用是监听指定或所有进程的open()系统调用，我们可以获得进程的文件访问行为，用来进行进程行为分析等。
+bcc工具包使用 以下部分由我翻译自 bcc Tutorial
+opensnoop opensnoop 监听所有open()系统调用行为。可以从中分析出进程的数据文件，日志文件等。也可以判断出进程的违规行为，或者某些使用不当导致的性能问题，例如频繁访问一个不存在的文件。
+execsnoop execsnoop 监听所有exec()系统调用行为。需要注意的是它监听 exec()而不是fork()，因此并不能监听所有新起的进程。
+ethan@ethan-kali:~$ sudo execsnoop-bpfcc PCOMM PID PPID RET ARGS chrome-sandbox 11239 2300 0 /opt/google/chrome/chrome-sandbox --adjust-oom-score 11238 300 ext4slower(或者 brtfsslower, xfsslower, zfsslower) 用于监听对应文件系统的访问行为，找出进程缓慢的文件系统访问操作。</description>
+    </item>
+    
+  </channel>
+</rss>

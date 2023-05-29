@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>网络 on Ethan Tang</title>
+    <link>https://tangyanhan.github.io/tags/%E7%BD%91%E7%BB%9C/</link>
+    <description>Recent content in 网络 on Ethan Tang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 19 Jan 2021 22:20:28 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>TCP保活机制闲扯</title>
+      <link>https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/</link>
+      <pubDate>Tue, 19 Jan 2021 22:20:28 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/</guid>
+      <description>TCP保活机制主要问题 在TCP连接不传输任何数据时，两端将无法得知另一端是否因为关机、掉电而消失，此外，为一个另一端已经不存在的TCP连接一直维持资源，也会浪费资源。在TCP标准之外，各个操作系统实现中都实现了TCP的保活机制(keepalive)。
+保活机制有几个问题要解决：
+什么时候开始启动保活机制？ Linux 使用sysctl参数：net.ipv4.tcp_keepalive_time=7200，表示TCP连接在闲置7200秒后启动保活机制，开始发送保活报文
+保活报文间隔多久发送一次？ sysctl 参数: net.ipv4.tcp_keepalive_intvl = 75， 表示保活报文每隔75秒发送一次
+保活报文可能因为网络抖动而发送失败，失败多少次我们认为TCP连接已经需要放弃？ sysctl 参数: net.ipv4.tcp_keepalive_probes = 9，表示保活报文失败9次后，TCP连接被认为应当放弃，将会关闭
+开启保活机制的一方，可能会观察到哪些情形？ 在保活过程中发生了数据传输，保活机制终止，等待下一次闲置触发
+对方由于正在重启或中间的网络不可达，导致对报文没有任何响应，直到超时
+对方重启成功，已经不记得连接的信息，因此返回RST报文，保活方收到Connection Reset by Peer
+在Linux C/Golang中启用保活机制 保活机制不是TCP标准的一部分，通过系统调用创建的socket需要通过setsockopt明确启用SO_KEEPALIVE参数:
+#include &amp;lt;sys/socket.h&amp;gt; /**level=SOL_SOCKET, option_name=SO_KEEPALIVE, option_value=1*/ int setsockopt(int socket, int level, int option_name, const void *option_value, socklen_t option_len); 在Golang中，创建的TCP连接默认开启了KeepAlive（无论是Dial还是Accept）, 可以通过修改Dialier.KeepAlive时长修改保活报文间隔，当不设置它时，报文间隔是15s，而不是与Linux中的sysctl参数一致。
+// DialContext 主动建立连接时，默认会将TCP连接启用保活，并设置默认保活间隔 func (d *Dialer) DialContext(ctx context.Context, network, address string) (Conn, error) { // 很大一坨代码，略过 if tc, ok := c.(*TCPConn); ok &amp;amp;&amp;amp; d.</description>
+    </item>
+    
+    <item>
+      <title>DNS懒人包</title>
+      <link>https://tangyanhan.github.io/posts/dns/</link>
+      <pubDate>Tue, 19 Jan 2021 10:58:43 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/dns/</guid>
+      <description>一般的，DNS(Domain Name System)，是为了解决IP地址难记的问题而提出的解决方案，提供从域名到若干IP地址的转换。
+现存的DNS当然不只有这些功能，本文尝试把现实生活中可能会遇到的DNS相关问题与知识点结合起来。
+DNS 服务器 DNS服务器存放了DNS域名系统的数据库，收到客户端请求时可以进行对应的查询，返回结果。 Linux下的DNS服务器设置存放于 /etc/resolv.conf中，这个文件是自动生成的，修改这个文件的效果，在重启后会丢失。 可以通过如systemd-resolve --set-dns=114.114.114.114 --interface=enp0s31f6这种命令增加dns，或者通过这些方法暂时或永久的改变DNS服务器。
+ethan@ethan:/etc$ cat resolv.conf nameserver 223.5.5.5 nameserver 8.8.8.8 nameserver 127.0.0.53 域名覆盖 DNS服务器提供了一个动态查询域名对应IP的方式，在我们自己制定域名时，也可以直接指定某个IP为某个域名，这时可以改写 /etc/hosts文件,在其中添加记录：
+127.0.0.1 localhost 127.0.1.1 ethan 192.168.99.101 node-1 在Kubernetes中，对于Pod，可以通过指定spec.hostAliases增加记录：
+hostAliases: - hostnames: - node-1 - node-one ip: 192.168.99.101 但这需要每个需要解析的部署都增加配置才行。我们也可以修改DNS，这样所有的Pod只要通过CoreDNS进行域名解析，就可以起到域名覆盖的效果了。
+如果使用CoreDNS，可以通过hosts配置，起到类似hosts的效果：
+hosts /etc/myhosts { fallthrough } 然后挂载到CoreDNS中一个 /etc/myhosts文件即可。
+缓存与查询顺序 DNS进行一次解析后，会在本地内存中记录缓存，在缓存过期之前，并不需要重新请求DNS，这样可以起到提高性能，减少查询的作用。
+glibc进行DNS查询时，会通过/etc/nsswitch.conf控制查询的顺序：
+hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4 这一行的含义是:
+files 意思是首先找/etc/hosts中的静态域名
+mdns4_minimal 尝试通过多播DNS解析域名
+[NOTFOUND=return] 意味着如果前面的步骤都得不到应答，应该认为这个结果就是无解，不应该继续下去
+dns含义时通过旧的单播DNS查询域名
+mdns4 含义是多播DNS查询
+然而有些特殊的容器镜像，如alpine镜像，使用musl libc代替了glibc，alpine镜像中默认是没有nsswitch.conf的。</description>
+    </item>
+    
+    <item>
+      <title>TCP拥塞控制</title>
+      <link>https://tangyanhan.github.io/posts/tcp-congestion-control/</link>
+      <pubDate>Wed, 06 Jan 2021 20:00:00 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/tcp-congestion-control/</guid>
+      <description>通过窗口管理，发送端与接收端能够协调彼此的发送和接收速率，避免出现超出接收端能力的丢包。但网络并非只有这一个TCP连接在使用，当数据报在发送端和接收端之间传输时，需要流转多个网络设备，这些网络设备的能力和使用情况也不同。你可以把网络设备看成是城市中的道路，数据报文就是其中的车辆，当车辆超过某一条道路的处理能力，由于数据报文并不是车辆可以提前选择别的道路，电信号只能被丢弃，于是这条道路直接将车辆扔进外太空，这种现象叫做拥塞。 但数据报文并不是现实世界的车辆，并不具备观察拥塞自动避让的能力。如何避免发生拥塞，以及发生堵塞时如何合理避让，这就是TCP的拥塞控制(Congestion Control)。
+拥塞控制需要关注的几个问题：
+拥塞控制是怎么工作的？ 当网络出问题的时候，怎么看是不是拥塞的问题？ 高速网络如何避免拥塞控制导致的传输效率降低？ 拥塞征兆：怎么知道发生了拥塞？ 在内核算法层面， 丢包、收到重复的ACK、收到SACK, 都可以认为是网络中发生了拥塞。而ECN算法通过一个扩展位协商，允许一个TCP发送端向网络报告拥塞状况，而无需检测丢包，也可以用作拥塞检测的方法。
+ECN在Linux下可以通过net.ipv4.tcp_ecn与net.ipv4.tcp_ecn_fallback两个值配置。作为一个扩展，并非网络中所有的设备都支持该功能，因此并不能保证起作用。当net.ipv4.tcp_ecn=1时，TCP连接默认开启ECN，当其为2时，Linux将只对accept且开启了ECN的TCP连接启用ECN。 net.ipv4.tcp_ecn_fallback置为1，可以使TCP在尝试ECN失败时尝试不使用ECN。
+大部分拥塞控制算法都是基于以上方法，如reno, cubic等。也有一些算法尝试通过检测RTT的增大来预判拥塞的发生，例如vegas, westwood等。
+在日常生活中，也会经常听到说法“网络不好”，那么可以使用iperf测试TCP/UDP的网络状况：
+图中的TCP Server可以用go通过我写的一端简单代码运行，随便选一个公网，是不会允许随意写入的。
+我们还可以通过tc来模拟网络延迟和丢包，例如下载对lo网卡增加100ms延迟，发现传输变慢了:
+tc对lo网卡造成的负面影响可以通过sudo tc qdisc delete dev lo root消除。
+更多tc的使用可以参考: linux下使用tc模拟网络延迟
+拥塞窗口(Congestion Window) 在Linux上使用命令ip tcp_metrics，就会获得一个列表，代表了我们与其它主机的TCP连接相关数据。其中的rtt以及rttvar在超时重传中已经介绍过，这里出现了一个cwnd参数，即拥塞窗口(Congestion Window)，它表示我们向该IP发送TCP数据报时，没有收到ACK回复的数据量不能大于10.
+在TCP流量控制中，还有一个通知窗口awnd，取:
+$$W=min(cwnd, awnd)$$
+这样，我们对外发送但没有收到ACK的数据量不能多于W, 已经发出但还没确认的数据量大小，也叫做在外数据值(flight size)，总是小于等于W.
+W 不能过大或过小，我们一般希望能够接近带宽延迟积(Bandwidth-Delay Product, BDP)，也被称作最佳窗口大小, 因为这时发送数据能够最大化利用带宽。
+$$BDP=Bandwidth * Delay$$
+慢启动 传输初始阶段，由于不清楚网络传输能力，需要缓慢探测可用传输资源，防止短时间内注入大量数据导致拥塞。这个缓慢探测的过程，就是慢启动，它主要目的是预防拥塞。
+取$SMSS=min(接收方MSS, MTU)$, 初始窗口(Initial Window, IW)设置约1SMSS, 然后每次发送上次数据报的两倍，等到接收到ACK之后，再发上次的两倍，直到出现丢包停止增长。上面我们说过拥塞窗口取cwnd和awnd中的较小值，当接收方的awnd足够大时，cwnd就是决定因素。这时如果采用延时确认，TCP会直到慢启动结束才返回ACK，会导致cwnd增长较慢。
+慢启动主要目的是帮助确定一个慢启动阈值(ssthresh)，当达到这个阈值时，就要开始进行拥塞避免。
+拥塞避免 当慢启动达到阈值时，可能有更多的传输资源，但我们不能再像慢启动时的指数增长那样一下子占用很多资源，导致其它连接出现拥塞丢包。 这时，每接收到一个ACK，这样更新cwnd：
+$$cwnd_{t+1} = cwnd_{t} + SMSS *SMSS/cwnd_{t}$$
+我们通常认为慢启动阶段，cwnd呈指数增长, 而拥塞避免阶段，cwnd呈线性增长.
+慢启动和拥塞避免的选择 一般慢启动和拥塞避免在同一时刻只会使用一个。当cwnd &amp;lt; ssthresh， 使用慢启动算法；当cwnd &amp;gt; ssthresh，使用拥塞避免算法；当 cwnd = ssthresh，任一都可使用。慢启动阈值ssthresh并不是固定值，而是记录了上次没有丢包情况下“最好的”操作窗口估计值。</description>
+    </item>
+    
+    <item>
+      <title>TCP流量控制</title>
+      <link>https://tangyanhan.github.io/posts/tcp-stream-control/</link>
+      <pubDate>Tue, 29 Dec 2020 19:23:20 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/tcp-stream-control/</guid>
+      <description>延迟确认 根据TCP协议的设定，发送端每发出一个数据段，接收端就要返回一个ACK。如果发送端和接收端本就存在频繁的数据互动，不携带数据的ACK无疑会浪费半个RTT的时间。
+所以，可以在接收到数据之后，稍微等待一段时间（少于200ms），如果这时接收端正好也有数据要发送，将其ACK位置1，这样我们就同时完成了数据发送和对之前的确认。
+这看起来会会造成一定的延时，但现实中一些基于TCP的&amp;quot;回合制&amp;quot;协议，如HTTP协议，客户端向服务器发送请求后，服务器必须直到客户端的请求，才能给予回应（状态码+Body等），当服务器从缓冲区拿出请求时，这部分信息必然已经被确认，才可能来到应用层，这时启用延迟确认并无意义。
+与延迟确认(Delay Ack)对应的，是快速确认(Quick Ack)，Linux在默认情况下打开延迟确认，可以手动设置TCP_QUICKACK来禁用延迟确认, TCP_QUICKACK默认关闭，需要用时每次都要手动重置。
+#define TCP_DELACK_MAX	((unsigned)(HZ/5))	/* maximal time to delay before sending an ACK */ #if HZ &amp;gt;= 100 #define TCP_DELACK_MIN	((unsigned)(HZ/25))	/* minimal time to delay before sending an ACK */ Nagle算法 Nagle算法要求一个TCP连接中有在传数据时，小的报文段就不能被发送（小于SMSS），当发送数据还没有完全得到确认之前，尽可能收集小的数据段，并在下次将其一起发送。这是一种自时钟算法，RTT越小，ACK就越快，发送速度也就越快，在低RTT环境中，Nagle并不会有显著影响。
+Golang中默认禁用Nagle算法，需要时应当手动打开:
+tcpConn, _ := conn.(*net.TCPConn) tcpConn.SetNoDelay(noDelay) Nagle算法能够在RTT较高的环境中避免传输太小的数据报，在与延迟确认结合使用时，由于TCP连接中只要有在传数据就不能发送小报文段，会让TCP连接变成一种类似竞态资源的存在，最长可能延迟到TCP_DELACK_MAX，即最大延迟确认的超时，在Linux中HZ=100时，为HZ/5=20ms。
+这使得Nagle算法并不适合小数据报文需要及时传输的场景，例如游戏中的按键操作。Nagle对于传输大文件是无效的，对于HTTP 1.1这种一次性会话也是无效的。
+流量控制与窗口管理 TCP的流量控制目的是协调发送端与接收端两者之间的发送/接收速率，使之能够匹配对方的能力。如果接收端缓冲区已满，将会丢弃后续接收到的数据包，白白浪费发送效率。两端的收发数据量是通过窗口结构来协调的，就像一卷很长的胶卷，我们通过一个小窗不断在胶卷移动，发送端在这个窗口里放已经发送但还没确认的数据，以及待发送的数据；接收端在窗口里存放还没有上传到应用层的数据包，比如还没有排序的数据，这就是滑动窗口。
+当接收端缓冲区已满时，接收端将会向发送端发送一个零窗口通告，告知其停止继续发送数据。当发送端收到零窗口通告后，停止发送数据，并随后每隔一段时间发送窗口探测，来尝试恢复传输。
+糊涂窗口综合征(Silly Window Syndrome, SWS),是指由于发送端和接收端的一些行为，导致窗口小于实际可用窗口，或在窗口中每次只发送很少的数据，导致数据传输效率降低的现象。接收端可以避免通告较小的窗口，发送端可以尝试组合较小的报文使其成为全长。
+Linux的缓存自动调优 流量缓存是在内核层面进行调控的，默认情况下，Linux对于每个TCP连接都有自动调优机制。
+通过sysctl &amp;lt;参数名&amp;gt; 可以查看默认的TCP窗口调优参数
+接收缓存 TCP接收缓存，分为 min, default, max三个值， 单位为字节。 其中 default 会覆盖 net.</description>
+    </item>
+    
+    <item>
+      <title>TCP超时重传</title>
+      <link>https://tangyanhan.github.io/posts/tcp-rto-retrans/</link>
+      <pubDate>Thu, 24 Dec 2020 09:07:42 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/tcp-rto-retrans/</guid>
+      <description>当TCP发出报文之后一段时间后，没能收到对方的确认包，那么可以认为时数据包已经超时，这时就需要重传。 在数据的发送方与接收方之间，需要协调发送与接收速率：发送太快接收太慢，那么接收方数据来不及处理缓冲区不足，数据包可能会被丢弃;发送太慢，就白白浪费带宽，占用发送方的时间，这就是流量控制(Stream Control)。 但网络中并不止我们自己建立的一个TCP连接，还有大量其它的连接以及中间设备，如果所有TCP连接都自行其是，那么网络将会发生阻塞。如何避免阻塞，发现阻塞时如何退避缓解阻塞，如何避免阻塞的同时充分利用网络，这就是所谓拥塞控制(Congestion Control)。
+超时重传 一个报文段从发送方发出, 再到从接收方得到ACK，这一轮经过的时间称为一个RTT，即Round Trip Time，依据通信通常的RTT，我们可以推断通信RTT的上限，当超出这个上限就认为数据包已经超时，需要重传, 这个时间就是RTO，即Retransimission Timeout.
+当数据包需要重传时，很可能是由于对面已经意外关闭，网络连接断开，或者中间网络恶化等等。重试1次不一定成功，因此需要每隔一段时间重试一次。TCP一般实现，每次重传间隔时间加倍，这被称为二进制指数退避(binary exponential backoff)，多次重试后就应当考虑放弃连接。
+在建立连接时，我们可能遇到发起SYN失败，或对SYN返回ACK失败：
+net.ipv4.tcp_syn_retries 用于控制SYN发送失败多少次应该放弃连接 net.ipv4.tcp_asynack_retries 用于控制对SYN的ACK发送失败多少次应该放弃连接
+TCP定义了R1和R2两个阈值来决定如何重传同一个报文段，当达到R1时，IP层将需要考虑重新评估当前的IP传输路径；当达到R2时，则放弃当前连接。在Linux中，他们分别是：
+net.ipv4.tcp_retries1 以及 net.ipv4.tcp_retries2.
+RTO估值的传统方法 这个估值方法没有被现在的Linux协议栈采用，但是其思路简单，有一定的参考意义，因此做一下记录。
+对于RTT的估计值，根据历史取样加权计算出的平滑的RTT称为SRTT：
+$$SRTT\longleftarrow\alpha(SRTT)+(1-\alpha)RTT_{s}$$
+这里SRTT基于现存值和新的样本值$SRTT_{s}$得到更新结果。常量$\alpha$为平滑因子，推荐取值 0.8~0.9，这样估算SRTT时，一部分来自现存值，一部分来自新测量值，这种估算方式被称为加权移动平均或者低通过滤器.
+计算RTO时， 如果直接使用RTT，会导致RTO随着RTT不断变化，因此可以采用建议公式计算:
+$$RTO=min(ubound, max(lbound, (SRTT)\beta))$$
+其中$\beta$为离散因子， 推荐值为 1.3~2.0, ubound为上界，如1分钟，lbound为RTO下界，如1秒，这称为经典方法，在RTT稳定的网络中可以获得比较好的性能，但在RTT变化巨大的网络中，无法获得预期的效果。
+现在Linux采用的是一种通过采样获得srtt，以及绝对值偏差rttvar，偏差越大，srtt波动越剧烈，其计算比较复杂，在此不表，我也不打算掌握。在Linux 5.9内核，相关代码放在net/sctp/transport.c:sctp_transport_update_rto函数中。
+重传二义性 在理想情况下，只要我们记录数据包发出的时间T1，然后记录返回ACK的时间T2，计算T2-T1就得到了RTT。但现实中，如果发生了数据包重传，那么发送端得到ACK时，我们不能确定它是重传的ACK，我们也不能确定它是第一个ACK, 因为重传时，两个ACK可能经过不同的路径先后到达发送端。这就是重传二义性。
+当发生超时时，通过一个退避系数(backoff factor)加倍，直到收到正常的非重传数据为止重置退避系数为1。这是Karn算法的重要部分，在发生超时时，同时会引发拥塞控制机制。
+基于时间戳的RTT测量 在Linux中开启sysctl选项net.ipv4.tcp_timestamps=1即可开启TCP的时间戳选项。Linux通过精度为1ms的时间戳来估计RTT，这同时也可以规避上面的重传二义性问题。
+在通信两端都开启时间戳的情况下, 发起方将会在TCP Option中加入一个Timestamps选项，设定一个32位数TSval(Timestamp value)为发送时的系统时间戳， 如果服务端也支持，那么会在Option中加入TSecr(Timestamp echo reply)将这个值原封不动放入，并放入自己的TSval。这样任意一方收到数据包时，就可以知道对方的ACK是针对自己什么时候发送的数据包做出的回应，从而精确到计算出RTT值。
+Linux RTO估计行为 Linux中RTO的上下限分别为TCP_RTO_MAX和TCP_RTO_MIN，分别为120s和200ms。在特殊网络环境下，如同一机房内的集群，机器间通信RTT可能低于1ms。由于rttvar在默认情况下权重过大，当RTT减少可能反而导致RTO升高，以200ms作为下限。此时，如果网络中出现丢包，由于RTO远远超过实际RTT，重传将会严重降低网络性能。在Linux中，当出现这种情况时，可以通过削弱rttvar的比重来降低影响。在RKS07中，作者发现将Linux的TCP_RTO_MIN从200ms调整到100ms的效果几乎可以忽略，但是调整rttvar在计算RTO时的比重可以有效的改变效率。
+快速重传 快速重传与超时重传在Linux网络实现中同时存在。当观察到有至少dupthreshold个重复ACK后，不必等到超时计时器生效，就可以重传数据。当然，也可以同时发送新的数据。这种方式的优点是不必等到超时再重传数据包，缺点是如果网络只是偶发的出现了重传，可能会导致不必要的重传。
+带选择确认的重传 SACK选项允许TCP选择重传哪些数据包。当发送端收到一个ACK时，这个ACK与缓冲区其它数据（还没有收到ACK的）之间就形成了一个“空缺”，通过报告这个空缺，可以让对方有效的进行选择重传。
+SACK在接收端，通过报告缓存中的“空缺”，从而让发送端知道该重传哪些数据。 SACK在发送端，在接收到了SACK或重复ACK时，可以推断需要重传的空缺数据。 由于这些行为在两端都是“建议性”的，因此可能出现变更，导致不必要的重传。
+伪超时与伪重传 很多时候，即使没有出现数据包丢失也可能出现重传,这种不必要的重传被称为伪重传(spurious retransmission)，其主要造成的原因是伪超时(spurious timeout)，即过早的判定超时。在RTT显著增长超过当前RTO，或者出现包失序，丢失时可能出现这种伪重传。
+在接收端发现伪重传时，发送DSACK，从而告知发送方发生了伪重传，但这需要等到接收端发现并返回。也可以通过Eifel响应算法来提前检测出伪超时。</description>
+    </item>
+    
+    <item>
+      <title>TCP重置报文段</title>
+      <link>https://tangyanhan.github.io/posts/tcp-rst/</link>
+      <pubDate>Mon, 21 Dec 2020 14:08:37 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/tcp-rst/</guid>
+      <description>本节是作为《TCP/IP详解·卷1:协议》中TCP连接管理一章中“重置报文段”的读书笔记及一部分自己的扩展。
+当TCP头部RST位字段置为1时，报文段就被称为“重置报文段”。在tcpdump监听流量时，会看到R字符标识。 这里介绍重置报文段的用途以及相关Linux配置。
+重置报文段的用途 1. 拒绝不存在端口的连接请求 首先，启动tcpdump，监听本机lo接口:
+我们试着用curl访问本机上并未监听的端口8888，报告错误Connection Refused：
+可以看到两条报文，第一条报文是curl发出的SYN，随后是本机做出的回应，其标志符为R，拒绝了我们的连接。
+结论: 请求没有监听的端口，返回重置报文段，报错Connection Refused
+2. 暴力终止连接 之前在TCP连接建立与终止中讲到，TCP正常的终止是使用FIN报文，这也被成为有序释放，它需要通信两端4次报文段交换才能结束。 但有时我们可以采用一种更暴力的手段来终止连接，比如服务端并不在意客户端是否收到了结束报文，因为它马上就要进行一次重启。通过RST报文终止连接，也被称为终止释放。终止发起方将会马上发出一个RST报文，并不再关注对方是否进行回复，而另一方收到时，会说明是收到了RST进行终止而非正常的FIN。
+在Socket建立时可以通过SO_LINGER来设定这种行为。在Linux中，可以通过setsockopt，将SO_LINGER设置为0，这样当调用close时，会直接发送重置报文段，不会等待缓存发送完成。在Golang中，对TCPConn对象调用SetLinger(0)即可。
+我们写一段简单的Go服务端程序，将TCP连接通过SetLinger(0)将其设定为关闭时发送RST，然后尝试读写:
+结论: 一方通过重置报文段直接终止了连接，另一端报错Connection reset by peer.
+3. 半开连接 在通信过程中，通信一方关闭或终止连接，但不告知另一端，那么就会形成一个半开连接，例如一端电源被切断而非主动关机。在主机电源恢复后，由于已经不记得之前的TCP连接信息，对于另一端发来的TCP报文段，将会回复一个RST作为响应，另一端收到后将会主动关闭连接并反应情况。
+4. 时间等待错误 正常关闭时，主动关闭方最后维持TIME_WAIT状态等待2MSL后彻底关闭，但此时如果收到一条重置报文段，就会破坏该状态，导致提前进入CLOSED状态。默认被动关闭方（服务器）此时连接进入TIME_WAIT状态，如果此时收到了之前的旧报文，由于连接已经关闭，服务器不记得信息，就会回复重置报文段，从而导致状态被破坏。许多系统实现时，连接处于TIME_WAIT状态时不会对重置报文段做出反应。
+Linux内核实现中的重置报文段 Linux中重置报文段的处理，在net/ipv4/tcp_input.c:tcp_reset()中:
+void tcp_reset(struct sock *sk) { /* We want the right error as BSD sees it (and indeed as we do). */ switch (sk-&amp;gt;sk_state) { case TCP_SYN_SENT: sk-&amp;gt;sk_err = ECONNREFUSED; break; case TCP_CLOSE_WAIT: sk-&amp;gt;sk_err = EPIPE; break; case TCP_CLOSE: return; default: sk-&amp;gt;sk_err = ECONNRESET; } /* This barrier is coupled with smp_rmb() in tcp_poll() */ smp_wmb(); tcp_write_queue_purge(sk); tcp_done(sk); 当主动建立请求时，得到RST，则报错 ECONNREFUSED： Connection refused 当服务端连接处于CLOSE_WAIT状态，收到RST,则报错 EPIPE: Broken pipe 连接已经关闭，处于CLOSED状态，忽略 其他情况，一律报错 ECONNRESET: Connection reset by peer </description>
+    </item>
+    
+    <item>
+      <title>TCP协议基础:连接建立，关闭与状态转移</title>
+      <link>https://tangyanhan.github.io/posts/tcp-basic/</link>
+      <pubDate>Thu, 03 Dec 2020 18:40:15 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/tcp-basic/</guid>
+      <description>本篇是对TCP/IP详解的相关读书笔记。
+TCP连接的建立与终止 一般情况下，C/S通讯模型下的TCP连接的建立与关闭可以概括为“三次握手，四次关闭”。
+三次握手 Client发起SYN，并带上自己随机的初始化ISN(c) Server收到后, 回复SYN+ACK，通过设定Seq=ISN(c)+1，表示自己已经正确收到了该SYN，并带上自己的ISN(s) Client回复ACK, 设定Seq=ISN(c)+1,表示这是第一个成功发送的包，ACK=ISN(s)+1，表示自己正确收到了第二部的SYN ISN是一个随机的16位二进制数字，通信两侧随机选择一个数字作为自己的初始化ISN.
+假设两侧固定选择0，那么会发生什么呢？ 由于TCP连接的建立在网络上没有加密和其它验证机制，骚扰者可以通过不断伪造包来打断两者之间的握手过程。
+四次断开 由于TCP协议是一个全双工协议，通讯双方都可以主动向对方发送数据，因此关闭时需要明确的关闭双方通道，共需(FIN+ACK)X2，即四次断开。
+客户端发送FIN+ACK, Seq=K, ACK=L, 这里ACK时对上一条报文的回复，Seq是客户端的当前计数 服务端收到后，回复ACK,Seq=L, ACK=K+1，ACK表明自己正确收到了上述信息，并回应。此时客户端发送通道已经关闭，服务端仍可继续向客户端发送剩余的缓冲信息 服务端发送FIN+ACK, Seq=L, ACK=K+1 客户端回复ACK,Seq=K, ACK=L+1,表明自己正确收到了关闭信息，服务端收到后将释放相关资源 三次连接/四次断开示意图 同时打开 同时打开不是指A通过客户端请求B的端口7777，而B同时通过客户端请求A的端口8888。 因为默认情况下，通过客户端connect连接到主机特定端口，客户端会随机选择一个端口。这时，两者同时建立了两个不同的TCP连接。
+同时打开，是指A通过8888端口连接B的7777端口同时，B也通过7777端口连接A。由于两者选择的都是相同的端口组合，因此建立的是同一个TCP连接。由于两边都是主动打开者，根据三次握手的设定，主动打开连接时，对方必须回应SYN+ACK才能让连接正常建立，因此同时打开，会多一次SYN+ACK。
+同时关闭 在只有一方主动关闭TCP连接的情况下，TCP连接是“4次关闭”，即主动关闭一方发出FIN，被动关闭方发出FIN+ACK表示收到了对方的FIN，然后也发出自己的FIN表示关闭自己这边的半连接，主动关闭方回复FIN+ACK后，连接终止。
+在双方同时关闭的情况下，两边都是主动关闭方，几乎同时发出了自己的FIN表示要关闭自己的半连接，在收到对方的FIN时，他们各自的FIN已经发出，因此只需要对对方的FIN回复FIN+ACK就完成了两个半连接的关闭。同时关闭依旧是4次报文交换，但报文段的顺序是交叉的。
+TCP的状态转移 综上所述，TCP连接的建立和终止实际包括了主动+被动，以及双方都是主动的同时打开，同时关闭等。TCP中这些报文会引起连接进入不同的状态，它是一个有限状态机。 在RFC 793中描述了其状态转移，这里照搬TCP/IP详解中的状态转移图:
+TIME_WAIT状态 TIME_WAIT又成为2MSL等待状态，因为在该状态时，TCP连接总是会等待两倍于最大段生存周期(Max Segment Lifetime, MSL)的时间。一个MSL是指一个报文段在网络中被丢弃之前，最大存活的周期。在Linux中，2MSL这个值可以通过查看sysctl参数net.ipv4.tcp_fin_timeout得到：
+sysctl net.ipv4.tcp_fin_timeout # 或者 cat /proc/sys/net/ipv4/tcp_fin_timeout 对于IPv6而言，Linux同样使用该参数来控制这个值，没有额外的键值。
+TIME_WAIT存在的意义 在主动关闭连接后，为了防止我们最后的ACK丢失，等待一段时间
+在等待期间，双方将该连接（客户端IP地址，客户端端口号，服务器IP地址，服务端端口号）标记为不可用，避免后续新连接与前面的连接混淆。
+TIME_WAIT状态下，如果复用TCP连接可能出现混淆，因为我们难以单凭ISN区分出不同的连接，ISN可能出现环绕，也可能出现两个连接重叠，因此在RFC6191中定义了通过定义时间戳来更精确的区分不同连接的TCP报文段，从而复用TIME_WAIT状态的TCP连接。
+因此，在Linux下，复用TIME_WAIT状态连接，需要同时开启net.ipv4.tcp_tw_reuse及net.ipv4.tcp_timestamps：
+sysctl -w net.ipv4.tcp_tw_reuse=1 sysctl -w net.ipv4.tcp_timestamps=1 FIN_WAIT_2状态 从状态转移图可知，FIN_WAIT_2出现在主动关闭一方，当主动关闭方发送了自己的FIN并收到FIN+ACK后，只要在等待对方的FIN，就可以回复ACK并进入TIME_WAIT状态，这就是FIN_WAIT_2，即等待4次关闭中的第二次FIN，而这时被动关闭方将停留在CLOSE_WAIT状态，直到发出自己的FIN。为了防止双方因为没有应答而永远卡在半关闭状态，Linux会在连接超时且没有收到回复时，将连接直接转入CLOSED状态，这个值是net.ipv4.tcp_fin_timeout。
+TCP连接管理相关攻击 SYN泛洪 即若干主机大量向主机发送SYN而不进一步建立连接，导致大量浪费主机资源而导致拒绝服务。这里可以使用一种叫做SYN Cookies的技术，通过对SYN建档和回复巧妙设计的SYN+ACK序列号，检查是否客户端进行了正确的回复，然后才为连接分配相应的资源。
+Linux下开启该功能参数为:
+sysctl -w net.ipv4.tcp_syncookies=1 TCP在Linux系统中的状态表示 如果使用如lsof, netstat这些工具，会发现有一列状态，这些状态码含义在内核源码 net/ipv4/tcp.</description>
+    </item>
+    
+    <item>
+      <title>有关端口的基本网络工具</title>
+      <link>https://tangyanhan.github.io/posts/basic-network-tools/</link>
+      <pubDate>Thu, 03 Dec 2020 14:00:51 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/basic-network-tools/</guid>
+      <description>netstat netstat在查看网络端口占用时速度比较快，也是比较常用的工具。
+netstat 在显示网络连接时有一堆的参数可以叠加:
+netstat [address_family_options] [--tcp|-t] [--udp|-u] [--udplite|-U] [--sctp|-S] [--raw|-w] [--l2cap|-2] [--rfcomm|-f] [--listening|-l] [--all|-a] [--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--symbolic|-N] [--extend|-e[--extend|-e]] [--timers|-o] [--program|-p] [--ver‐ bose|-v] [--continuous|-c] [--wide|-W] address_family_options: [-4|--inet] [-6|--inet6] [--protocol={inet,inet6,unix,ipx,ax25,netrom,ddp,bluetooth, ... } ] [--unix|-x] [--inet|--ip|--tcpip] [--ax25] [--x25] [--rose] [--ash] [--bluetooth] [--ipx] [--netrom] [--ddp|--appletalk] [--econet|--ec] 显示所有tcp/udp监听端口情况及进程信息，以数字形式显示IP:
+netstat -tunlp 显示系统所有端口占用情况:
+netstat -anp 显示所有TCP IPv4端口占用情况:
+netstat -anpt4 按状态统计所有TCP IPv4使用情况:
+netstat -nat4 | awk &amp;#39;{print $6}&amp;#39; | sort | uniq -c | sort -r lsof(list open files) 由于linux下一切东西都是文件，因此这个命令能够做各种事情。</description>
+    </item>
+    
+    <item>
+      <title>Linux组网基础:虚拟设备</title>
+      <link>https://tangyanhan.github.io/posts/linux-network-basic/</link>
+      <pubDate>Tue, 01 Dec 2020 23:20:34 +0800</pubDate>
+      
+      <guid>https://tangyanhan.github.io/posts/linux-network-basic/</guid>
+      <description>基本概念 在讨论Linux网络设备时，一般会涉及“层”的概念，例如L1,L2,L3等等。这时使用的是OSI七层模型，即“物数网传会表应”。
+网桥(bridge)：工作在L2（数据链路层），只有目的MAC匹配的数据包才能被发送到出口，只能在同一网段下进行流量转发。
+交换机(switch): 工作在L2（也可能包含L3），可以将多组MAC根据不同的规则进行转发。
+路由(route): 工作在L3(网络层)，是基于IP规则转发的，因而能够连接不同子网，也是当前互联网能够互联的基础。
+网络命名空间:Network Namespace 相关命令: ip netns
+相关链接: https://www.man7.org/linux/man-pages/man8/ip-netns.8.html
+什么是网络命名空间 网络命名空间是Linux内核网络桟的一个副本，其中包含了自己的路由(route)，防火墙规则(iptable)和网络设备(link)。
+默认情况下，进程从父进程继承网络空间，因此一开始所有进程都从init进程中继承同样的网络空间。
+一个有名字的网络命名空间，在文件系统中则是/var/run/netns/NAME，是可以打开的。 通过打开它获得的fd就指向了那个网络命名空间。持有fd也就能够让命名空间保持存活。 这个fd可以通过setns系统调用来改变一个task的网络命名空间。
+基本操作 ip netns list 列出网络命名空间
+ip netns add NAME 创建一个新的网络命名空间
+ip netns delete NAME 删除网络命名空间
+ip netns pids NAME 列出网络命名空间下的所有进程pid
+ip netns identify [PID] 找出进程所在的网络空间名称
+ip netns monitor 将会对接下来的netns操作进行监控，添加和删除操作会被记录在日志里
+ip netns exec会在指定网络命名空间中运行一个新的进程。
+ip netns attach NAME PID 将指定的PID挂载到指定的ns中，如果ns不存在，那么创建一个。
+路由(Route) 相关链接：
+The IPv4 Routing Subsystem
+What is IP routing
+路由是连接不同子网的网络设备，可以是硬件的，也可以是软件的。它通过不同的规则，将来自一个子网的信息转发到另一个子网中。
+任意两个IP地址相互访问时，如何从一个到达另一个就成了问题。路由通过路由协议（如OSPF,RIP，BGP）等维护路由表，这些路由表就是一个个路口道标一样，通过它们不断的跳转转发，经过若干跳(hop)之后，到达目的地。</description>
+    </item>
+    
+  </channel>
+</rss>
