@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>杂谈 on Ethan Tang</title>
-    <link>https://tangyanhan.github.io/tags/%E6%9D%82%E8%B0%88/</link>
-    <description>Recent content in 杂谈 on Ethan Tang</description>
+    <title>杂谈 on E.T.</title>
+    <link>http://localhost:1313/tags/%E6%9D%82%E8%B0%88/</link>
+    <description>Recent content in 杂谈 on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
-    <lastBuildDate>Thu, 12 Mar 2020 14:47:30 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/%E6%9D%82%E8%B0%88/index.xml" rel="self" type="application/rss+xml" />
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 12 Mar 2020 14:47:30 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/%E6%9D%82%E8%B0%88/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>微服务,DevOps设计与协作反思</title>
-      <link>https://tangyanhan.github.io/posts/retrospect/</link>
+      <link>http://localhost:1313/posts/retrospect/</link>
       <pubDate>Thu, 12 Mar 2020 14:47:30 +0800</pubDate>
       
-      <guid>https://tangyanhan.github.io/posts/retrospect/</guid>
+      <guid>http://localhost:1313/posts/retrospect/</guid>
       <description>在此反思下我们用微服务来开发DevOps产品时, 设计开发中遇到的种种问题.
 拆分 我们一度把几乎每个模块(是的,模块),一组相对独立的功能都拆分成了一个&amp;quot;微服务&amp;quot;. 然而拆分粒度过小, 带来的后果就是互相之间依赖极高,形成了一张网.
 表面上看, 这带来的主要成本就是组件之间依赖关系多, 需要提供各种各样的内部API, 然而实践中发现, 拆分过细的微服务还带来了以下副作用:
@@ -24,10 +24,10 @@
     
     <item>
       <title>搭建适合日常工作的Linux桌面环境</title>
-      <link>https://tangyanhan.github.io/posts/linux-desktop/</link>
+      <link>http://localhost:1313/posts/linux-desktop/</link>
       <pubDate>Sat, 19 Oct 2019 22:15:16 +0800</pubDate>
       
-      <guid>https://tangyanhan.github.io/posts/linux-desktop/</guid>
+      <guid>http://localhost:1313/posts/linux-desktop/</guid>
       <description>Linux稳定性好，Linux软件开放……不过等到决定把Linux当作日常工作用系统时，就一言难尽了……
 我日常工作的需求有：
 笔记本扩展屏幕

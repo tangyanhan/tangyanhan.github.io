@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>安全 on Ethan Tang</title>
-    <link>https://tangyanhan.github.io/tags/%E5%AE%89%E5%85%A8/</link>
-    <description>Recent content in 安全 on Ethan Tang</description>
+    <title>安全 on E.T.</title>
+    <link>http://localhost:1313/tags/%E5%AE%89%E5%85%A8/</link>
+    <description>Recent content in 安全 on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
-    <lastBuildDate>Thu, 28 Jan 2021 09:13:11 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/%E5%AE%89%E5%85%A8/index.xml" rel="self" type="application/rss+xml" />
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 28 Jan 2021 09:13:11 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/%E5%AE%89%E5%85%A8/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Runc容器运行过程及容器逃逸原理</title>
-      <link>https://tangyanhan.github.io/posts/runc-container/</link>
+      <link>http://localhost:1313/posts/runc-container/</link>
       <pubDate>Thu, 28 Jan 2021 09:13:11 +0800</pubDate>
       
-      <guid>https://tangyanhan.github.io/posts/runc-container/</guid>
+      <guid>http://localhost:1313/posts/runc-container/</guid>
       <description>在每一个Kubernetes节点中，运行着kubelet，负责为Pod创建销毁容器，kubelet预定义了API接口，通过GRPC从指定的位置调用特定的API进行相关操作。而这些CRI的实现者，如cri-o, containerd等，通过调用runc创建出容器。runc功能相对单一，即针对特定的配置，构建出容器运行指定进程，它不能直接用来构建镜像，kubernetes依赖的如cri-o这类CRI，在runc基础上增加了通过API管理镜像，容器等功能。
 Kubelet，Cri-O，runc，Linux大致层级示意图如下：
 在Kubernetes源码中，可以在pkg/kubelet/cri目录下找到相关代码，其中remote目录包含了常见的如镜像拉取，容器创建等操作，streaming目录中包含了一些需要TCP流的操作，如attach，port-forward等。
@@ -27,10 +27,10 @@ runc create &amp;lt;container-id&amp;gt; runc list # 列出创建状态的容器
     
     <item>
       <title>漫谈密码</title>
-      <link>https://tangyanhan.github.io/posts/password/</link>
+      <link>http://localhost:1313/posts/password/</link>
       <pubDate>Sat, 19 Oct 2019 15:45:40 +0800</pubDate>
       
-      <guid>https://tangyanhan.github.io/posts/password/</guid>
+      <guid>http://localhost:1313/posts/password/</guid>
       <description>这篇文章主要介绍一些常见的编码算法, Hash算法, 对称加密算法, 非对称加密算法, 它们基础是个什么样子, 以及如何选择它们. 如果已经熟悉相关内容, 对大家的帮助应该就不大了.
 常见编码算法 在传输过程中, 常常有小片断二进制编码需要在JSON/XML中传输这类需求, 这时候就需要一种 编码算法, 将二进制内容编码为可打印的字符(Printable Characters), 这就是所谓编码算法. 常见的有 Base64, Hex 等.
 Base64 Base64 将二进制内容编码为64个可打印字符组成的信息, 故名. 64个字符能够使用8bit编码6bit长度的信息, 因此 Base64 编码后长度会使信息增加 \(\frac{1}{3}\)长度.
@@ -44,10 +44,10 @@ Base64 和 Hex 都不能作为加密算法, 只能算作编码算法, 因为在�
     
     <item>
       <title>C&#43;&#43;数值运算与类型安全</title>
-      <link>https://tangyanhan.github.io/posts/cpp-type-safe/</link>
+      <link>http://localhost:1313/posts/cpp-type-safe/</link>
       <pubDate>Thu, 12 Apr 2012 10:00:00 +0800</pubDate>
       
-      <guid>https://tangyanhan.github.io/posts/cpp-type-safe/</guid>
+      <guid>http://localhost:1313/posts/cpp-type-safe/</guid>
       <description>在理想情况下，对类型的错误应用会导致一些错误，并让我们第一时间发觉；在最糟的情况下，其错误在很久之后才被发现，而且那时我们的系统已经遭受了足够多的攻击。
 C/C++几个基本的类型规则： 类型转换规则： 系统将精度高低规定如箭头所示。 char,short -&amp;gt; int -&amp;gt; unsigned -&amp;gt; long -&amp;gt;double &amp;lt;- float A.在运算中的自动转换：
 任何两个长度低于int类型的值运算时必然转换为int类型（包括==、&amp;gt;=等逻辑判断） 等级等于或高于int的同类型运算时，仍为原类型 两个不同类型数据参与运算时，两个数据都转换为其中较高级别的类型（两个值都长度低于int则遵从第一条） 对于表达式中的常数，默认为int类型，如果该值为正数且超过INT_MAX(在头文件 limits.h中），则默认为 unsigned int （源文件中一般不允许常数超过long，故不讨论更大的数值)。 如果一个值为64位，则另一个也会向上转换为64位，无符号的64位值是这些64位值的上限。 强制类型转换： 1.强制类型转换不对目标变量进行直接的转换，而是产生了一个中间量
@@ -61,10 +61,10 @@ PS：本例出自《软件安全的24宗罪——编程缺陷与修复之道》(
     
     <item>
       <title>密码安全:存储/传输/安全问题设计</title>
-      <link>https://tangyanhan.github.io/posts/password-security/</link>
+      <link>http://localhost:1313/posts/password-security/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://tangyanhan.github.io/posts/password-security/</guid>
+      <guid>http://localhost:1313/posts/password-security/</guid>
       <description>存储设计 设计原则: 密码存储必须杜绝获取明文之可能
 用户的密码通常具有一定规律,一般用户会对若干不同账户使用相同密码,不论以何种方式导致明文泄漏,就意味着用户的其他一系列账户也受到同样威胁. 在一些国家,对于用户密码存储有着相关规定.
 1. 密码不以明文存储 2. 密码不以简单hash方式存储 hash方式包括hash算法选型、混淆手段及迭代次数。

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-cn" lang="zh-cn">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.117.0">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>基于Hyper-V/kubeadm的k8s集群搭建 &middot; E.T.</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="http://localhost:1313/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="http://localhost:1313/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="http://localhost:1313/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="http://localhost:1313/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="http://localhost:1313/"><h1>E.T.</h1></a>
+      <p class="lead">
+       汤某人的技术一言难尽 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="http://localhost:1313/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 8
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>基于Hyper-V/kubeadm的k8s集群搭建</h1>
+  <time datetime=2023-08-16T10:21:55&#43;0800 class="post-date">Wed, Aug 16, 2023</time>
+  <p>本文介绍在Windows上借助Hyper-V和kubeadm搭建k8s机器群的方法及避坑。</p>
+<h1 id="前置需求">前置需求</h1>
+<ul>
+<li>虚拟机应当具有固定的ip</li>
+<li>虚拟机应当能够访问外部网络</li>
+<li>虚拟机能够使用主机上的代理软件（如clash）</li>
+</ul>
+<h1 id="配置网络">配置网络</h1>
+<ol>
+<li>确保Windows已启用Hyper-V功能并重启</li>
+</ol>
+<p>以admin权限通过PowerShell运行：</p>
+<pre tabindex="0"><code>Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+</code></pre><ol start="2">
+<li>网络配置</li>
+</ol>
+<p>创建一个k8s的虚拟交换机，为其分配一个固定ip，并在主机上配置一个NAT使其中的主机能够访问外部网络</p>
+<pre tabindex="0"><code>New-VMSwitch -Name &#39;k8s&#39; -SwitchType Internal
+$adapter = Get-NetAdapter | Where { $_.Name -match &#39;k8s&#39; }
+New-NetIPAddress -IPAddress &#39;172.16.0.1&#39; -InterfaceIndex $adapter.InterfaceIndex -PrefixLength 24
+new-netnat -Name &#39;k8s&#39; -InternalIPInterfaceAddressPrefix 172.16.0.0/24
+</code></pre><p><img src="./images/posts/k8s-network.png" alt="网络示意图"></p>
+<p>如果在使用代理服务，确保监听在了所有地址之上，例如Clash需要打开AllowLan: true</p>
+<ol start="3">
+<li>安装虚拟机</li>
+</ol>
+<p>虚拟机安装无需赘述，使用centos/ubuntu-server皆可。
+确保节点配置为：</p>
+<ul>
+<li>CPU &gt;= 2</li>
+<li>Memory &gt;= 4G</li>
+<li>SecureBoot 已禁用</li>
+<li>安装并启用ssh server服务</li>
+<li>网卡选择我们之前创建的&rsquo;k8s'</li>
+<li>hostname 分别改为controlplane/node</li>
+</ul>
+<p>在安装过程中,可以对网卡直接配置固定IP, 设定IPv4为manual:</p>
+<pre tabindex="0"><code>Address=172.16.0.100 # 或.101
+Gateway=172.16.0.1
+DNS=223.5.5.5,172.16.0.1
+</code></pre><p>如果错过了这些配置：</p>
+<h3 id="centos">CentOS:</h3>
+<ul>
+<li>修改 /etc/sysconfig/network-scripts/ifcfg-eth0 配置固定IP</li>
+<li>修改 /etc/hostname 配置hostname</li>
+</ul>
+<h3 id="ubuntu">Ubuntu</h3>
+<ul>
+<li>修改 /etc/netplan/01 后通过 netplan apply 配置固定IP</li>
+<li><code>hostnamectl set-hostname &lt;new-name&gt;</code> 修改主机名</li>
+</ul>
+<h1 id="节点配置">节点配置</h1>
+<p>以下内容需要在每个节点上都运行一遍</p>
+<h2 id="代理">代理</h2>
+<p>如果外部有网站，可以临时编写一个proxy.sh, 通过source proxy.sh临时使用外部代理，解决wget/curl不能顺利访问某些网站的问题</p>
+<pre tabindex="0"><code>export http_proxy=&#34;http://172.16.0.1:7890&#34;
+export https_proxy=&#34;http://172.16.0.1:7890&#34;
+export no_proxy=&#34;127.0.0.0/8,172.16.0.0/16,10.96.0.0/16,10.98.0.0/16,192.168.0.0/16&#34;
+</code></pre><p>如果自己没有代理，需要考虑利用https://developer.aliyun.com/mirror/和其它资源配置软件源、镜像源。</p>
+<h2 id="安装cri">安装CRI</h2>
+<p>选定containerd为容器运行时支撑我们的Pod容器，可通过官方文档安装：</p>
+<p><a href="https://docs.docker.com/engine/install/centos/">https://docs.docker.com/engine/install/centos/</a>
+<a href="https://docs.docker.com/engine/install/ubuntu/">https://docs.docker.com/engine/install/ubuntu/</a></p>
+<p>确保安装完成后，<code>which containerd</code> 能够找到它</p>
+<p>crictl类似docker，用于管理查看containerd容器，通过<code>which crictl</code>判断是否已经拥有crictl，如果没有新装一个，然后新建文件 <code>/etc/crictl.yaml</code>, 内容如下:</p>
+<pre tabindex="0"><code>runtime-endpoint: unix:///run/containerd/containerd.sock
+image-endpoint: unix:///run/containerd/containerd.sock
+timeout: 10
+debug: false
+</code></pre><h4 id="验证安装">验证安装</h4>
+<pre tabindex="0"><code>systemctl start containerd
+systemctl enable containerd
+crictl ps -a # 确保crictl/containerd都能够正常工作
+</code></pre><h3 id="配置containerd">配置containerd</h3>
+<h4 id="1-启用cri功能">1. 启用CRI功能</h4>
+<p>编辑 <code>/etc/containerd/config.toml</code>, 注释掉这一行：</p>
+<pre tabindex="0"><code>#disabled_plugins = [&#34;cri&#34;]
+</code></pre><h4 id="2-为containerd配置cgroup2">2. 为containerd配置cgroup2</h4>
+<p>查看当前系统cgroup使用的是哪一版：</p>
+<pre tabindex="0"><code>mount |grep cgroup2
+</code></pre><p>如果有东西，说明使用的是cgroupv2，目前版本的containerd需要添加额外配置才能让k8s正常运行，否则会不断杀死etcd容器，需要在 <code>/etc/containerd/config.tomal</code>中追加：</p>
+<pre tabindex="0"><code>version = 2
+[plugins]
+  [plugins.&#34;io.containerd.grpc.v1.cri&#34;]
+   [plugins.&#34;io.containerd.grpc.v1.cri&#34;.containerd]
+      [plugins.&#34;io.containerd.grpc.v1.cri&#34;.containerd.runtimes]
+        [plugins.&#34;io.containerd.grpc.v1.cri&#34;.containerd.runtimes.runc]
+          runtime_type = &#34;io.containerd.runc.v2&#34;
+          [plugins.&#34;io.containerd.grpc.v1.cri&#34;.containerd.runtimes.runc.options]
+            SystemdCgroup = true
+</code></pre><h4 id="3-containerd使用代理">3. containerd使用代理</h4>
+<p>修改 <code>/lib/systemd/system/containerd.service</code>, 在<code>[Service]</code> 下添加：</p>
+<pre tabindex="0"><code>Environment=&#34;HTTP_PROXY=http://172.16.0.1:7890/&#34;
+Environment=&#34;HTTPS_PROXY=http://172.16.0.1:7890/&#34;
+Environment=&#34;NO_PROXY=10.96.0.0/12,127.0.0.0/8,192.168.0.0/16,localhost,172.16.0.0/16,.svc,.cluster.local,.ewhisper.cn&#34;
+</code></pre><p>然后重启containerd即可：</p>
+<pre tabindex="0"><code>systemctl daemon-reload
+systemctl restart containerd
+</code></pre><h2 id="配置内核模块">配置内核模块</h2>
+<p>加载模块br_netfilter:</p>
+<pre tabindex="0"><code>modprobe br_netfilter
+</code></pre><p>修改 <code>/etc/sysctl.conf</code>, 添加如下内容：</p>
+<pre tabindex="0"><code>net.ipv4.ip_forward=1
+net.bridge.bridge-nf-call-iptables=1
+</code></pre><p>随后通过<code>sysctl -p</code> 即可生效</p>
+<h2 id="禁用swap">禁用swap</h2>
+<p>使用<code>swapoff -a</code>只能临时禁用swap，重启后会失效。可以通过修改 <code>/etc/fstab</code>, 将挂载的swap移除, 重启后生效</p>
+<h2 id="禁用防火墙或开放端口">禁用防火墙或开放端口</h2>
+<p>简单一点可以直接禁用防火墙：</p>
+<p>CentOS:</p>
+<pre tabindex="0"><code>systemctl disable firewalld
+systemctl stop firewalld
+</code></pre><p>Ubuntu:</p>
+<pre tabindex="0"><code>ufw disable
+</code></pre><p>开放端口则麻烦一些，需要开启以下端口，包括但不限于：</p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6443</td>
+<td>API Server</td>
+</tr>
+<tr>
+<td>10250</td>
+<td>Kubelet 通信</td>
+</tr>
+<tr>
+<td>2379</td>
+<td>ETCD</td>
+</tr>
+<tr>
+<td>2380</td>
+<td>ETCD</td>
+</tr>
+</tbody>
+</table>
+<h2 id="安装kubeadmkubeletkubectl">安装kubeadm/kubelet/kubectl</h2>
+<h3 id="centos-1">CentOS</h3>
+<pre tabindex="0"><code>cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+setenforce 0
+yum install -y kubelet kubeadm kubectl
+systemctl enable kubelet &amp;&amp; systemctl start kubelet
+</code></pre><h3 id="ubuntu-1">Ubuntu</h3>
+<pre tabindex="0"><code>apt-get update &amp;&amp; apt-get install -y apt-transport-https
+curl https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg | apt-key add - 
+cat &lt;&lt;EOF &gt;/etc/apt/sources.list.d/kubernetes.list
+deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main
+EOF
+apt-get update
+apt-get install -y kubelet kubeadm kubectl
+</code></pre><h1 id="安装集群">安装集群</h1>
+<h2 id="controlplane">Controlplane</h2>
+<p>通过<code>kubeadm config print init-defaults &gt; init.yaml</code> 生成配置模板</p>
+<p>修改init.yaml:</p>
+<ol>
+<li>
+<p>修改localAPIEndpoint.advertiseAddress 为节点真实地址，如<code>172.16.0.100</code></p>
+</li>
+<li>
+<p>修改nodeRegistration.name 为当前节点真实hostname，如controlplane</p>
+</li>
+<li>
+<p>添加networking.podSubnet, 为<code>192.16.0.0/16</code>, 这样安装CNI就无需额外配置了：</p>
+</li>
+</ol>
+<pre tabindex="0"><code>networking:
+  dnsDomain: cluster.local
+  serviceSubnet: 10.96.0.0/12
+  podSubnet: 192.168.0.0/16
+</code></pre><p>随后通过<code>kubeadm init --config init.yaml</code>初始化控制节点。在kubeadm初始化结束时，会提供一条命令，可供其它节点加入。</p>
+<h2 id="node">Node</h2>
+<p>在完成之前的节点配置后，其它节点都可以通过<code>kubeadm join 172.16.0.100:6443 --token abcdef.0123456789abcdef  --discovery-token-ca-cert-hash sha256:&lt;signature&gt;</code> 来加入集群</p>
+<p>如果不慎漏掉了之前的log，可以通过命令找回signature：</p>
+<p><code>openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&gt;/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'</code></p>
+<h2 id="cni">CNI</h2>
+<p>CNI 能够帮助Pod分配IP，帮助Pod之前进行跨节点通讯，完成Pod网络隔离等。以Calico为例，可以通过官方文档，两个kubectl create -f 搞定：
+<a href="https://docs.tigera.io/calico/latest/getting-started/kubernetes/quickstart">https://docs.tigera.io/calico/latest/getting-started/kubernetes/quickstart</a></p>
+<h1 id="验证集群">验证集群</h1>
+<p>配置kubectl</p>
+<pre tabindex="0"><code>mkdir ~/.kube
+cp /etc/kubernetes/admin.conf ~/.kube/config
+</code></pre><p>查看namespace：</p>
+<pre tabindex="0"><code>kubectl get ns
+</code></pre><p>查看Pod IP分配：</p>
+<pre tabindex="0"><code>kubectl get po -A -o wide```
+</code></pre>
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>基于Hyper-V/kubeadm的k8s集群搭建</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#前置需求">前置需求</a></li>
+    <li><a href="#配置网络">配置网络</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#centos">CentOS:</a></li>
+            <li><a href="#ubuntu">Ubuntu</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#节点配置">节点配置</a>
+      <ul>
+        <li><a href="#代理">代理</a></li>
+        <li><a href="#安装cri">安装CRI</a>
+          <ul>
+            <li>
+              <ul>
+                <li><a href="#验证安装">验证安装</a></li>
+              </ul>
+            </li>
+            <li><a href="#配置containerd">配置containerd</a>
+              <ul>
+                <li><a href="#1-启用cri功能">1. 启用CRI功能</a></li>
+                <li><a href="#2-为containerd配置cgroup2">2. 为containerd配置cgroup2</a></li>
+                <li><a href="#3-containerd使用代理">3. containerd使用代理</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><a href="#配置内核模块">配置内核模块</a></li>
+        <li><a href="#禁用swap">禁用swap</a></li>
+        <li><a href="#禁用防火墙或开放端口">禁用防火墙或开放端口</a></li>
+        <li><a href="#安装kubeadmkubeletkubectl">安装kubeadm/kubelet/kubectl</a>
+          <ul>
+            <li><a href="#centos-1">CentOS</a></li>
+            <li><a href="#ubuntu-1">Ubuntu</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#安装集群">安装集群</a>
+      <ul>
+        <li><a href="#controlplane">Controlplane</a></li>
+        <li><a href="#node">Node</a></li>
+        <li><a href="#cni">CNI</a></li>
+      </ul>
+    </li>
+    <li><a href="#验证集群">验证集群</a></li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

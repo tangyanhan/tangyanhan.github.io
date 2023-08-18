@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>分布式 on Ethan Tang</title>
-    <link>https://tangyanhan.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/</link>
-    <description>Recent content in 分布式 on Ethan Tang</description>
+    <title>分布式 on E.T.</title>
+    <link>http://localhost:1313/categories/%E5%88%86%E5%B8%83%E5%BC%8F/</link>
+    <description>Recent content in 分布式 on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
-    <lastBuildDate>Mon, 20 Nov 2017 22:23:04 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 20 Nov 2017 22:23:04 +0800</lastBuildDate><atom:link href="http://localhost:1313/categories/%E5%88%86%E5%B8%83%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Go中通过Lua操纵Redis</title>
-      <link>https://tangyanhan.github.io/posts/redis-lua/</link>
+      <link>http://localhost:1313/posts/redis-lua/</link>
       <pubDate>Mon, 20 Nov 2017 22:23:04 +0800</pubDate>
       
-      <guid>https://tangyanhan.github.io/posts/redis-lua/</guid>
+      <guid>http://localhost:1313/posts/redis-lua/</guid>
       <description>为了在我的一个基本库中降低与Redis的通讯成本，我将一系列操作封装到LUA脚本中，借助Redis提供的EVAL命令来简化操作。 EVAL能够提供的特性：
 可以在LUA脚本中封装若干操作，如果有多条Redis指令，封装好之后只需向Redis一次性发送所有参数即可获得结果 Redis可以保证Lua脚本运行期间不会有其他命令插入执行，提供像数据库事务一样的原子性 Redis会根据脚本的SHA值缓存脚本，已经缓存过的脚本不需要再次传输Lua代码，减少了通信成本，此外在自己代码中改变Lua脚本，执行时Redis必定也会使用最新的代码。 导入常见的Go库如	&amp;ldquo;github.com/go-redis/redis&amp;rdquo;，就可以实现以下代码。
 生成一段Lua脚本 // KEYS: key for record // ARGV: fieldName, currentUnixTimestamp, recordTTL // Update expire field of record key to current timestamp, and renew key expiration var updateRecordExpireScript = redis.NewScript(` redis.call(&amp;quot;EXPIRE&amp;quot;, KEYS[1], ARGV[3]) redis.call(&amp;quot;HSET&amp;quot;, KEYS[1], ARGV[1], ARGV[2]) return 1 `) 该变量创建时，Lua代码不会被执行，也不需要有已存的Redis连接。 Redis提供的Lua脚本支持，默认有KEYS、ARGV两个数组，KEYS代表脚本运行时传入的若干键值，ARGV代表传入的若干参数。由于Lua代码需要保持简洁，难免难以读懂，最好为这些参数写一些注释 注意：上面一段代码使用``跨行，`所在的行虽然空白回车，也会被认为是一行，报错时不要看错代码行号。

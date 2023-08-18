@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>C&#43;&#43; on Ethan Tang</title>
-    <link>https://tangyanhan.github.io/tags/c&#43;&#43;/</link>
-    <description>Recent content in C&#43;&#43; on Ethan Tang</description>
+    <title>C&#43;&#43; on E.T.</title>
+    <link>http://localhost:1313/tags/c&#43;&#43;/</link>
+    <description>Recent content in C&#43;&#43; on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
-    <lastBuildDate>Thu, 12 Apr 2012 10:00:00 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/c++/index.xml" rel="self" type="application/rss+xml" />
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 12 Apr 2012 10:00:00 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/c++/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>C&#43;&#43;数值运算与类型安全</title>
-      <link>https://tangyanhan.github.io/posts/cpp-type-safe/</link>
+      <link>http://localhost:1313/posts/cpp-type-safe/</link>
       <pubDate>Thu, 12 Apr 2012 10:00:00 +0800</pubDate>
       
-      <guid>https://tangyanhan.github.io/posts/cpp-type-safe/</guid>
+      <guid>http://localhost:1313/posts/cpp-type-safe/</guid>
       <description>在理想情况下，对类型的错误应用会导致一些错误，并让我们第一时间发觉；在最糟的情况下，其错误在很久之后才被发现，而且那时我们的系统已经遭受了足够多的攻击。
 C/C++几个基本的类型规则： 类型转换规则： 系统将精度高低规定如箭头所示。 char,short -&amp;gt; int -&amp;gt; unsigned -&amp;gt; long -&amp;gt;double &amp;lt;- float A.在运算中的自动转换：
 任何两个长度低于int类型的值运算时必然转换为int类型（包括==、&amp;gt;=等逻辑判断） 等级等于或高于int的同类型运算时，仍为原类型 两个不同类型数据参与运算时，两个数据都转换为其中较高级别的类型（两个值都长度低于int则遵从第一条） 对于表达式中的常数，默认为int类型，如果该值为正数且超过INT_MAX(在头文件 limits.h中），则默认为 unsigned int （源文件中一般不允许常数超过long，故不讨论更大的数值)。 如果一个值为64位，则另一个也会向上转换为64位，无符号的64位值是这些64位值的上限。 强制类型转换： 1.强制类型转换不对目标变量进行直接的转换，而是产生了一个中间量
