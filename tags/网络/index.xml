@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>网络 on E.T.</title>
-    <link>http://localhost:1313/tags/%E7%BD%91%E7%BB%9C/</link>
+    <link>https://tangyanhan.github.io/tags/%E7%BD%91%E7%BB%9C/</link>
     <description>Recent content in 网络 on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 19 Jan 2021 22:20:28 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 19 Jan 2021 22:20:28 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>TCP保活机制闲扯</title>
-      <link>http://localhost:1313/posts/tcp-keepalive-and-ipvs/</link>
+      <link>https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/</link>
       <pubDate>Tue, 19 Jan 2021 22:20:28 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/tcp-keepalive-and-ipvs/</guid>
+      <guid>https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/</guid>
       <description>TCP保活机制主要问题 在TCP连接不传输任何数据时，两端将无法得知另一端是否因为关机、掉电而消失，此外，为一个另一端已经不存在的TCP连接一直维持资源，也会浪费资源。在TCP标准之外，各个操作系统实现中都实现了TCP的保活机制(keepalive)。
 保活机制有几个问题要解决：
 什么时候开始启动保活机制？ Linux 使用sysctl参数：net.ipv4.tcp_keepalive_time=7200，表示TCP连接在闲置7200秒后启动保活机制，开始发送保活报文
@@ -28,10 +28,10 @@
     
     <item>
       <title>DNS懒人包</title>
-      <link>http://localhost:1313/posts/dns/</link>
+      <link>https://tangyanhan.github.io/posts/dns/</link>
       <pubDate>Tue, 19 Jan 2021 10:58:43 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/dns/</guid>
+      <guid>https://tangyanhan.github.io/posts/dns/</guid>
       <description>一般的，DNS(Domain Name System)，是为了解决IP地址难记的问题而提出的解决方案，提供从域名到若干IP地址的转换。
 现存的DNS当然不只有这些功能，本文尝试把现实生活中可能会遇到的DNS相关问题与知识点结合起来。
 DNS 服务器 DNS服务器存放了DNS域名系统的数据库，收到客户端请求时可以进行对应的查询，返回结果。 Linux下的DNS服务器设置存放于 /etc/resolv.conf中，这个文件是自动生成的，修改这个文件的效果，在重启后会丢失。 可以通过如systemd-resolve --set-dns=114.114.114.114 --interface=enp0s31f6这种命令增加dns，或者通过这些方法暂时或永久的改变DNS服务器。
@@ -53,10 +53,10 @@ mdns4 含义是多播DNS查询
     
     <item>
       <title>TCP拥塞控制</title>
-      <link>http://localhost:1313/posts/tcp-congestion-control/</link>
+      <link>https://tangyanhan.github.io/posts/tcp-congestion-control/</link>
       <pubDate>Wed, 06 Jan 2021 20:00:00 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/tcp-congestion-control/</guid>
+      <guid>https://tangyanhan.github.io/posts/tcp-congestion-control/</guid>
       <description>通过窗口管理，发送端与接收端能够协调彼此的发送和接收速率，避免出现超出接收端能力的丢包。但网络并非只有这一个TCP连接在使用，当数据报在发送端和接收端之间传输时，需要流转多个网络设备，这些网络设备的能力和使用情况也不同。你可以把网络设备看成是城市中的道路，数据报文就是其中的车辆，当车辆超过某一条道路的处理能力，由于数据报文并不是车辆可以提前选择别的道路，电信号只能被丢弃，于是这条道路直接将车辆扔进外太空，这种现象叫做拥塞。 但数据报文并不是现实世界的车辆，并不具备观察拥塞自动避让的能力。如何避免发生拥塞，以及发生堵塞时如何合理避让，这就是TCP的拥塞控制(Congestion Control)。
 拥塞控制需要关注的几个问题：
 拥塞控制是怎么工作的？ 当网络出问题的时候，怎么看是不是拥塞的问题？ 高速网络如何避免拥塞控制导致的传输效率降低？ 拥塞征兆：怎么知道发生了拥塞？ 在内核算法层面， 丢包、收到重复的ACK、收到SACK, 都可以认为是网络中发生了拥塞。而ECN算法通过一个扩展位协商，允许一个TCP发送端向网络报告拥塞状况，而无需检测丢包，也可以用作拥塞检测的方法。
@@ -84,10 +84,10 @@ $$cwnd_{t+1} = cwnd_{t} + SMSS *SMSS/cwnd_{t}$$
     
     <item>
       <title>TCP流量控制</title>
-      <link>http://localhost:1313/posts/tcp-stream-control/</link>
+      <link>https://tangyanhan.github.io/posts/tcp-stream-control/</link>
       <pubDate>Tue, 29 Dec 2020 19:23:20 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/tcp-stream-control/</guid>
+      <guid>https://tangyanhan.github.io/posts/tcp-stream-control/</guid>
       <description>延迟确认 根据TCP协议的设定，发送端每发出一个数据段，接收端就要返回一个ACK。如果发送端和接收端本就存在频繁的数据互动，不携带数据的ACK无疑会浪费半个RTT的时间。
 所以，可以在接收到数据之后，稍微等待一段时间（少于200ms），如果这时接收端正好也有数据要发送，将其ACK位置1，这样我们就同时完成了数据发送和对之前的确认。
 这看起来会会造成一定的延时，但现实中一些基于TCP的&amp;quot;回合制&amp;quot;协议，如HTTP协议，客户端向服务器发送请求后，服务器必须直到客户端的请求，才能给予回应（状态码+Body等），当服务器从缓冲区拿出请求时，这部分信息必然已经被确认，才可能来到应用层，这时启用延迟确认并无意义。
@@ -106,10 +106,10 @@ Linux的缓存自动调优 流量缓存是在内核层面进行调控的，默�
     
     <item>
       <title>TCP超时重传</title>
-      <link>http://localhost:1313/posts/tcp-rto-retrans/</link>
+      <link>https://tangyanhan.github.io/posts/tcp-rto-retrans/</link>
       <pubDate>Thu, 24 Dec 2020 09:07:42 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/tcp-rto-retrans/</guid>
+      <guid>https://tangyanhan.github.io/posts/tcp-rto-retrans/</guid>
       <description>当TCP发出报文之后一段时间后，没能收到对方的确认包，那么可以认为时数据包已经超时，这时就需要重传。 在数据的发送方与接收方之间，需要协调发送与接收速率：发送太快接收太慢，那么接收方数据来不及处理缓冲区不足，数据包可能会被丢弃;发送太慢，就白白浪费带宽，占用发送方的时间，这就是流量控制(Stream Control)。 但网络中并不止我们自己建立的一个TCP连接，还有大量其它的连接以及中间设备，如果所有TCP连接都自行其是，那么网络将会发生阻塞。如何避免阻塞，发现阻塞时如何退避缓解阻塞，如何避免阻塞的同时充分利用网络，这就是所谓拥塞控制(Congestion Control)。
 超时重传 一个报文段从发送方发出, 再到从接收方得到ACK，这一轮经过的时间称为一个RTT，即Round Trip Time，依据通信通常的RTT，我们可以推断通信RTT的上限，当超出这个上限就认为数据包已经超时，需要重传, 这个时间就是RTO，即Retransimission Timeout.
 当数据包需要重传时，很可能是由于对面已经意外关闭，网络连接断开，或者中间网络恶化等等。重试1次不一定成功，因此需要每隔一段时间重试一次。TCP一般实现，每次重传间隔时间加倍，这被称为二进制指数退避(binary exponential backoff)，多次重试后就应当考虑放弃连接。
@@ -139,10 +139,10 @@ SACK在接收端，通过报告缓存中的“空缺”，从而让发送端知�
     
     <item>
       <title>TCP重置报文段</title>
-      <link>http://localhost:1313/posts/tcp-rst/</link>
+      <link>https://tangyanhan.github.io/posts/tcp-rst/</link>
       <pubDate>Mon, 21 Dec 2020 14:08:37 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/tcp-rst/</guid>
+      <guid>https://tangyanhan.github.io/posts/tcp-rst/</guid>
       <description>本节是作为《TCP/IP详解·卷1:协议》中TCP连接管理一章中“重置报文段”的读书笔记及一部分自己的扩展。
 当TCP头部RST位字段置为1时，报文段就被称为“重置报文段”。在tcpdump监听流量时，会看到R字符标识。 这里介绍重置报文段的用途以及相关Linux配置。
 重置报文段的用途 1. 拒绝不存在端口的连接请求 首先，启动tcpdump，监听本机lo接口:
@@ -161,10 +161,10 @@ void tcp_reset(struct sock *sk) { /* We want the right error as BSD sees it (and
     
     <item>
       <title>TCP协议基础:连接建立，关闭与状态转移</title>
-      <link>http://localhost:1313/posts/tcp-basic/</link>
+      <link>https://tangyanhan.github.io/posts/tcp-basic/</link>
       <pubDate>Thu, 03 Dec 2020 18:40:15 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/tcp-basic/</guid>
+      <guid>https://tangyanhan.github.io/posts/tcp-basic/</guid>
       <description>本篇是对TCP/IP详解的相关读书笔记。
 TCP连接的建立与终止 一般情况下，C/S通讯模型下的TCP连接的建立与关闭可以概括为“三次握手，四次关闭”。
 三次握手 Client发起SYN，并带上自己随机的初始化ISN(c) Server收到后, 回复SYN+ACK，通过设定Seq=ISN(c)+1，表示自己已经正确收到了该SYN，并带上自己的ISN(s) Client回复ACK, 设定Seq=ISN(c)+1,表示这是第一个成功发送的包，ACK=ISN(s)+1，表示自己正确收到了第二部的SYN ISN是一个随机的16位二进制数字，通信两侧随机选择一个数字作为自己的初始化ISN.
@@ -189,10 +189,10 @@ sysctl -w net.ipv4.tcp_syncookies=1 TCP在Linux系统中的状态表示 如果�
     
     <item>
       <title>有关端口的基本网络工具</title>
-      <link>http://localhost:1313/posts/basic-network-tools/</link>
+      <link>https://tangyanhan.github.io/posts/basic-network-tools/</link>
       <pubDate>Thu, 03 Dec 2020 14:00:51 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/basic-network-tools/</guid>
+      <guid>https://tangyanhan.github.io/posts/basic-network-tools/</guid>
       <description>netstat netstat在查看网络端口占用时速度比较快，也是比较常用的工具。
 netstat 在显示网络连接时有一堆的参数可以叠加:
 netstat [address_family_options] [--tcp|-t] [--udp|-u] [--udplite|-U] [--sctp|-S] [--raw|-w] [--l2cap|-2] [--rfcomm|-f] [--listening|-l] [--all|-a] [--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--symbolic|-N] [--extend|-e[--extend|-e]] [--timers|-o] [--program|-p] [--ver‐ bose|-v] [--continuous|-c] [--wide|-W] address_family_options: [-4|--inet] [-6|--inet6] [--protocol={inet,inet6,unix,ipx,ax25,netrom,ddp,bluetooth, ... } ] [--unix|-x] [--inet|--ip|--tcpip] [--ax25] [--x25] [--rose] [--ash] [--bluetooth] [--ipx] [--netrom] [--ddp|--appletalk] [--econet|--ec] 显示所有tcp/udp监听端口情况及进程信息，以数字形式显示IP:
@@ -204,10 +204,10 @@ netstat -nat4 | awk &amp;#39;{print $6}&amp;#39; | sort | uniq -c | sort -r lsof
     
     <item>
       <title>Linux组网基础:虚拟设备</title>
-      <link>http://localhost:1313/posts/linux-network-basic/</link>
+      <link>https://tangyanhan.github.io/posts/linux-network-basic/</link>
       <pubDate>Tue, 01 Dec 2020 23:20:34 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/linux-network-basic/</guid>
+      <guid>https://tangyanhan.github.io/posts/linux-network-basic/</guid>
       <description>基本概念 在讨论Linux网络设备时，一般会涉及“层”的概念，例如L1,L2,L3等等。这时使用的是OSI七层模型，即“物数网传会表应”。
 网桥(bridge)：工作在L2（数据链路层），只有目的MAC匹配的数据包才能被发送到出口，只能在同一网段下进行流量转发。
 交换机(switch): 工作在L2（也可能包含L3），可以将多组MAC根据不同的规则进行转发。

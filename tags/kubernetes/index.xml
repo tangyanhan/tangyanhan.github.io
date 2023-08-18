@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Kubernetes on E.T.</title>
-    <link>http://localhost:1313/tags/kubernetes/</link>
+    <link>https://tangyanhan.github.io/tags/kubernetes/</link>
     <description>Recent content in Kubernetes on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 16 Aug 2023 10:21:55 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 16 Aug 2023 10:21:55 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>基于Hyper-V/kubeadm的k8s集群搭建</title>
-      <link>http://localhost:1313/posts/kubeadm-hyperv/</link>
+      <link>https://tangyanhan.github.io/posts/kubeadm-hyperv/</link>
       <pubDate>Wed, 16 Aug 2023 10:21:55 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/kubeadm-hyperv/</guid>
+      <guid>https://tangyanhan.github.io/posts/kubeadm-hyperv/</guid>
       <description>本文介绍在Windows上借助Hyper-V和kubeadm搭建k8s机器群的方法及避坑。
 前置需求 虚拟机应当具有固定的ip 虚拟机应当能够访问外部网络 虚拟机能够使用主机上的代理软件（如clash） 配置网络 确保Windows已启用Hyper-V功能并重启 以admin权限通过PowerShell运行：
 Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All 网络配置 创建一个k8s的虚拟交换机，为其分配一个固定ip，并在主机上配置一个NAT使其中的主机能够访问外部网络
@@ -25,10 +25,10 @@ CentOS: 修改 /etc/sysconfig/network-scripts/ifcfg-eth0 配置固定IP 修改 /
     
     <item>
       <title>Runc容器运行过程及容器逃逸原理</title>
-      <link>http://localhost:1313/posts/runc-container/</link>
+      <link>https://tangyanhan.github.io/posts/runc-container/</link>
       <pubDate>Thu, 28 Jan 2021 09:13:11 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/runc-container/</guid>
+      <guid>https://tangyanhan.github.io/posts/runc-container/</guid>
       <description>在每一个Kubernetes节点中，运行着kubelet，负责为Pod创建销毁容器，kubelet预定义了API接口，通过GRPC从指定的位置调用特定的API进行相关操作。而这些CRI的实现者，如cri-o, containerd等，通过调用runc创建出容器。runc功能相对单一，即针对特定的配置，构建出容器运行指定进程，它不能直接用来构建镜像，kubernetes依赖的如cri-o这类CRI，在runc基础上增加了通过API管理镜像，容器等功能。
 Kubelet，Cri-O，runc，Linux大致层级示意图如下：
 在Kubernetes源码中，可以在pkg/kubelet/cri目录下找到相关代码，其中remote目录包含了常见的如镜像拉取，容器创建等操作，streaming目录中包含了一些需要TCP流的操作，如attach，port-forward等。
@@ -43,10 +43,10 @@ runc create &amp;lt;container-id&amp;gt; runc list # 列出创建状态的容器
     
     <item>
       <title>Kubebuilder</title>
-      <link>http://localhost:1313/posts/kubebuilder/</link>
+      <link>https://tangyanhan.github.io/posts/kubebuilder/</link>
       <pubDate>Tue, 29 Dec 2020 13:58:33 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/kubebuilder/</guid>
+      <guid>https://tangyanhan.github.io/posts/kubebuilder/</guid>
       <description>安装前置 安装好go，配置好GOPATH, GOPROXY
 安装好kustomize
 go get sigs.k8s.io/kustomize/kustomize/v3 安装好controller-gen go get sigs.k8s.io/controller-tools/cmd/controller-gen 安装 确保机器已经安装好go等工具，运行以下命令：
@@ -55,10 +55,10 @@ os=$(go env GOOS) arch=$(go env GOARCH) # download kubebuilder and extract it to
     
     <item>
       <title>Kubernetes源码分析:选举实现</title>
-      <link>http://localhost:1313/posts/k8s-election/</link>
+      <link>https://tangyanhan.github.io/posts/k8s-election/</link>
       <pubDate>Wed, 17 Jun 2020 15:25:01 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/k8s-election/</guid>
+      <guid>https://tangyanhan.github.io/posts/k8s-election/</guid>
       <description>Kubernetes 中有很多服务都是可以高可用部署的, 但有些需要对K8S资源进行创建/更新操作的服务, 在观察到资源变化后, 很容易同时对资源进行操作, 导致不必要的更新.
 虽然K8S有 ResourceVersion 这种锁存在, 多个实例同时进行资源的创建/更新操作也会浪费资源, 使得代码逻辑变得复杂. ControllerManagers, Scheduler 两个组件目前都是使用 client-go 中的 leaderelection 组件, 实现单个 leader 的选举.
 竞态资源 我们知道, K8S的包括List-Watch机制, 以及数据一致性都是靠 ETCD 来保证的. 有了ETCD, K8S就可以假设自己有了一块可以保证数据一致性的区域, 允许各个组件通过向它写入/读取数据, 来完成选举过程.
@@ -70,10 +70,10 @@ type Interface interface { // Get returns the LeaderElectionRecord Get() (*Leade
     
     <item>
       <title>K8S Scheduler原理及扩展</title>
-      <link>http://localhost:1313/posts/k8s-scheduler/</link>
+      <link>https://tangyanhan.github.io/posts/k8s-scheduler/</link>
       <pubDate>Tue, 12 May 2020 10:55:30 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/k8s-scheduler/</guid>
+      <guid>https://tangyanhan.github.io/posts/k8s-scheduler/</guid>
       <description>Schedule 过程 Kubernetes 默认的 Scheduler 负责调度Pod. 在由 ApiServer 创建出Pod后, Scheduler 负责写入NodeName字段, 然后由对应Node上的Kubelet负责创建Pod实际的containers等.
 默认调度器主要代码实现在这个文件中: pkg/scheduler/core/generic_scheduler.go
 主要工作过程, 及相关函数如图:
@@ -96,10 +96,10 @@ Preempt 抢占过程 当有一个Pod无法被调度到节点时, 可以进行抢
     
     <item>
       <title>Calico 多网卡解决方式</title>
-      <link>http://localhost:1313/posts/calico-multicard/</link>
+      <link>https://tangyanhan.github.io/posts/calico-multicard/</link>
       <pubDate>Mon, 30 Mar 2020 16:19:15 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/calico-multicard/</guid>
+      <guid>https://tangyanhan.github.io/posts/calico-multicard/</guid>
       <description>当机器内存在多张网卡时, Calico的daemonset, 即 calico-node 可能使用错误的网卡尝试与其它主机建立连接. 以VirtualBox创建的多节点虚拟机为例, 我们一般需要两个网卡, 一个NAT网卡用于联系外网, 另一个虚拟网卡用于与host和其它节点建立一个虚拟局域网. 如果这时calico错误使用了NAT网卡, 那么自然无法连上其它主机.
 通过调整calicao 网络插件的网卡发现机制，修改 IP_AUTODETECTION_METHOD 对应的value值。官方提供的yaml文件中，ip识别策略（IPDETECTMETHOD）没有配置，即默认为first-found，这可能会导致一个网络异常的ip作为nodeIP被注册，从而影响 node-to-node mesh 。我们可以修改成 can-reach 或者 interface 的策略，尝试连接某一个Ready的node的IP，以此选择出正确的IP。
 这个环境变量需要添加到 calico.yaml 中, 位置在 DaemonSet/calico-node.spec.template.spec.containers[0].env
@@ -110,10 +110,10 @@ can-reach使用您的本地路由来确定将使用哪个IP地址到达提供的
     
     <item>
       <title>使用Virtualbox&#43;kubeadm搭建k8s集群</title>
-      <link>http://localhost:1313/posts/virtualbox-cluster/</link>
+      <link>https://tangyanhan.github.io/posts/virtualbox-cluster/</link>
       <pubDate>Sun, 10 Nov 2019 20:11:43 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/virtualbox-cluster/</guid>
+      <guid>https://tangyanhan.github.io/posts/virtualbox-cluster/</guid>
       <description>搭建K8S集群,动不动就是 1 Master 3节点, 或者更多这样子. Minikube只是个单节点K8S,不能用来学习更多多节点调度之类的知识. 现在的机器性能这么强劲, 为什么不在自己的笔记本或台式电脑上, 用Virtualbox虚拟机做出自己的多节点集群呢?
 第一步,安装好VirtualBox. 某些主机可能需要在BIOS中开启虚拟化支持,才能在Virtualbox中安装64位操作系统.
 第二步, 下载一个系统镜像. 我使用的是CentOS7 Minimal, 几乎啥软件都没有, 能够将折腾发挥到极致.
@@ -127,10 +127,10 @@ can-reach使用您的本地路由来确定将使用哪个IP地址到达提供的
     
     <item>
       <title>二进制安装Kubernetes</title>
-      <link>http://localhost:1313/posts/kubernetes-install-binary/</link>
+      <link>https://tangyanhan.github.io/posts/kubernetes-install-binary/</link>
       <pubDate>Mon, 04 Nov 2019 21:43:03 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/kubernetes-install-binary/</guid>
+      <guid>https://tangyanhan.github.io/posts/kubernetes-install-binary/</guid>
       <description>准备二进制文件 uo
 git clone https://gitee.com/mirrors/Kubernetes mkdir -p $GOPATH/src/k8s.io mv Kubernetes/ $GOPATH/src/k8s.io/kubernetes cd $GOPATH/src/k8s.io/kubernetes git checkout -b 1.16.2 v1.16.2 docker pull docker.io/gcrcontainer/kube-cross:v1.12.10-1 docker tag docker.io/gcrcontainer/kube-cross:v1.12.10-1 k8s.gcr.io/kube-cross:v1.12.10-1 make release docker cp 3c09eb833064:/go/src/k8s.io/kubernetes/_output/dockerized/go/bin ./ 下载Kubernetes:
 进入Kubernetes release页, 选择一个版本, 根据Download Link跳转到二进制下载链接:

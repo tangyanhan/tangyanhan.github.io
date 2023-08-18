@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Go on E.T.</title>
-    <link>http://localhost:1313/tags/go/</link>
+    <link>https://tangyanhan.github.io/tags/go/</link>
     <description>Recent content in Go on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 13 May 2020 11:16:24 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/go/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 13 May 2020 11:16:24 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/go/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Go源码分析: chan 实现</title>
-      <link>http://localhost:1313/posts/go-chan/</link>
+      <link>https://tangyanhan.github.io/posts/go-chan/</link>
       <pubDate>Wed, 13 May 2020 11:16:24 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/go-chan/</guid>
+      <guid>https://tangyanhan.github.io/posts/go-chan/</guid>
       <description>chan组成 chan 可以简单定义为一个&amp;quot;带锁的队列&amp;quot;, 当make(chan type), 不带数量时, 队列最大长度为1.
 chan的实现需要达成以下目标:
 读阻塞 写阻塞 可读时, 使阻塞的goroutine恢复 可写时, 使阻塞的goroutine恢复 chan的主要实现在runtime/chan.go中, 其主要构成如图:
@@ -24,10 +24,10 @@ chan的实现需要达成以下目标:
     
     <item>
       <title>Go源码分析: map</title>
-      <link>http://localhost:1313/posts/go-map/</link>
+      <link>https://tangyanhan.github.io/posts/go-map/</link>
       <pubDate>Thu, 07 May 2020 12:05:24 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/go-map/</guid>
+      <guid>https://tangyanhan.github.io/posts/go-map/</guid>
       <description>map 的基本构成 map的实现文件为 src/runtime/map.go. 它的基本结构是一个HashMap,实现方式为哈希桶, 根据key将数据散列到不同的桶中，每个桶中有固定的8个键值对.
 桶尾部可以挂载额外的桶(overflow buckets).
 由结构可知， Go map的访问复杂度为O(1), 假设哈希函数恶化, 所有key都映射到同一个bucket, map可以退化为单链表.
@@ -42,10 +42,10 @@ $$2^{B}\cdot\frac{13}{2}&amp;gt;n$$
     
     <item>
       <title>Go源码分析: 逃逸分析</title>
-      <link>http://localhost:1313/posts/go-escape-analysis/</link>
+      <link>https://tangyanhan.github.io/posts/go-escape-analysis/</link>
       <pubDate>Sun, 05 Apr 2020 23:25:07 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/go-escape-analysis/</guid>
+      <guid>https://tangyanhan.github.io/posts/go-escape-analysis/</guid>
       <description>什么是逃逸分析 逃逸分析(Escape Analysis)是Go在编译程序时执行的过程, 由编译器通过分析, 决定变量应当分配在栈上还是堆上.
 在编译中进行逃逸分析 目前有代码如下:
 package main import ( &amp;#34;fmt&amp;#34; ) type User struct { name string } func GetUsername(u *User) string { return u.name } func escapeSimple() int { i := 1 j := i + 1 return j } func main() { fmt.Println(escapeSimple()) } 通过在编译时增加gcflags参数, 使用类似如下命令编译:
@@ -55,10 +55,10 @@ go build -gcflags &amp;#39;-m -N -l&amp;#39; ./advanced/cmd/escape-analysis 然�
     
     <item>
       <title>Go源码分析: Slice内存增长方式</title>
-      <link>http://localhost:1313/posts/go-growslice/</link>
+      <link>https://tangyanhan.github.io/posts/go-growslice/</link>
       <pubDate>Sat, 04 Apr 2020 22:41:18 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/go-growslice/</guid>
+      <guid>https://tangyanhan.github.io/posts/go-growslice/</guid>
       <description>源文件: runtime/slice.go
 slice 是一个连续的内存结构, 由3部分组成: 内存区域, 长度 和 可用长度(cap):
 type slice struct { array unsafe.Pointer len int cap int } make 创建一个slice， 实际上有3个参数： make([]type, len, cap)
@@ -70,10 +70,10 @@ func makeslice(et *_type, len, cap int) unsafe.Pointer { mem, overflow := math.M
     
     <item>
       <title>Go,Javascript与Websocket</title>
-      <link>http://localhost:1313/posts/go-js-ws/</link>
+      <link>https://tangyanhan.github.io/posts/go-js-ws/</link>
       <pubDate>Sat, 19 Oct 2019 15:45:40 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/go-js-ws/</guid>
+      <guid>https://tangyanhan.github.io/posts/go-js-ws/</guid>
       <description>JS中建立Websocket连接 var ws = new WebSocket(&amp;#34;ws://hostname/path&amp;#34;, [&amp;#34;protocol1&amp;#34;, &amp;#34;protocol2&amp;#34;]) 参数说明 第一个参数是服务端websocket地址，如果是https+websocket，那么前缀写成wss
 第二个参数并不是必须的，它约定了双方通讯使用的自定义子协议，会被放到这个Header中： Sec-WebSocket-Protocol
 子协议在某些场合是很必要的，例如服务端要与多个客户端版本兼容，那么若干个版本之后，服务端设定支持子协议 v1.5, v2.0, 而客户端发送的却是 v1.0，那么他们就可以在握手阶段失败，不会继续通信下去导致奇奇怪怪的错误。

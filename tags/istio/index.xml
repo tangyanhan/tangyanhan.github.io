@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Istio on E.T.</title>
-    <link>http://localhost:1313/tags/istio/</link>
+    <link>https://tangyanhan.github.io/tags/istio/</link>
     <description>Recent content in Istio on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 08 Jan 2020 14:58:11 +0800</lastBuildDate><atom:link href="http://localhost:1313/tags/istio/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 08 Jan 2020 14:58:11 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/istio/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Istio安装</title>
-      <link>http://localhost:1313/posts/istio-install/</link>
+      <link>https://tangyanhan.github.io/posts/istio-install/</link>
       <pubDate>Wed, 08 Jan 2020 14:58:11 +0800</pubDate>
       
-      <guid>http://localhost:1313/posts/istio-install/</guid>
+      <guid>https://tangyanhan.github.io/posts/istio-install/</guid>
       <description>安装前置条件 已安装helm 2.x, 官方暂不支持 helm 3.0及以上 快速安装helm VER=v2.16.1 wget https://mirror.azure.cn/kubernetes/helm/helm-$VER-linux-amd64.tar.gz tar -xvf helm-$VER-linux-amd64.tar.gz sudo mv linux-amd64/helm /usr/local/bin helm init --upgrade --tiller-image gcr.azk8s.cn/kubernetes-helm/tiller:$VER --stable-repo-url https://mirror.azure.cn/kubernetes/charts/ 下载源码 下面是一个国内的同步仓库, 可以避免因为网速无法从Github下载的问题.
 git clone https://gitee.com/mirrors/istio.git 然后, git tag 列出可用tag, 选择一个想要的tag并checkout:
 git checkout -b v1.4.1 1.4.1 初始化CRD Istio创建了大量的CRD定义, Istio将它们的安装工作单独放到一个目录中, 其实就相当于我们直接 kubectl apply -f ., 不过借助了helm, 可以指定一些变量.
