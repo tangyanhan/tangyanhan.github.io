@@ -6,12 +6,12 @@
     <description>Recent content in Helm on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 25 Apr 2020 13:09:47 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/helm/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 25 Apr 2020 13:09:47 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/tags/helm/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Helm(4) 让编排兼容不同版本K8S</title>
       <link>https://tangyanhan.github.io/posts/helm-4-cap/</link>
       <pubDate>Sat, 25 Apr 2020 13:09:47 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/helm-4-cap/</guid>
       <description>在使用Helm过程中, 经常会遇到编排需要兼容不同K8S版本的问题. 考虑如下场景:
 以前编写的Deployment资源, 其apiVersion为 apps/v1beta1, 但后来新的版本中已经改为 apps/v1,希望能兼容
@@ -22,12 +22,10 @@ Deployment兼容多版本K8S 针对以上第一个问题, 我们可以直接在 
 然后, Deployment引用这一段即可:
 kind: Deployment apiVersion: {{ include &amp;#34;deployApiVersion&amp;#34; . }} 检测配置 disableSubresources 是否开启 经过查询文档, disableSubresources 默认开启是在 1.</description>
     </item>
-    
     <item>
       <title>Helm(3): 小技巧</title>
       <link>https://tangyanhan.github.io/posts/helm-3-tips/</link>
       <pubDate>Mon, 24 Feb 2020 20:51:00 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/helm-3-tips/</guid>
       <description>用变量组合成新的模板 假设我们的一个组件在Chart中组合出了一个配置变量, 然后正巧有好几个文件要用到它:
 http://{{ .Release.Name }}.{{ .Release.Namespace }}:{{ .Values.service.servicePort }} Golang Template已经自带一些如局部变量来做类似的事情, 但它的作用域无疑是有限的,也不利于统一管理. 这就有了 define的用武之地.
@@ -38,12 +36,10 @@ http://{{ .Release.Name }}.{{ .Release.Namespace }}:{{ .Values.service.servicePo
 安装完成后的叨逼叨 事实上, 很多时候负责安装的用户往往并不会仔细去研究你提供的安装文档(有时,你甚至没有一份详尽的文档). 往往用户安装完成之后, TA也不知道安装了些什么东西, 接下来该做什么. 如果你安装过一些类似的中间件, 例如 bitnami/kafka, 那么你会发现安装完后, 它会打印出一堆信息, 告诉你该如何访问它, 以及其它注意事项等.
 安装完成后打印出的信息放在哪儿了? 那就是 templates/NOTES.txt. 上面提到过, 这个文件不会被当成Kubernetes Object渲染并安装到集群中, 因此不必担心这个问题.</description>
     </item>
-    
     <item>
       <title>Helm(2): 创建和语法</title>
       <link>https://tangyanhan.github.io/posts/helm-2-create/</link>
       <pubDate>Fri, 21 Feb 2020 11:45:13 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/helm-2-create/</guid>
       <description>首先, 创建一个Chart: helm create mychart 接下来, 讨论的假设前提是你已经熟悉Go Template的基本用法.
 Flatten configSvcName: mysrv configSvcUrl: http://example.com Use Flatten name: &amp;#34;{{ .Values.configSvcName }} url: &amp;#34;{{ .Values.configSvcUrl }} Nested config: svc: name: mysrv url: http://example.com Use Nested name: &amp;ldquo;{{ .Values.config.svc.name }}&amp;rdquo; url: &amp;ldquo;{{ .Values.config.svc.url }}&amp;rdquo; 移除左侧/右侧空格: -
@@ -52,12 +48,10 @@ Flatten configSvcName: mysrv configSvcUrl: http://example.com Use Flatten name: 
 23&amp;lt;45 此外, -也可以用来减少空格浪费的空间, 例如一些带缩进的控制语句if/else/with/for等, 本身不会嵌入到最终生成的YAML中, 但我们为了查看方便, 会对其增加缩进和换行, 这些空白没有必要带进最终渲染出的YAML中:
 {{- with .Values.affinity }} affinity: {{- toYaml . | nindent 8 }} {{- end }} 需要注意, 换行本身也是空白字符!</description>
     </item>
-    
     <item>
       <title>Helm(1):安装和使用</title>
       <link>https://tangyanhan.github.io/posts/helm-1-use/</link>
       <pubDate>Fri, 21 Feb 2020 11:40:26 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/helm-1-use/</guid>
       <description>安装 可以从 https://github.com/helm/helm/releases/tag/v3.0.3 获取不同操作系统的版本
 wget https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz tar xzvf helm-v3.0.3-linux-amd64.tar.gz sudo cp helm /usr/local/bin/helm 与Helm2不同, helm不再需要在集群中维持一个tiller. Helm 3 默认使用与kubectl相同的配置(KUBECONFIG), 来对Kubernetes进行操作.
@@ -70,6 +64,5 @@ helm repo add azure http://mirror.azk8s.cn/kubernetes/charts 从Repo中搜索一
 helm search repo &amp;lt;keyword&amp;gt; 安装一个网络上的Chart:
 helm install [NAME] [CHART] [flags] 例如: helm install redis azure/redis --namespace middleware</description>
     </item>
-    
   </channel>
 </rss>

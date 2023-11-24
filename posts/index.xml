@@ -6,28 +6,31 @@
     <description>Recent content in Posts on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 16 Aug 2023 10:21:55 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 24 Nov 2023 12:14:07 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>基于Hyper-V/kubeadm的k8s集群搭建</title>
-      <link>https://tangyanhan.github.io/posts/kubeadm-hyperv/</link>
-      <pubDate>Wed, 16 Aug 2023 10:21:55 +0800</pubDate>
-      
-      <guid>https://tangyanhan.github.io/posts/kubeadm-hyperv/</guid>
-      <description>本文介绍在Windows上借助Hyper-V和kubeadm搭建k8s机器群的方法及避坑。
-前置需求 虚拟机应当具有固定的ip 虚拟机应当能够访问外部网络 虚拟机能够使用主机上的代理软件（如clash） 配置网络 确保Windows已启用Hyper-V功能并重启 以admin权限通过PowerShell运行：
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All 网络配置 创建一个k8s的虚拟交换机，为其分配一个固定ip，并在主机上配置一个NAT使其中的主机能够访问外部网络
-New-VMSwitch -Name &amp;#39;k8s&amp;#39; -SwitchType Internal $adapter = Get-NetAdapter | Where { $_.Name -match &amp;#39;k8s&amp;#39; } New-NetIPAddress -IPAddress &amp;#39;172.16.0.1&amp;#39; -InterfaceIndex $adapter.InterfaceIndex -PrefixLength 24 new-netnat -Name &amp;#39;k8s&amp;#39; -InternalIPInterfaceAddressPrefix 172.16.0.0/24 如果在使用代理服务，确保监听在了所有地址之上，例如Clash需要打开AllowLan: true
-安装虚拟机 虚拟机安装无需赘述，使用centos/ubuntu-server皆可。 确保节点配置为：
-CPU &amp;gt;= 2 Memory &amp;gt;= 4G SecureBoot 已禁用 安装并启用ssh server服务 网卡选择我们之前创建的&amp;rsquo;k8s&#39; hostname 分别改为controlplane/node 在安装过程中,可以对网卡直接配置固定IP, 设定IPv4为manual:
-Address=172.16.0.100 # 或.101 Gateway=172.16.0.1 DNS=223.5.5.5,172.16.0.1 如果错过了这些配置：
-CentOS: 修改 /etc/sysconfig/network-scripts/ifcfg-eth0 配置固定IP 修改 /etc/hostname 配置hostname Ubuntu 修改 /etc/netplan/01 后通过 netplan apply 配置固定IP hostnamectl set-hostname &amp;lt;new-name&amp;gt; 修改主机名 节点配置 以下内容需要在每个节点上都运行一遍</description>
+      <title>K8S中的删除：垃圾回收，资源清理以及Finalizer实现</title>
+      <link>https://tangyanhan.github.io/posts/k8s_finalizer/</link>
+      <pubDate>Fri, 24 Nov 2023 12:14:07 +0800</pubDate>
+      <guid>https://tangyanhan.github.io/posts/k8s_finalizer/</guid>
+      <description>现代大多数高级语言都会自动进行垃圾回收(Garbage Collection)，但一般也会强调对于特殊的资源，例如fd, net connection在删除前进行手动回收, 这些一般会放在析构函数之类的地方，对应K8S中就是Finalizer。
+Garbage Collection Garbage Collection默认由Controller Manager自带实现，具体使用需要进行参数调整。
+以Succeeded/Failed结束的Pod 对于已经终止的Pod，由Controller Manager通过terminated-pod-gc-threshold这一阈值进行管理，目前其默认值为12500，如果集群中需要更好的清理他们，可能需要调低数值：
+func RecommendedDefaultPodGCControllerConfiguration(obj *kubectrlmgrconfigv1alpha1.PodGCControllerConfiguration) { if obj.TerminatedPodGCThreshold == 0 { obj.TerminatedPodGCThreshold = 12500 } } 已完成的Job 适用于在Job进入Completed状态一段时间后自动清理： .spec.ttlSecondsAfterFinished
+Owner Reference失效的孤儿资源 级联删除 删除策略可以通过在client-go中修改Pro0pagationPolicy来改变，或者在kubectl中通过--cascade参数改变。
+同步级联删除(Foreground cascading deletion) kubectl delete deploy nginx --cascade=foreground
+API Server修改metadata.deletionTimestamp作为标记删除时间 API Server 更新metadata.finalizers为forgroundDeletion 资源直至整个删除结束才会消失 异步级联删除 默认通过kubectl删除资源时，就会通过此选项。在使用client-go时，需要额外制定。
+kubectl delete deploy nginx --cascade=background
+单独删除，故意让子级资源成为孤儿 kubectl delete deploy nginx --cascade=orphan
+这种情况下，孤儿资源过一段时间就会被Controller进行回收。
+节点容器资源回收 节点资源由kubelet进行回收。
+镜像回收 当磁盘资源达到一定程度时，开始回收下载镜像所占用的磁盘资源，主要控制参数：
+ImageGCHighThresholdPercent // 磁盘占用超过该值，必定开始回收 ImageGCLowThresholdPercent // 磁盘占用低于该值，必定不会回收 ImageMinimumGCAge // 镜像未被使用一段时间后应该被回收，这里规定这个最低时长 容器回收 一些容器构建(docker build)等会在容器构建打包过程中创建出一些中间容器，他们往往都不活跃，kubelet可以自动回收这些容器资源。</description>
     </item>
-    
     <item>
       <title>Runc容器运行过程及容器逃逸原理</title>
       <link>https://tangyanhan.github.io/posts/runc-container/</link>
       <pubDate>Thu, 28 Jan 2021 09:13:11 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/runc-container/</guid>
       <description>在每一个Kubernetes节点中，运行着kubelet，负责为Pod创建销毁容器，kubelet预定义了API接口，通过GRPC从指定的位置调用特定的API进行相关操作。而这些CRI的实现者，如cri-o, containerd等，通过调用runc创建出容器。runc功能相对单一，即针对特定的配置，构建出容器运行指定进程，它不能直接用来构建镜像，kubernetes依赖的如cri-o这类CRI，在runc基础上增加了通过API管理镜像，容器等功能。
 Kubelet，Cri-O，runc，Linux大致层级示意图如下：
@@ -40,12 +43,10 @@ runc spec 切换到root，然后运行:
 runc run &amp;lt;container-id&amp;gt; 或者将run命令拆解，分成多步运行:
 runc create &amp;lt;container-id&amp;gt; runc list # 列出创建状态的容器 runc start &amp;lt;container-id&amp;gt; runc list runc delete &amp;lt;container-id&amp;gt; 运行分析 通过ps axef命令，打印出所有进程及其层级关系，发现我们之前运行的容器进程关系如图:</description>
     </item>
-    
     <item>
       <title>TCP保活机制闲扯</title>
       <link>https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/</link>
       <pubDate>Tue, 19 Jan 2021 22:20:28 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/</guid>
       <description>TCP保活机制主要问题 在TCP连接不传输任何数据时，两端将无法得知另一端是否因为关机、掉电而消失，此外，为一个另一端已经不存在的TCP连接一直维持资源，也会浪费资源。在TCP标准之外，各个操作系统实现中都实现了TCP的保活机制(keepalive)。
 保活机制有几个问题要解决：
@@ -59,12 +60,10 @@ runc create &amp;lt;container-id&amp;gt; runc list # 列出创建状态的容器
 #include &amp;lt;sys/socket.h&amp;gt; /**level=SOL_SOCKET, option_name=SO_KEEPALIVE, option_value=1*/ int setsockopt(int socket, int level, int option_name, const void *option_value, socklen_t option_len); 在Golang中，创建的TCP连接默认开启了KeepAlive（无论是Dial还是Accept）, 可以通过修改Dialier.KeepAlive时长修改保活报文间隔，当不设置它时，报文间隔是15s，而不是与Linux中的sysctl参数一致。
 // DialContext 主动建立连接时，默认会将TCP连接启用保活，并设置默认保活间隔 func (d *Dialer) DialContext(ctx context.Context, network, address string) (Conn, error) { // 很大一坨代码，略过 if tc, ok := c.(*TCPConn); ok &amp;amp;&amp;amp; d.</description>
     </item>
-    
     <item>
       <title>DNS懒人包</title>
       <link>https://tangyanhan.github.io/posts/dns/</link>
       <pubDate>Tue, 19 Jan 2021 10:58:43 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/dns/</guid>
       <description>一般的，DNS(Domain Name System)，是为了解决IP地址难记的问题而提出的解决方案，提供从域名到若干IP地址的转换。
 现存的DNS当然不只有这些功能，本文尝试把现实生活中可能会遇到的DNS相关问题与知识点结合起来。
@@ -84,12 +83,10 @@ dns含义时通过旧的单播DNS查询域名
 mdns4 含义是多播DNS查询
 然而有些特殊的容器镜像，如alpine镜像，使用musl libc代替了glibc，alpine镜像中默认是没有nsswitch.conf的。</description>
     </item>
-    
     <item>
       <title>TCP拥塞控制</title>
       <link>https://tangyanhan.github.io/posts/tcp-congestion-control/</link>
       <pubDate>Wed, 06 Jan 2021 20:00:00 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-congestion-control/</guid>
       <description>通过窗口管理，发送端与接收端能够协调彼此的发送和接收速率，避免出现超出接收端能力的丢包。但网络并非只有这一个TCP连接在使用，当数据报在发送端和接收端之间传输时，需要流转多个网络设备，这些网络设备的能力和使用情况也不同。你可以把网络设备看成是城市中的道路，数据报文就是其中的车辆，当车辆超过某一条道路的处理能力，由于数据报文并不是车辆可以提前选择别的道路，电信号只能被丢弃，于是这条道路直接将车辆扔进外太空，这种现象叫做拥塞。 但数据报文并不是现实世界的车辆，并不具备观察拥塞自动避让的能力。如何避免发生拥塞，以及发生堵塞时如何合理避让，这就是TCP的拥塞控制(Congestion Control)。
 拥塞控制需要关注的几个问题：
@@ -115,12 +112,10 @@ $$cwnd_{t+1} = cwnd_{t} + SMSS *SMSS/cwnd_{t}$$
 我们通常认为慢启动阶段，cwnd呈指数增长, 而拥塞避免阶段，cwnd呈线性增长.
 慢启动和拥塞避免的选择 一般慢启动和拥塞避免在同一时刻只会使用一个。当cwnd &amp;lt; ssthresh， 使用慢启动算法；当cwnd &amp;gt; ssthresh，使用拥塞避免算法；当 cwnd = ssthresh，任一都可使用。慢启动阈值ssthresh并不是固定值，而是记录了上次没有丢包情况下“最好的”操作窗口估计值。</description>
     </item>
-    
     <item>
       <title>TCP流量控制</title>
       <link>https://tangyanhan.github.io/posts/tcp-stream-control/</link>
       <pubDate>Tue, 29 Dec 2020 19:23:20 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-stream-control/</guid>
       <description>延迟确认 根据TCP协议的设定，发送端每发出一个数据段，接收端就要返回一个ACK。如果发送端和接收端本就存在频繁的数据互动，不携带数据的ACK无疑会浪费半个RTT的时间。
 所以，可以在接收到数据之后，稍微等待一段时间（少于200ms），如果这时接收端正好也有数据要发送，将其ACK位置1，这样我们就同时完成了数据发送和对之前的确认。
@@ -137,24 +132,20 @@ Linux的缓存自动调优 流量缓存是在内核层面进行调控的，默�
 通过sysctl &amp;lt;参数名&amp;gt; 可以查看默认的TCP窗口调优参数
 接收缓存 TCP接收缓存，分为 min, default, max三个值， 单位为字节。 其中 default 会覆盖 net.</description>
     </item>
-    
     <item>
       <title>Kubebuilder</title>
       <link>https://tangyanhan.github.io/posts/kubebuilder/</link>
       <pubDate>Tue, 29 Dec 2020 13:58:33 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/kubebuilder/</guid>
       <description>安装前置 安装好go，配置好GOPATH, GOPROXY
 安装好kustomize
 go get sigs.k8s.io/kustomize/kustomize/v3 安装好controller-gen go get sigs.k8s.io/controller-tools/cmd/controller-gen 安装 确保机器已经安装好go等工具，运行以下命令：
 os=$(go env GOOS) arch=$(go env GOARCH) # download kubebuilder and extract it to tmp curl -L https://go.kubebuilder.io/dl/2.3.1/${os}/${arch} | tar -xz -C /tmp/ # move to a long-term location and put it on your path # (you&amp;#39;ll need to set the KUBEBUILDER_ASSETS env var if you put it somewhere else) sudo mv /tmp/kubebuilder_2.3.1_${os}_${arch} /usr/local/kubebuilder export PATH=$PATH:/usr/local/kubebuilder/bin 创建项目 在$GOPATH下创建目录 mkdir -p $GOPATH/example cd $GOPATH/src/example 初始化项目 kubebuilder init --domain my.</description>
     </item>
-    
     <item>
       <title>TCP超时重传</title>
       <link>https://tangyanhan.github.io/posts/tcp-rto-retrans/</link>
       <pubDate>Thu, 24 Dec 2020 09:07:42 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-rto-retrans/</guid>
       <description>当TCP发出报文之后一段时间后，没能收到对方的确认包，那么可以认为时数据包已经超时，这时就需要重传。 在数据的发送方与接收方之间，需要协调发送与接收速率：发送太快接收太慢，那么接收方数据来不及处理缓冲区不足，数据包可能会被丢弃;发送太慢，就白白浪费带宽，占用发送方的时间，这就是流量控制(Stream Control)。 但网络中并不止我们自己建立的一个TCP连接，还有大量其它的连接以及中间设备，如果所有TCP连接都自行其是，那么网络将会发生阻塞。如何避免阻塞，发现阻塞时如何退避缓解阻塞，如何避免阻塞的同时充分利用网络，这就是所谓拥塞控制(Congestion Control)。
 超时重传 一个报文段从发送方发出, 再到从接收方得到ACK，这一轮经过的时间称为一个RTT，即Round Trip Time，依据通信通常的RTT，我们可以推断通信RTT的上限，当超出这个上限就认为数据包已经超时，需要重传, 这个时间就是RTO，即Retransimission Timeout.
@@ -182,12 +173,10 @@ SACK在接收端，通过报告缓存中的“空缺”，从而让发送端知�
 伪超时与伪重传 很多时候，即使没有出现数据包丢失也可能出现重传,这种不必要的重传被称为伪重传(spurious retransmission)，其主要造成的原因是伪超时(spurious timeout)，即过早的判定超时。在RTT显著增长超过当前RTO，或者出现包失序，丢失时可能出现这种伪重传。
 在接收端发现伪重传时，发送DSACK，从而告知发送方发生了伪重传，但这需要等到接收端发现并返回。也可以通过Eifel响应算法来提前检测出伪超时。</description>
     </item>
-    
     <item>
       <title>TCP重置报文段</title>
       <link>https://tangyanhan.github.io/posts/tcp-rst/</link>
       <pubDate>Mon, 21 Dec 2020 14:08:37 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-rst/</guid>
       <description>本节是作为《TCP/IP详解·卷1:协议》中TCP连接管理一章中“重置报文段”的读书笔记及一部分自己的扩展。
 当TCP头部RST位字段置为1时，报文段就被称为“重置报文段”。在tcpdump监听流量时，会看到R字符标识。 这里介绍重置报文段的用途以及相关Linux配置。
@@ -204,12 +193,10 @@ SACK在接收端，通过报告缓存中的“空缺”，从而让发送端知�
 Linux内核实现中的重置报文段 Linux中重置报文段的处理，在net/ipv4/tcp_input.c:tcp_reset()中:
 void tcp_reset(struct sock *sk) { /* We want the right error as BSD sees it (and indeed as we do). */ switch (sk-&amp;gt;sk_state) { case TCP_SYN_SENT: sk-&amp;gt;sk_err = ECONNREFUSED; break; case TCP_CLOSE_WAIT: sk-&amp;gt;sk_err = EPIPE; break; case TCP_CLOSE: return; default: sk-&amp;gt;sk_err = ECONNRESET; } /* This barrier is coupled with smp_rmb() in tcp_poll() */ smp_wmb(); tcp_write_queue_purge(sk); tcp_done(sk); 当主动建立请求时，得到RST，则报错 ECONNREFUSED： Connection refused 当服务端连接处于CLOSE_WAIT状态，收到RST,则报错 EPIPE: Broken pipe 连接已经关闭，处于CLOSED状态，忽略 其他情况，一律报错 ECONNRESET: Connection reset by peer </description>
     </item>
-    
     <item>
       <title>TCP协议基础:连接建立，关闭与状态转移</title>
       <link>https://tangyanhan.github.io/posts/tcp-basic/</link>
       <pubDate>Thu, 03 Dec 2020 18:40:15 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-basic/</guid>
       <description>本篇是对TCP/IP详解的相关读书笔记。
 TCP连接的建立与终止 一般情况下，C/S通讯模型下的TCP连接的建立与关闭可以概括为“三次握手，四次关闭”。
@@ -232,12 +219,10 @@ TCP连接管理相关攻击 SYN泛洪 即若干主机大量向主机发送SYN而
 Linux下开启该功能参数为:
 sysctl -w net.ipv4.tcp_syncookies=1 TCP在Linux系统中的状态表示 如果使用如lsof, netstat这些工具，会发现有一列状态，这些状态码含义在内核源码 net/ipv4/tcp.</description>
     </item>
-    
     <item>
       <title>有关端口的基本网络工具</title>
       <link>https://tangyanhan.github.io/posts/basic-network-tools/</link>
       <pubDate>Thu, 03 Dec 2020 14:00:51 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/basic-network-tools/</guid>
       <description>netstat netstat在查看网络端口占用时速度比较快，也是比较常用的工具。
 netstat 在显示网络连接时有一堆的参数可以叠加:
@@ -247,12 +232,10 @@ netstat -anp 显示所有TCP IPv4端口占用情况:
 netstat -anpt4 按状态统计所有TCP IPv4使用情况:
 netstat -nat4 | awk &amp;#39;{print $6}&amp;#39; | sort | uniq -c | sort -r lsof(list open files) 由于linux下一切东西都是文件，因此这个命令能够做各种事情。</description>
     </item>
-    
     <item>
       <title>Go HTTP连接复用</title>
       <link>https://tangyanhan.github.io/posts/go-http-keepalive/</link>
       <pubDate>Tue, 01 Dec 2020 23:21:33 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-http-keepalive/</guid>
       <description>HTTP 1.1中给出了连接复用的方法，即通过设定Header为Connection: keep-alive，服务端如果支持此选项，那么会在返回中同样设置该Header，请求结束后不会立即关闭连接。
 HTTP的连接复用与TCP的reuse是两回事，两个使用不同的机制实现。
@@ -261,12 +244,10 @@ HTTP的连接复用与TCP的reuse是两回事，两个使用不同的机制实�
 DisableKeepAlives: 默认为false，如果设为true,那么所有连接复用的优化选项都无效 MaxIdleConns: 最大空闲连接数，该Transport可以维护最大这么多的空闲连接，用于连接复用, 为0时表示无限制 MaxIdleConnsPerHost: 连接到每个host的最大闲置连接数，如果为0，就会使用DefaultMaxIdleConnsPerHost，这个值在go1.15是2 MaxConnsPerHost: 连接单个host最大连接数，如果超了，那么超出的连接要等待 IdleConnTimeout: 如果一个连接一段时间没有用，那么会由客户端主动关闭，为0时表示没有限制 在Dial建立连接后，就会开始进行读循环和写循环。在读循环中，能够获得HTTP Response，其中包括Header以及Body。当Body被读至末尾EOF，或者被手动关闭时，这个connection就被视为idle，可以回收用于其它请求了。
 在发送请求后，如果Body里有东西，那么必须手动读取Body至EOF，并手动Close才能使其TCP连接得到复用。</description>
     </item>
-    
     <item>
       <title>Linux组网基础:虚拟设备</title>
       <link>https://tangyanhan.github.io/posts/linux-network-basic/</link>
       <pubDate>Tue, 01 Dec 2020 23:20:34 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/linux-network-basic/</guid>
       <description>基本概念 在讨论Linux网络设备时，一般会涉及“层”的概念，例如L1,L2,L3等等。这时使用的是OSI七层模型，即“物数网传会表应”。
 网桥(bridge)：工作在L2（数据链路层），只有目的MAC匹配的数据包才能被发送到出口，只能在同一网段下进行流量转发。
@@ -291,23 +272,19 @@ What is IP routing
 路由是连接不同子网的网络设备，可以是硬件的，也可以是软件的。它通过不同的规则，将来自一个子网的信息转发到另一个子网中。
 任意两个IP地址相互访问时，如何从一个到达另一个就成了问题。路由通过路由协议（如OSPF,RIP，BGP）等维护路由表，这些路由表就是一个个路口道标一样，通过它们不断的跳转转发，经过若干跳(hop)之后，到达目的地。</description>
     </item>
-    
     <item>
       <title>eBPF入门-2: bpftrace</title>
       <link>https://tangyanhan.github.io/posts/bpf-tutorial-2/</link>
       <pubDate>Sat, 04 Jul 2020 20:24:33 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/bpf-tutorial-2/</guid>
       <description>本文由我翻译自The bpftrace One-Liner Tutorial.
 安装 sudo apt install -y bpftrace 1. 列出可用的追踪 sudo bpftrace -l &amp;#39;tracepoint:syscalls:sys_enter_*&amp;#39; bpftrace能够跟踪很多系统调用，这里是可以用 * 和 ? 查询的。
 2. Hello World ethan@ethan-kali:~$ sudo bpftrace -e &amp;#39;BEGIN {printf(&amp;#34;hello world\n&amp;#34;); }&amp;#39; Attaching 1 probe... hello world ^C BEGIN 就像awk的BEGIN一样， 可以用于设置变量， 打印事件头等 跟踪过程可以关联一些动作，它们定义在花括号里。 3. 跟踪打开的文件 ethan@ethan-kali:~$ sudo bpftrace -e &amp;#39;tracepoint:syscalls:sys_enter_openat { printf(&amp;#34;%s %s\n&amp;#34;, comm, str(args-&amp;gt;filename)); }&amp;#39; Attaching 1 probe... code /proc/6972/cmdline ksysguardd /proc/stat ksysguardd /proc/vmstat ksysguardd /proc/meminfo 开始是 tracepoint:syscalls:sys_enter_openat， 这是我们要监听的系统调用。在现代的Linux系统中(glibc&amp;gt;=2.26)，open总是会调用openat.</description>
     </item>
-    
     <item>
       <title>eBPF入门-1: 概要，bcc工具包</title>
       <link>https://tangyanhan.github.io/posts/bpf-tutorial-1/</link>
       <pubDate>Mon, 29 Jun 2020 11:43:33 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/bpf-tutorial-1/</guid>
       <description>什么是BPF，eBPF BPF全程是 Berkeley Packet Filters， 由McCanne于1992年提出，并加入到Unix中。 从名称可以看出， 这就是个包过滤器。它是 libpcap/tcpdump/wireshark这些 Linux 嗅探器包的基石。
 BPF在Linux内核中由两个部分组成： Network Tap 和 过滤器。Network Tap就像一个水龙头分流阀一样， 从物理接口传来的数据包，都会同时被Network Tap和网络栈(Network Stack)各自处理，符合过滤器条件的数据包， 会被BPF复制到缓冲区，提供给对应的用户空间程序， 例如tcpdump。
@@ -322,12 +299,10 @@ opensnoop opensnoop 监听所有open()系统调用行为。可以从中分析出
 execsnoop execsnoop 监听所有exec()系统调用行为。需要注意的是它监听 exec()而不是fork()，因此并不能监听所有新起的进程。
 ethan@ethan-kali:~$ sudo execsnoop-bpfcc PCOMM PID PPID RET ARGS chrome-sandbox 11239 2300 0 /opt/google/chrome/chrome-sandbox --adjust-oom-score 11238 300 ext4slower(或者 brtfsslower, xfsslower, zfsslower) 用于监听对应文件系统的访问行为，找出进程缓慢的文件系统访问操作。</description>
     </item>
-    
     <item>
       <title>Kubernetes源码分析:选举实现</title>
       <link>https://tangyanhan.github.io/posts/k8s-election/</link>
       <pubDate>Wed, 17 Jun 2020 15:25:01 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/k8s-election/</guid>
       <description>Kubernetes 中有很多服务都是可以高可用部署的, 但有些需要对K8S资源进行创建/更新操作的服务, 在观察到资源变化后, 很容易同时对资源进行操作, 导致不必要的更新.
 虽然K8S有 ResourceVersion 这种锁存在, 多个实例同时进行资源的创建/更新操作也会浪费资源, 使得代码逻辑变得复杂. ControllerManagers, Scheduler 两个组件目前都是使用 client-go 中的 leaderelection 组件, 实现单个 leader 的选举.
@@ -337,12 +312,10 @@ ETCD已经通过Raft实现了一致性的保证, 我们只需要借助K8S自带�
 围绕竞态资源的操作被封装为 k8s.io/client-go/tools/leaderelection/resourcelock/interface.go:Interface
 type Interface interface { // Get returns the LeaderElectionRecord Get() (*LeaderElectionRecord, []byte, error) // Create attempts to create a LeaderElectionRecord Create(ler LeaderElectionRecord) error // Update will update and existing LeaderElectionRecord Update(ler LeaderElectionRecord) error // RecordEvent is used to record events RecordEvent(string) // Identity will return the locks Identity Identity() string // Describe is used to convert details on current resource lock // into a string Describe() string } 观察具体实现, 会发现主要通过对具体竞态资源的 annotations 字段进行更新来完成.</description>
     </item>
-    
     <item>
       <title>Go源码分析: chan 实现</title>
       <link>https://tangyanhan.github.io/posts/go-chan/</link>
       <pubDate>Wed, 13 May 2020 11:16:24 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-chan/</guid>
       <description>chan组成 chan 可以简单定义为一个&amp;quot;带锁的队列&amp;quot;, 当make(chan type), 不带数量时, 队列最大长度为1.
 chan的实现需要达成以下目标:
@@ -352,12 +325,10 @@ chan的实现需要达成以下目标:
 语法糖 与go fn()启动goroutine一样, chan的很多使用, 本质上是编译器提供的语法糖. 下面提供一些与源码的对照:
 从chan中读取值 v := &amp;lt;- c // Expand by compiler: runtime.chanrecv1(&amp;amp;c, &amp;amp;v) 读取值的同时知道chan是否关闭 v, ok := &amp;lt;- c // Expand by compiler: ok := runtime.chanrecv2(&amp;amp;c, &amp;amp;v) 写入chan c &amp;lt;- v // Expand: chansend1(&amp;amp;c, &amp;amp;v) 非阻塞写入 c := make(chan int) select { case c &amp;lt;- v: // .</description>
     </item>
-    
     <item>
       <title>K8S Scheduler原理及扩展</title>
       <link>https://tangyanhan.github.io/posts/k8s-scheduler/</link>
       <pubDate>Tue, 12 May 2020 10:55:30 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/k8s-scheduler/</guid>
       <description>Schedule 过程 Kubernetes 默认的 Scheduler 负责调度Pod. 在由 ApiServer 创建出Pod后, Scheduler 负责写入NodeName字段, 然后由对应Node上的Kubelet负责创建Pod实际的containers等.
 默认调度器主要代码实现在这个文件中: pkg/scheduler/core/generic_scheduler.go
@@ -378,12 +349,10 @@ Preempt 抢占过程 当有一个Pod无法被调度到节点时, 可以进行抢
 可以驱逐尽可能新的Pod, 避免影响到一些长期运行的服务
 其主要实现在 genericScheduler.</description>
     </item>
-    
     <item>
       <title>Go源码分析: map</title>
       <link>https://tangyanhan.github.io/posts/go-map/</link>
       <pubDate>Thu, 07 May 2020 12:05:24 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-map/</guid>
       <description>map 的基本构成 map的实现文件为 src/runtime/map.go. 它的基本结构是一个HashMap,实现方式为哈希桶, 根据key将数据散列到不同的桶中，每个桶中有固定的8个键值对.
 桶尾部可以挂载额外的桶(overflow buckets).
@@ -396,12 +365,10 @@ Preempt 抢占过程 当有一个Pod无法被调度到节点时, 可以进行抢
 $$2^{B}\cdot\frac{13}{2}&amp;gt;n$$
 // Find the size parameter B which will hold the requested # of elements. // For hint &amp;lt; 0 overLoadFactor returns false since hint &amp;lt; bucketCnt. B := uint8(0) for overLoadFactor(hint, B) { B++ } h.B = B 读取一个key Go map 根据key获得值有几种方法：</description>
     </item>
-    
     <item>
       <title>Helm(4) 让编排兼容不同版本K8S</title>
       <link>https://tangyanhan.github.io/posts/helm-4-cap/</link>
       <pubDate>Sat, 25 Apr 2020 13:09:47 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/helm-4-cap/</guid>
       <description>在使用Helm过程中, 经常会遇到编排需要兼容不同K8S版本的问题. 考虑如下场景:
 以前编写的Deployment资源, 其apiVersion为 apps/v1beta1, 但后来新的版本中已经改为 apps/v1,希望能兼容
@@ -412,12 +379,10 @@ Deployment兼容多版本K8S 针对以上第一个问题, 我们可以直接在 
 然后, Deployment引用这一段即可:
 kind: Deployment apiVersion: {{ include &amp;#34;deployApiVersion&amp;#34; . }} 检测配置 disableSubresources 是否开启 经过查询文档, disableSubresources 默认开启是在 1.</description>
     </item>
-    
     <item>
       <title>Go源码分析: 逃逸分析</title>
       <link>https://tangyanhan.github.io/posts/go-escape-analysis/</link>
       <pubDate>Sun, 05 Apr 2020 23:25:07 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-escape-analysis/</guid>
       <description>什么是逃逸分析 逃逸分析(Escape Analysis)是Go在编译程序时执行的过程, 由编译器通过分析, 决定变量应当分配在栈上还是堆上.
 在编译中进行逃逸分析 目前有代码如下:
@@ -425,12 +390,10 @@ package main import ( &amp;#34;fmt&amp;#34; ) type User struct { name string } f
 go build -gcflags &amp;#39;-m -N -l&amp;#39; ./advanced/cmd/escape-analysis 然后获得输出如下:
 # github.com/tangyanhan/u235/advanced/cmd/escape-analysis advanced/cmd/escape-analysis/main.go:11:18: leaking param: u to result ~r1 level=1 advanced/cmd/escape-analysis/main.go:22:13: main .</description>
     </item>
-    
     <item>
       <title>Go源码分析: Slice内存增长方式</title>
       <link>https://tangyanhan.github.io/posts/go-growslice/</link>
       <pubDate>Sat, 04 Apr 2020 22:41:18 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-growslice/</guid>
       <description>源文件: runtime/slice.go
 slice 是一个连续的内存结构, 由3部分组成: 内存区域, 长度 和 可用长度(cap):
@@ -440,12 +403,10 @@ cap决定了实际分配内存区域的大小， 在进行 append/copy等操作�
 make slice原型： func makeslice
 func makeslice(et *_type, len, cap int) unsafe.Pointer { mem, overflow := math.MulUintptr(et.size, uintptr(cap)) if overflow || mem &amp;gt; maxAlloc || len &amp;lt; 0 || len &amp;gt; cap { // NOTE: Produce a &amp;#39;len out of range&amp;#39; error instead of a // &amp;#39;cap out of range&amp;#39; error when someone does make([]T, bignumber).</description>
     </item>
-    
     <item>
       <title>Calico 多网卡解决方式</title>
       <link>https://tangyanhan.github.io/posts/calico-multicard/</link>
       <pubDate>Mon, 30 Mar 2020 16:19:15 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/calico-multicard/</guid>
       <description>当机器内存在多张网卡时, Calico的daemonset, 即 calico-node 可能使用错误的网卡尝试与其它主机建立连接. 以VirtualBox创建的多节点虚拟机为例, 我们一般需要两个网卡, 一个NAT网卡用于联系外网, 另一个虚拟网卡用于与host和其它节点建立一个虚拟局域网. 如果这时calico错误使用了NAT网卡, 那么自然无法连上其它主机.
 通过调整calicao 网络插件的网卡发现机制，修改 IP_AUTODETECTION_METHOD 对应的value值。官方提供的yaml文件中，ip识别策略（IPDETECTMETHOD）没有配置，即默认为first-found，这可能会导致一个网络异常的ip作为nodeIP被注册，从而影响 node-to-node mesh 。我们可以修改成 can-reach 或者 interface 的策略，尝试连接某一个Ready的node的IP，以此选择出正确的IP。
@@ -454,12 +415,10 @@ can-reach使用您的本地路由来确定将使用哪个IP地址到达提供的
 # Using IP addresses IP_AUTODETECTION_METHOD=can-reach=8.8.8.8 IP6_AUTODETECTION_METHOD=can-reach=2001:4860:4860::8888 # Using domain names IP_AUTODETECTION_METHOD=can-reach=www.google.com IP6_AUTODETECTION_METHOD=can-reach=www.google.com interface使用提供的接口正则表达式（golang语法）枚举匹配的接口并返回第一个匹配接口上的第一个IP地址。列出接口和IP地址的顺序取决于系统。
 # Valid IP address on interface eth0, eth1, eth2 etc. IP_AUTODETECTION_METHOD=interface=eth.* IP6_AUTODETECTION_METHOD=interface=eth.* 修改后, 重新apply即可.</description>
     </item>
-    
     <item>
       <title>微服务,DevOps设计与协作反思</title>
       <link>https://tangyanhan.github.io/posts/retrospect/</link>
       <pubDate>Thu, 12 Mar 2020 14:47:30 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/retrospect/</guid>
       <description>在此反思下我们用微服务来开发DevOps产品时, 设计开发中遇到的种种问题.
 拆分 我们一度把几乎每个模块(是的,模块),一组相对独立的功能都拆分成了一个&amp;quot;微服务&amp;quot;. 然而拆分粒度过小, 带来的后果就是互相之间依赖极高,形成了一张网.
@@ -469,12 +428,10 @@ can-reach使用您的本地路由来确定将使用哪个IP地址到达提供的
 由于没有良好的开发规范, 这些组件的开发过程完全对团队处于黑盒状态, 有时直到交付, 才发现从设计上就存在严重的问题. 而在代码开发过程中, 提交代码由于缺乏上下文, 代码难以Review, 质量更是无从谈起. 如此实行微服务开发, 在实际开发过程中, 由单人开发的组件, 其开发过程中往往更加不重视文档, 当人员发生流动时, 很多的细节都会丢失.
 我们有一个旧版本组件, 由单人负责进行了&amp;quot;3代单传&amp;quot;, 在流动到第三个人时彻底失去了可维护性. 某个组件设计开发过程中仅约束API, 最终合作调试时才发现, 这个组件由于设计缺陷, 存在严重的性能问题. 某组件的设计一直由初级工程师负责, 处于三不管状态, 某天突然发现对接是有问题的. 某组件由情侣档负责,平时几乎完全不透明,而他们的离职时间几乎是一致的 强烈建议在开发初期就搭建一套自动化的代码质量审查, 如Python的flake, Go的gometalinter, SonarQube等. SonarQube这些工具的一个最大好处, 可能就是在某人不得不独立开发组件, 别人又没时间review的情况下, 能够提供一个大家都能看懂的质量评估.</description>
     </item>
-    
     <item>
       <title>Helm(3): 小技巧</title>
       <link>https://tangyanhan.github.io/posts/helm-3-tips/</link>
       <pubDate>Mon, 24 Feb 2020 20:51:00 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/helm-3-tips/</guid>
       <description>用变量组合成新的模板 假设我们的一个组件在Chart中组合出了一个配置变量, 然后正巧有好几个文件要用到它:
 http://{{ .Release.Name }}.{{ .Release.Namespace }}:{{ .Values.service.servicePort }} Golang Template已经自带一些如局部变量来做类似的事情, 但它的作用域无疑是有限的,也不利于统一管理. 这就有了 define的用武之地.
@@ -485,12 +442,10 @@ http://{{ .Release.Name }}.{{ .Release.Namespace }}:{{ .Values.service.servicePo
 安装完成后的叨逼叨 事实上, 很多时候负责安装的用户往往并不会仔细去研究你提供的安装文档(有时,你甚至没有一份详尽的文档). 往往用户安装完成之后, TA也不知道安装了些什么东西, 接下来该做什么. 如果你安装过一些类似的中间件, 例如 bitnami/kafka, 那么你会发现安装完后, 它会打印出一堆信息, 告诉你该如何访问它, 以及其它注意事项等.
 安装完成后打印出的信息放在哪儿了? 那就是 templates/NOTES.txt. 上面提到过, 这个文件不会被当成Kubernetes Object渲染并安装到集群中, 因此不必担心这个问题.</description>
     </item>
-    
     <item>
       <title>Helm(2): 创建和语法</title>
       <link>https://tangyanhan.github.io/posts/helm-2-create/</link>
       <pubDate>Fri, 21 Feb 2020 11:45:13 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/helm-2-create/</guid>
       <description>首先, 创建一个Chart: helm create mychart 接下来, 讨论的假设前提是你已经熟悉Go Template的基本用法.
 Flatten configSvcName: mysrv configSvcUrl: http://example.com Use Flatten name: &amp;#34;{{ .Values.configSvcName }} url: &amp;#34;{{ .Values.configSvcUrl }} Nested config: svc: name: mysrv url: http://example.com Use Nested name: &amp;ldquo;{{ .Values.config.svc.name }}&amp;rdquo; url: &amp;ldquo;{{ .Values.config.svc.url }}&amp;rdquo; 移除左侧/右侧空格: -
@@ -499,12 +454,10 @@ Flatten configSvcName: mysrv configSvcUrl: http://example.com Use Flatten name: 
 23&amp;lt;45 此外, -也可以用来减少空格浪费的空间, 例如一些带缩进的控制语句if/else/with/for等, 本身不会嵌入到最终生成的YAML中, 但我们为了查看方便, 会对其增加缩进和换行, 这些空白没有必要带进最终渲染出的YAML中:
 {{- with .Values.affinity }} affinity: {{- toYaml . | nindent 8 }} {{- end }} 需要注意, 换行本身也是空白字符!</description>
     </item>
-    
     <item>
       <title>Helm(1):安装和使用</title>
       <link>https://tangyanhan.github.io/posts/helm-1-use/</link>
       <pubDate>Fri, 21 Feb 2020 11:40:26 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/helm-1-use/</guid>
       <description>安装 可以从 https://github.com/helm/helm/releases/tag/v3.0.3 获取不同操作系统的版本
 wget https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz tar xzvf helm-v3.0.3-linux-amd64.tar.gz sudo cp helm /usr/local/bin/helm 与Helm2不同, helm不再需要在集群中维持一个tiller. Helm 3 默认使用与kubectl相同的配置(KUBECONFIG), 来对Kubernetes进行操作.
@@ -517,12 +470,10 @@ helm repo add azure http://mirror.azk8s.cn/kubernetes/charts 从Repo中搜索一
 helm search repo &amp;lt;keyword&amp;gt; 安装一个网络上的Chart:
 helm install [NAME] [CHART] [flags] 例如: helm install redis azure/redis --namespace middleware</description>
     </item>
-    
     <item>
       <title>Istio安装</title>
       <link>https://tangyanhan.github.io/posts/istio-install/</link>
       <pubDate>Wed, 08 Jan 2020 14:58:11 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/istio-install/</guid>
       <description>安装前置条件 已安装helm 2.x, 官方暂不支持 helm 3.0及以上 快速安装helm VER=v2.16.1 wget https://mirror.azure.cn/kubernetes/helm/helm-$VER-linux-amd64.tar.gz tar -xvf helm-$VER-linux-amd64.tar.gz sudo mv linux-amd64/helm /usr/local/bin helm init --upgrade --tiller-image gcr.azk8s.cn/kubernetes-helm/tiller:$VER --stable-repo-url https://mirror.azure.cn/kubernetes/charts/ 下载源码 下面是一个国内的同步仓库, 可以避免因为网速无法从Github下载的问题.
 git clone https://gitee.com/mirrors/istio.git 然后, git tag 列出可用tag, 选择一个想要的tag并checkout:
@@ -530,12 +481,10 @@ git checkout -b v1.4.1 1.4.1 初始化CRD Istio创建了大量的CRD定义, Isti
 cd install/kubernetes/helm/istio-init 这期间由于使用了gcr.io的镜像, 国内访问困难, 需要修改镜像地址. 打开 values.yaml, 修改其中的 global.hub字段, 将其改为使用 gcr.azk8s.cn:
 global: # Default hub for Istio images. # Releases are published to docker hub under &amp;#39;istio&amp;#39; project.</description>
     </item>
-    
     <item>
       <title>使用Virtualbox&#43;kubeadm搭建k8s集群</title>
       <link>https://tangyanhan.github.io/posts/virtualbox-cluster/</link>
       <pubDate>Sun, 10 Nov 2019 20:11:43 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/virtualbox-cluster/</guid>
       <description>搭建K8S集群,动不动就是 1 Master 3节点, 或者更多这样子. Minikube只是个单节点K8S,不能用来学习更多多节点调度之类的知识. 现在的机器性能这么强劲, 为什么不在自己的笔记本或台式电脑上, 用Virtualbox虚拟机做出自己的多节点集群呢?
 第一步,安装好VirtualBox. 某些主机可能需要在BIOS中开启虚拟化支持,才能在Virtualbox中安装64位操作系统.
@@ -547,12 +496,10 @@ global: # Default hub for Istio images. # Releases are published to docker hub u
 小插曲: 通过上面的网络设置, 你的虚拟机拥有了两块网卡, 如果你发现自己不能联网,可能是因为其中一块网卡未启动. 通过 ip route 查看网卡名字,然后 ifup 网卡名 即可.
 移除原来的所有软件源 cd /etc/yum.repos.d/ rm -rf *.repo # 这里是为了删掉不必要的软件更新等,加快更新缓存速度 curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo 添加普通软件源, docker-ce软件源及Kubernetes软件源 curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun cat &amp;lt;&amp;lt;EOF &amp;gt; /etc/yum.</description>
     </item>
-    
     <item>
       <title>二进制安装Kubernetes</title>
       <link>https://tangyanhan.github.io/posts/kubernetes-install-binary/</link>
       <pubDate>Mon, 04 Nov 2019 21:43:03 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/kubernetes-install-binary/</guid>
       <description>准备二进制文件 uo
 git clone https://gitee.com/mirrors/Kubernetes mkdir -p $GOPATH/src/k8s.io mv Kubernetes/ $GOPATH/src/k8s.io/kubernetes cd $GOPATH/src/k8s.io/kubernetes git checkout -b 1.16.2 v1.16.2 docker pull docker.io/gcrcontainer/kube-cross:v1.12.10-1 docker tag docker.io/gcrcontainer/kube-cross:v1.12.10-1 k8s.gcr.io/kube-cross:v1.12.10-1 make release docker cp 3c09eb833064:/go/src/k8s.io/kubernetes/_output/dockerized/go/bin ./ 下载Kubernetes:
@@ -561,12 +508,10 @@ https://github.com/kubernetes/kubernetes/releases
 wget https://dl.k8s.io/v1.16.2/kubernetes.tar.gz 解压缩之后,会发现它非常小,明显不是二进制包. 进入 cluster 目录, 运行get-kube-binaries.sh下载二进制包:
 ./get-kube-binaries.sh </description>
     </item>
-    
     <item>
       <title>Redis分布式锁</title>
       <link>https://tangyanhan.github.io/posts/redis-lock/</link>
       <pubDate>Sun, 20 Oct 2019 22:25:41 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/redis-lock/</guid>
       <description>Redis的原子性 同一个Redis实例，它只以单个进程运行，并可以确保所有请求都是在同一个序列中执行的，因此可以保证Redis执行的语句是原子性的。 对于使用EVAL，通过LUA运行的多条语句，也可以保证像数据库事务一样具有原子性。
 单实例Redis 一个Go的实现：https://github.com/bsm/redis-lock
@@ -579,12 +524,10 @@ Client A在master上获取了对key的锁： key:A master短暂故障（网络�
 假定我们想要锁定的时间为T，
 记录下当前时间start，以毫秒（ms）为单位 借助多线程/协程同时向所有Redis实例请求获得锁 K:V, px=T，设置一个请求的超时时间，例如如果T为10s，那么我们可以设置请求超时为5-50ms，这样就可以避免在一个已经死掉的client上花费过多时间，但该值不应当低于网络通讯时间 不论成功与否，所有过程结束之后，计算剩余锁的时间 t=now-start 如果t&amp;lt;T，或者成功获得锁的数量不超过集群的半数，则认为失败 如果获取锁失败，那么释放掉所有集群上的锁（仅限于K:V一致）。为什么不只释放自己成功获得锁的实例呢？考虑到集群中存在Master-Slave的同步机制，以及我们设置的请求超时，最终存有我们的锁的实例将不限于曾经成功的那些，因此必须对所有实例释放我们的锁。 </description>
     </item>
-    
     <item>
       <title>搭建适合日常工作的Linux桌面环境</title>
       <link>https://tangyanhan.github.io/posts/linux-desktop/</link>
       <pubDate>Sat, 19 Oct 2019 22:15:16 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/linux-desktop/</guid>
       <description>Linux稳定性好，Linux软件开放……不过等到决定把Linux当作日常工作用系统时，就一言难尽了……
 我日常工作的需求有：
@@ -611,12 +554,10 @@ Git/文件对比： gitg, meld (gitg有时会出现崩溃,并不是很靠谱)
 办公通信： 邮件，微信，企业微信通过 Virtualbox+Win7+无缝模式的方式， 32位Win7对内存占用还没有Goland高，Virtualbox提供的无缝模式可以让微信的窗口像是Linux自己的一样
 截图: 使用KDE自带的 Spectacle , 曾经尝试过flameshot, 但flameshot会出现假死问题.</description>
     </item>
-    
     <item>
       <title>Go,Javascript与Websocket</title>
       <link>https://tangyanhan.github.io/posts/go-js-ws/</link>
       <pubDate>Sat, 19 Oct 2019 15:45:40 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-js-ws/</guid>
       <description>JS中建立Websocket连接 var ws = new WebSocket(&amp;#34;ws://hostname/path&amp;#34;, [&amp;#34;protocol1&amp;#34;, &amp;#34;protocol2&amp;#34;]) 参数说明 第一个参数是服务端websocket地址，如果是https+websocket，那么前缀写成wss
 第二个参数并不是必须的，它约定了双方通讯使用的自定义子协议，会被放到这个Header中： Sec-WebSocket-Protocol
@@ -632,12 +573,10 @@ Go中提供Websocket服务 Google自己提供一个Websocket包 : golang.org/x/n
 数据发送 WebSocket发送的数据都是“帧（Frames）”，主要有这么几种：
 持续帧（用于数据分片，一般不明确使用） 文本帧（传输文本数据） 二进制帧（传输二进制数据） Ping/Pong帧 （用于心跳等，简单检测连接存活状态） 控制帧（关闭连接等） JS中提供了send方法，能够发送文本帧或二进制帧：</description>
     </item>
-    
     <item>
       <title>漫谈密码</title>
       <link>https://tangyanhan.github.io/posts/password/</link>
       <pubDate>Sat, 19 Oct 2019 15:45:40 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/password/</guid>
       <description>这篇文章主要介绍一些常见的编码算法, Hash算法, 对称加密算法, 非对称加密算法, 它们基础是个什么样子, 以及如何选择它们. 如果已经熟悉相关内容, 对大家的帮助应该就不大了.
 常见编码算法 在传输过程中, 常常有小片断二进制编码需要在JSON/XML中传输这类需求, 这时候就需要一种 编码算法, 将二进制内容编码为可打印的字符(Printable Characters), 这就是所谓编码算法. 常见的有 Base64, Hex 等.
@@ -649,12 +588,10 @@ encoded=`echo -n &amp;#39;Hello World&amp;#39; | base64` echo $encoded echo -n $
 Hex Hex 将二进制内容编码为16进制. 十六进制编码能够使用8bit编码 4bit 长度的信息, 因此 Hex 编码会导致长度增加一倍.
 Base64 和 Hex 都不能作为加密算法, 只能算作编码算法, 因为在知道算法的情况下, 发送方与接收方不需要了解任何其他信息, 就可以获取到明文.</description>
     </item>
-    
     <item>
       <title>Go中通过Lua操纵Redis</title>
       <link>https://tangyanhan.github.io/posts/redis-lua/</link>
       <pubDate>Mon, 20 Nov 2017 22:23:04 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/redis-lua/</guid>
       <description>为了在我的一个基本库中降低与Redis的通讯成本，我将一系列操作封装到LUA脚本中，借助Redis提供的EVAL命令来简化操作。 EVAL能够提供的特性：
 可以在LUA脚本中封装若干操作，如果有多条Redis指令，封装好之后只需向Redis一次性发送所有参数即可获得结果 Redis可以保证Lua脚本运行期间不会有其他命令插入执行，提供像数据库事务一样的原子性 Redis会根据脚本的SHA值缓存脚本，已经缓存过的脚本不需要再次传输Lua代码，减少了通信成本，此外在自己代码中改变Lua脚本，执行时Redis必定也会使用最新的代码。 导入常见的Go库如	&amp;ldquo;github.com/go-redis/redis&amp;rdquo;，就可以实现以下代码。
@@ -662,12 +599,10 @@ Base64 和 Hex 都不能作为加密算法, 只能算作编码算法, 因为在�
 运行一段Lua脚本 updateRecordExpireScript.Run(c.Client, []string{recordKey(key)}, expireField, time.Now().UTC().UnixNano(), int64(c.opt.RecordTTL/time.Second)).Err() 运行时，Run将会先通过EVALSHA尝试通过缓存运行脚本。如果没有缓存，则使用EVAL运行，这时Lua脚本才会被整个传入Redis。
 Lua脚本的限制 Redis不提供引入额外的包，例如os等，只有redis这一个包可用。 Lua脚本将会在一个函数中运行，所有变量必须使用local声明 return返回多个值时，Redis将会只给你第一个 脚本中的类型限制 脚本返回nil时，Go中得到的是err = redis.Nil（与Get找不到值相同） 脚本返回false时，Go中得到的是nil，脚本返回true时，Go中得到的是int64类型的1 脚本返回{&amp;ldquo;ok&amp;rdquo;: &amp;hellip;}时，Go中得到的是redis的status类型（true/false) 脚本返回{&amp;ldquo;err&amp;rdquo;: &amp;hellip;}时，Go中得到的是err值，也可以通过return redis.error_reply(&amp;ldquo;My Error&amp;rdquo;)达成 脚本返回number类型时，Go中得到的是int64类型 传入脚本的KEYS/ARGV中的值一律为string类型，要转换为数字类型应当使用to_number 如果脚本运行了很久会发生什么？ Lua脚本运行期间，为了避免被其他操作污染数据，这期间将不能执行其它命令，一直等到执行完毕才可以继续执行其它请求。当Lua脚本执行时间超过了lua-time-limit时，其他请求将会收到Busy错误，除非这些请求是SCRIPT KILL（杀掉脚本）或者SHUTDOWN NOSAVE（不保存结果直接关闭Redis）</description>
     </item>
-    
     <item>
       <title>C&#43;&#43;数值运算与类型安全</title>
       <link>https://tangyanhan.github.io/posts/cpp-type-safe/</link>
       <pubDate>Thu, 12 Apr 2012 10:00:00 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/cpp-type-safe/</guid>
       <description>在理想情况下，对类型的错误应用会导致一些错误，并让我们第一时间发觉；在最糟的情况下，其错误在很久之后才被发现，而且那时我们的系统已经遭受了足够多的攻击。
 C/C++几个基本的类型规则： 类型转换规则： 系统将精度高低规定如箭头所示。 char,short -&amp;gt; int -&amp;gt; unsigned -&amp;gt; long -&amp;gt;double &amp;lt;- float A.在运算中的自动转换：
@@ -679,12 +614,10 @@ int flagA =0x7f; char flagB =0x80; if( (char)(flagA ^ flagB) == 0xff) printf(&am
 flagA =0x0000007f; flagB =0xffffff80; flagA ^ flagB =0xffffffff 强制类型转换之后，发生截断，于是左侧值此时为 0xff(char) 根据A-4，0xff默认视为int类型，因此0xff(char)需要转换为int类型才能进行 ==比较。 0xff(char)转换后，经过符号拓展，结果为 0xffffffff(int) 故示例表达式始终为假。
 PS：本例出自《软件安全的24宗罪——编程缺陷与修复之道》(清华大学出版社，2010.6) P106，本例中略有改动。原例中条件表达式有误。译文为 if( (char) flags ^ LowByte == 0xff),这个表达式应该是漏掉了在 flags ^ LowByte外加一层括号，这种写法不会导致符号拓展（至少根据目前的C++语法是这样），最终条件判断通过，有兴趣的可以试一试。</description>
     </item>
-    
     <item>
       <title>密码安全:存储/传输/安全问题设计</title>
       <link>https://tangyanhan.github.io/posts/password-security/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/password-security/</guid>
       <description>存储设计 设计原则: 密码存储必须杜绝获取明文之可能
 用户的密码通常具有一定规律,一般用户会对若干不同账户使用相同密码,不论以何种方式导致明文泄漏,就意味着用户的其他一系列账户也受到同样威胁. 在一些国家,对于用户密码存储有着相关规定.
@@ -702,6 +635,5 @@ PS：本例出自《软件安全的24宗罪——编程缺陷与修复之道》(
 防范方式:由服务器发送给用户一段随机数值(salt), 由用户运算后在服务端进行验证. 由于这个值每次都不同,攻击者无法将其用于自己的身份认证. 这种方式也被称为challenge
 字典/穷举攻击: 攻击者监听整个通讯过程,得知了此次的salt和用户发送的hash值,自行进行穷举/字典查询. 对于某些简单密码, 例如纯数字密码, 这种穷举只需要极少运算即可.</description>
     </item>
-    
   </channel>
 </rss>

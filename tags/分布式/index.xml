@@ -6,12 +6,12 @@
     <description>Recent content in 分布式 on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 20 Oct 2019 22:25:41 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 20 Oct 2019 22:25:41 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Redis分布式锁</title>
       <link>https://tangyanhan.github.io/posts/redis-lock/</link>
       <pubDate>Sun, 20 Oct 2019 22:25:41 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/redis-lock/</guid>
       <description>Redis的原子性 同一个Redis实例，它只以单个进程运行，并可以确保所有请求都是在同一个序列中执行的，因此可以保证Redis执行的语句是原子性的。 对于使用EVAL，通过LUA运行的多条语句，也可以保证像数据库事务一样具有原子性。
 单实例Redis 一个Go的实现：https://github.com/bsm/redis-lock
@@ -24,6 +24,5 @@ Client A在master上获取了对key的锁： key:A master短暂故障（网络�
 假定我们想要锁定的时间为T，
 记录下当前时间start，以毫秒（ms）为单位 借助多线程/协程同时向所有Redis实例请求获得锁 K:V, px=T，设置一个请求的超时时间，例如如果T为10s，那么我们可以设置请求超时为5-50ms，这样就可以避免在一个已经死掉的client上花费过多时间，但该值不应当低于网络通讯时间 不论成功与否，所有过程结束之后，计算剩余锁的时间 t=now-start 如果t&amp;lt;T，或者成功获得锁的数量不超过集群的半数，则认为失败 如果获取锁失败，那么释放掉所有集群上的锁（仅限于K:V一致）。为什么不只释放自己成功获得锁的实例呢？考虑到集群中存在Master-Slave的同步机制，以及我们设置的请求超时，最终存有我们的锁的实例将不限于曾经成功的那些，因此必须对所有实例释放我们的锁。 </description>
     </item>
-    
   </channel>
 </rss>

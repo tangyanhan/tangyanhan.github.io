@@ -6,12 +6,12 @@
     <description>Recent content in 杂谈 on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 12 Mar 2020 14:47:30 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/%E6%9D%82%E8%B0%88/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 12 Mar 2020 14:47:30 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/tags/%E6%9D%82%E8%B0%88/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>微服务,DevOps设计与协作反思</title>
       <link>https://tangyanhan.github.io/posts/retrospect/</link>
       <pubDate>Thu, 12 Mar 2020 14:47:30 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/retrospect/</guid>
       <description>在此反思下我们用微服务来开发DevOps产品时, 设计开发中遇到的种种问题.
 拆分 我们一度把几乎每个模块(是的,模块),一组相对独立的功能都拆分成了一个&amp;quot;微服务&amp;quot;. 然而拆分粒度过小, 带来的后果就是互相之间依赖极高,形成了一张网.
@@ -21,12 +21,10 @@
 由于没有良好的开发规范, 这些组件的开发过程完全对团队处于黑盒状态, 有时直到交付, 才发现从设计上就存在严重的问题. 而在代码开发过程中, 提交代码由于缺乏上下文, 代码难以Review, 质量更是无从谈起. 如此实行微服务开发, 在实际开发过程中, 由单人开发的组件, 其开发过程中往往更加不重视文档, 当人员发生流动时, 很多的细节都会丢失.
 我们有一个旧版本组件, 由单人负责进行了&amp;quot;3代单传&amp;quot;, 在流动到第三个人时彻底失去了可维护性. 某个组件设计开发过程中仅约束API, 最终合作调试时才发现, 这个组件由于设计缺陷, 存在严重的性能问题. 某组件的设计一直由初级工程师负责, 处于三不管状态, 某天突然发现对接是有问题的. 某组件由情侣档负责,平时几乎完全不透明,而他们的离职时间几乎是一致的 强烈建议在开发初期就搭建一套自动化的代码质量审查, 如Python的flake, Go的gometalinter, SonarQube等. SonarQube这些工具的一个最大好处, 可能就是在某人不得不独立开发组件, 别人又没时间review的情况下, 能够提供一个大家都能看懂的质量评估.</description>
     </item>
-    
     <item>
       <title>搭建适合日常工作的Linux桌面环境</title>
       <link>https://tangyanhan.github.io/posts/linux-desktop/</link>
       <pubDate>Sat, 19 Oct 2019 22:15:16 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/linux-desktop/</guid>
       <description>Linux稳定性好，Linux软件开放……不过等到决定把Linux当作日常工作用系统时，就一言难尽了……
 我日常工作的需求有：
@@ -53,6 +51,5 @@ Git/文件对比： gitg, meld (gitg有时会出现崩溃,并不是很靠谱)
 办公通信： 邮件，微信，企业微信通过 Virtualbox+Win7+无缝模式的方式， 32位Win7对内存占用还没有Goland高，Virtualbox提供的无缝模式可以让微信的窗口像是Linux自己的一样
 截图: 使用KDE自带的 Spectacle , 曾经尝试过flameshot, 但flameshot会出现假死问题.</description>
     </item>
-    
   </channel>
 </rss>

@@ -6,12 +6,12 @@
     <description>Recent content in 网络 on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 19 Jan 2021 22:20:28 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 19 Jan 2021 22:20:28 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/tags/%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>TCP保活机制闲扯</title>
       <link>https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/</link>
       <pubDate>Tue, 19 Jan 2021 22:20:28 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-keepalive-and-ipvs/</guid>
       <description>TCP保活机制主要问题 在TCP连接不传输任何数据时，两端将无法得知另一端是否因为关机、掉电而消失，此外，为一个另一端已经不存在的TCP连接一直维持资源，也会浪费资源。在TCP标准之外，各个操作系统实现中都实现了TCP的保活机制(keepalive)。
 保活机制有几个问题要解决：
@@ -25,12 +25,10 @@
 #include &amp;lt;sys/socket.h&amp;gt; /**level=SOL_SOCKET, option_name=SO_KEEPALIVE, option_value=1*/ int setsockopt(int socket, int level, int option_name, const void *option_value, socklen_t option_len); 在Golang中，创建的TCP连接默认开启了KeepAlive（无论是Dial还是Accept）, 可以通过修改Dialier.KeepAlive时长修改保活报文间隔，当不设置它时，报文间隔是15s，而不是与Linux中的sysctl参数一致。
 // DialContext 主动建立连接时，默认会将TCP连接启用保活，并设置默认保活间隔 func (d *Dialer) DialContext(ctx context.Context, network, address string) (Conn, error) { // 很大一坨代码，略过 if tc, ok := c.(*TCPConn); ok &amp;amp;&amp;amp; d.</description>
     </item>
-    
     <item>
       <title>DNS懒人包</title>
       <link>https://tangyanhan.github.io/posts/dns/</link>
       <pubDate>Tue, 19 Jan 2021 10:58:43 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/dns/</guid>
       <description>一般的，DNS(Domain Name System)，是为了解决IP地址难记的问题而提出的解决方案，提供从域名到若干IP地址的转换。
 现存的DNS当然不只有这些功能，本文尝试把现实生活中可能会遇到的DNS相关问题与知识点结合起来。
@@ -50,12 +48,10 @@ dns含义时通过旧的单播DNS查询域名
 mdns4 含义是多播DNS查询
 然而有些特殊的容器镜像，如alpine镜像，使用musl libc代替了glibc，alpine镜像中默认是没有nsswitch.conf的。</description>
     </item>
-    
     <item>
       <title>TCP拥塞控制</title>
       <link>https://tangyanhan.github.io/posts/tcp-congestion-control/</link>
       <pubDate>Wed, 06 Jan 2021 20:00:00 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-congestion-control/</guid>
       <description>通过窗口管理，发送端与接收端能够协调彼此的发送和接收速率，避免出现超出接收端能力的丢包。但网络并非只有这一个TCP连接在使用，当数据报在发送端和接收端之间传输时，需要流转多个网络设备，这些网络设备的能力和使用情况也不同。你可以把网络设备看成是城市中的道路，数据报文就是其中的车辆，当车辆超过某一条道路的处理能力，由于数据报文并不是车辆可以提前选择别的道路，电信号只能被丢弃，于是这条道路直接将车辆扔进外太空，这种现象叫做拥塞。 但数据报文并不是现实世界的车辆，并不具备观察拥塞自动避让的能力。如何避免发生拥塞，以及发生堵塞时如何合理避让，这就是TCP的拥塞控制(Congestion Control)。
 拥塞控制需要关注的几个问题：
@@ -81,12 +77,10 @@ $$cwnd_{t+1} = cwnd_{t} + SMSS *SMSS/cwnd_{t}$$
 我们通常认为慢启动阶段，cwnd呈指数增长, 而拥塞避免阶段，cwnd呈线性增长.
 慢启动和拥塞避免的选择 一般慢启动和拥塞避免在同一时刻只会使用一个。当cwnd &amp;lt; ssthresh， 使用慢启动算法；当cwnd &amp;gt; ssthresh，使用拥塞避免算法；当 cwnd = ssthresh，任一都可使用。慢启动阈值ssthresh并不是固定值，而是记录了上次没有丢包情况下“最好的”操作窗口估计值。</description>
     </item>
-    
     <item>
       <title>TCP流量控制</title>
       <link>https://tangyanhan.github.io/posts/tcp-stream-control/</link>
       <pubDate>Tue, 29 Dec 2020 19:23:20 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-stream-control/</guid>
       <description>延迟确认 根据TCP协议的设定，发送端每发出一个数据段，接收端就要返回一个ACK。如果发送端和接收端本就存在频繁的数据互动，不携带数据的ACK无疑会浪费半个RTT的时间。
 所以，可以在接收到数据之后，稍微等待一段时间（少于200ms），如果这时接收端正好也有数据要发送，将其ACK位置1，这样我们就同时完成了数据发送和对之前的确认。
@@ -103,12 +97,10 @@ Linux的缓存自动调优 流量缓存是在内核层面进行调控的，默�
 通过sysctl &amp;lt;参数名&amp;gt; 可以查看默认的TCP窗口调优参数
 接收缓存 TCP接收缓存，分为 min, default, max三个值， 单位为字节。 其中 default 会覆盖 net.</description>
     </item>
-    
     <item>
       <title>TCP超时重传</title>
       <link>https://tangyanhan.github.io/posts/tcp-rto-retrans/</link>
       <pubDate>Thu, 24 Dec 2020 09:07:42 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-rto-retrans/</guid>
       <description>当TCP发出报文之后一段时间后，没能收到对方的确认包，那么可以认为时数据包已经超时，这时就需要重传。 在数据的发送方与接收方之间，需要协调发送与接收速率：发送太快接收太慢，那么接收方数据来不及处理缓冲区不足，数据包可能会被丢弃;发送太慢，就白白浪费带宽，占用发送方的时间，这就是流量控制(Stream Control)。 但网络中并不止我们自己建立的一个TCP连接，还有大量其它的连接以及中间设备，如果所有TCP连接都自行其是，那么网络将会发生阻塞。如何避免阻塞，发现阻塞时如何退避缓解阻塞，如何避免阻塞的同时充分利用网络，这就是所谓拥塞控制(Congestion Control)。
 超时重传 一个报文段从发送方发出, 再到从接收方得到ACK，这一轮经过的时间称为一个RTT，即Round Trip Time，依据通信通常的RTT，我们可以推断通信RTT的上限，当超出这个上限就认为数据包已经超时，需要重传, 这个时间就是RTO，即Retransimission Timeout.
@@ -136,12 +128,10 @@ SACK在接收端，通过报告缓存中的“空缺”，从而让发送端知�
 伪超时与伪重传 很多时候，即使没有出现数据包丢失也可能出现重传,这种不必要的重传被称为伪重传(spurious retransmission)，其主要造成的原因是伪超时(spurious timeout)，即过早的判定超时。在RTT显著增长超过当前RTO，或者出现包失序，丢失时可能出现这种伪重传。
 在接收端发现伪重传时，发送DSACK，从而告知发送方发生了伪重传，但这需要等到接收端发现并返回。也可以通过Eifel响应算法来提前检测出伪超时。</description>
     </item>
-    
     <item>
       <title>TCP重置报文段</title>
       <link>https://tangyanhan.github.io/posts/tcp-rst/</link>
       <pubDate>Mon, 21 Dec 2020 14:08:37 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-rst/</guid>
       <description>本节是作为《TCP/IP详解·卷1:协议》中TCP连接管理一章中“重置报文段”的读书笔记及一部分自己的扩展。
 当TCP头部RST位字段置为1时，报文段就被称为“重置报文段”。在tcpdump监听流量时，会看到R字符标识。 这里介绍重置报文段的用途以及相关Linux配置。
@@ -158,12 +148,10 @@ SACK在接收端，通过报告缓存中的“空缺”，从而让发送端知�
 Linux内核实现中的重置报文段 Linux中重置报文段的处理，在net/ipv4/tcp_input.c:tcp_reset()中:
 void tcp_reset(struct sock *sk) { /* We want the right error as BSD sees it (and indeed as we do). */ switch (sk-&amp;gt;sk_state) { case TCP_SYN_SENT: sk-&amp;gt;sk_err = ECONNREFUSED; break; case TCP_CLOSE_WAIT: sk-&amp;gt;sk_err = EPIPE; break; case TCP_CLOSE: return; default: sk-&amp;gt;sk_err = ECONNRESET; } /* This barrier is coupled with smp_rmb() in tcp_poll() */ smp_wmb(); tcp_write_queue_purge(sk); tcp_done(sk); 当主动建立请求时，得到RST，则报错 ECONNREFUSED： Connection refused 当服务端连接处于CLOSE_WAIT状态，收到RST,则报错 EPIPE: Broken pipe 连接已经关闭，处于CLOSED状态，忽略 其他情况，一律报错 ECONNRESET: Connection reset by peer </description>
     </item>
-    
     <item>
       <title>TCP协议基础:连接建立，关闭与状态转移</title>
       <link>https://tangyanhan.github.io/posts/tcp-basic/</link>
       <pubDate>Thu, 03 Dec 2020 18:40:15 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/tcp-basic/</guid>
       <description>本篇是对TCP/IP详解的相关读书笔记。
 TCP连接的建立与终止 一般情况下，C/S通讯模型下的TCP连接的建立与关闭可以概括为“三次握手，四次关闭”。
@@ -186,12 +174,10 @@ TCP连接管理相关攻击 SYN泛洪 即若干主机大量向主机发送SYN而
 Linux下开启该功能参数为:
 sysctl -w net.ipv4.tcp_syncookies=1 TCP在Linux系统中的状态表示 如果使用如lsof, netstat这些工具，会发现有一列状态，这些状态码含义在内核源码 net/ipv4/tcp.</description>
     </item>
-    
     <item>
       <title>有关端口的基本网络工具</title>
       <link>https://tangyanhan.github.io/posts/basic-network-tools/</link>
       <pubDate>Thu, 03 Dec 2020 14:00:51 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/basic-network-tools/</guid>
       <description>netstat netstat在查看网络端口占用时速度比较快，也是比较常用的工具。
 netstat 在显示网络连接时有一堆的参数可以叠加:
@@ -201,12 +187,10 @@ netstat -anp 显示所有TCP IPv4端口占用情况:
 netstat -anpt4 按状态统计所有TCP IPv4使用情况:
 netstat -nat4 | awk &amp;#39;{print $6}&amp;#39; | sort | uniq -c | sort -r lsof(list open files) 由于linux下一切东西都是文件，因此这个命令能够做各种事情。</description>
     </item>
-    
     <item>
       <title>Linux组网基础:虚拟设备</title>
       <link>https://tangyanhan.github.io/posts/linux-network-basic/</link>
       <pubDate>Tue, 01 Dec 2020 23:20:34 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/linux-network-basic/</guid>
       <description>基本概念 在讨论Linux网络设备时，一般会涉及“层”的概念，例如L1,L2,L3等等。这时使用的是OSI七层模型，即“物数网传会表应”。
 网桥(bridge)：工作在L2（数据链路层），只有目的MAC匹配的数据包才能被发送到出口，只能在同一网段下进行流量转发。
@@ -231,6 +215,5 @@ What is IP routing
 路由是连接不同子网的网络设备，可以是硬件的，也可以是软件的。它通过不同的规则，将来自一个子网的信息转发到另一个子网中。
 任意两个IP地址相互访问时，如何从一个到达另一个就成了问题。路由通过路由协议（如OSPF,RIP，BGP）等维护路由表，这些路由表就是一个个路口道标一样，通过它们不断的跳转转发，经过若干跳(hop)之后，到达目的地。</description>
     </item>
-    
   </channel>
 </rss>

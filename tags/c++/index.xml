@@ -6,12 +6,12 @@
     <description>Recent content in C&#43;&#43; on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 12 Apr 2012 10:00:00 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/c++/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 12 Apr 2012 10:00:00 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/tags/c++/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>C&#43;&#43;数值运算与类型安全</title>
       <link>https://tangyanhan.github.io/posts/cpp-type-safe/</link>
       <pubDate>Thu, 12 Apr 2012 10:00:00 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/cpp-type-safe/</guid>
       <description>在理想情况下，对类型的错误应用会导致一些错误，并让我们第一时间发觉；在最糟的情况下，其错误在很久之后才被发现，而且那时我们的系统已经遭受了足够多的攻击。
 C/C++几个基本的类型规则： 类型转换规则： 系统将精度高低规定如箭头所示。 char,short -&amp;gt; int -&amp;gt; unsigned -&amp;gt; long -&amp;gt;double &amp;lt;- float A.在运算中的自动转换：
@@ -23,6 +23,5 @@ int flagA =0x7f; char flagB =0x80; if( (char)(flagA ^ flagB) == 0xff) printf(&am
 flagA =0x0000007f; flagB =0xffffff80; flagA ^ flagB =0xffffffff 强制类型转换之后，发生截断，于是左侧值此时为 0xff(char) 根据A-4，0xff默认视为int类型，因此0xff(char)需要转换为int类型才能进行 ==比较。 0xff(char)转换后，经过符号拓展，结果为 0xffffffff(int) 故示例表达式始终为假。
 PS：本例出自《软件安全的24宗罪——编程缺陷与修复之道》(清华大学出版社，2010.6) P106，本例中略有改动。原例中条件表达式有误。译文为 if( (char) flags ^ LowByte == 0xff),这个表达式应该是漏掉了在 flags ^ LowByte外加一层括号，这种写法不会导致符号拓展（至少根据目前的C++语法是这样），最终条件判断通过，有兴趣的可以试一试。</description>
     </item>
-    
   </channel>
 </rss>

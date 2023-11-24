@@ -6,28 +6,31 @@
     <description>Recent content in Kubernetes on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 16 Aug 2023 10:21:55 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 24 Nov 2023 12:14:07 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>基于Hyper-V/kubeadm的k8s集群搭建</title>
-      <link>https://tangyanhan.github.io/posts/kubeadm-hyperv/</link>
-      <pubDate>Wed, 16 Aug 2023 10:21:55 +0800</pubDate>
-      
-      <guid>https://tangyanhan.github.io/posts/kubeadm-hyperv/</guid>
-      <description>本文介绍在Windows上借助Hyper-V和kubeadm搭建k8s机器群的方法及避坑。
-前置需求 虚拟机应当具有固定的ip 虚拟机应当能够访问外部网络 虚拟机能够使用主机上的代理软件（如clash） 配置网络 确保Windows已启用Hyper-V功能并重启 以admin权限通过PowerShell运行：
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All 网络配置 创建一个k8s的虚拟交换机，为其分配一个固定ip，并在主机上配置一个NAT使其中的主机能够访问外部网络
-New-VMSwitch -Name &amp;#39;k8s&amp;#39; -SwitchType Internal $adapter = Get-NetAdapter | Where { $_.Name -match &amp;#39;k8s&amp;#39; } New-NetIPAddress -IPAddress &amp;#39;172.16.0.1&amp;#39; -InterfaceIndex $adapter.InterfaceIndex -PrefixLength 24 new-netnat -Name &amp;#39;k8s&amp;#39; -InternalIPInterfaceAddressPrefix 172.16.0.0/24 如果在使用代理服务，确保监听在了所有地址之上，例如Clash需要打开AllowLan: true
-安装虚拟机 虚拟机安装无需赘述，使用centos/ubuntu-server皆可。 确保节点配置为：
-CPU &amp;gt;= 2 Memory &amp;gt;= 4G SecureBoot 已禁用 安装并启用ssh server服务 网卡选择我们之前创建的&amp;rsquo;k8s&#39; hostname 分别改为controlplane/node 在安装过程中,可以对网卡直接配置固定IP, 设定IPv4为manual:
-Address=172.16.0.100 # 或.101 Gateway=172.16.0.1 DNS=223.5.5.5,172.16.0.1 如果错过了这些配置：
-CentOS: 修改 /etc/sysconfig/network-scripts/ifcfg-eth0 配置固定IP 修改 /etc/hostname 配置hostname Ubuntu 修改 /etc/netplan/01 后通过 netplan apply 配置固定IP hostnamectl set-hostname &amp;lt;new-name&amp;gt; 修改主机名 节点配置 以下内容需要在每个节点上都运行一遍</description>
+      <title>K8S中的删除：垃圾回收，资源清理以及Finalizer实现</title>
+      <link>https://tangyanhan.github.io/posts/k8s_finalizer/</link>
+      <pubDate>Fri, 24 Nov 2023 12:14:07 +0800</pubDate>
+      <guid>https://tangyanhan.github.io/posts/k8s_finalizer/</guid>
+      <description>现代大多数高级语言都会自动进行垃圾回收(Garbage Collection)，但一般也会强调对于特殊的资源，例如fd, net connection在删除前进行手动回收, 这些一般会放在析构函数之类的地方，对应K8S中就是Finalizer。
+Garbage Collection Garbage Collection默认由Controller Manager自带实现，具体使用需要进行参数调整。
+以Succeeded/Failed结束的Pod 对于已经终止的Pod，由Controller Manager通过terminated-pod-gc-threshold这一阈值进行管理，目前其默认值为12500，如果集群中需要更好的清理他们，可能需要调低数值：
+func RecommendedDefaultPodGCControllerConfiguration(obj *kubectrlmgrconfigv1alpha1.PodGCControllerConfiguration) { if obj.TerminatedPodGCThreshold == 0 { obj.TerminatedPodGCThreshold = 12500 } } 已完成的Job 适用于在Job进入Completed状态一段时间后自动清理： .spec.ttlSecondsAfterFinished
+Owner Reference失效的孤儿资源 级联删除 删除策略可以通过在client-go中修改Pro0pagationPolicy来改变，或者在kubectl中通过--cascade参数改变。
+同步级联删除(Foreground cascading deletion) kubectl delete deploy nginx --cascade=foreground
+API Server修改metadata.deletionTimestamp作为标记删除时间 API Server 更新metadata.finalizers为forgroundDeletion 资源直至整个删除结束才会消失 异步级联删除 默认通过kubectl删除资源时，就会通过此选项。在使用client-go时，需要额外制定。
+kubectl delete deploy nginx --cascade=background
+单独删除，故意让子级资源成为孤儿 kubectl delete deploy nginx --cascade=orphan
+这种情况下，孤儿资源过一段时间就会被Controller进行回收。
+节点容器资源回收 节点资源由kubelet进行回收。
+镜像回收 当磁盘资源达到一定程度时，开始回收下载镜像所占用的磁盘资源，主要控制参数：
+ImageGCHighThresholdPercent // 磁盘占用超过该值，必定开始回收 ImageGCLowThresholdPercent // 磁盘占用低于该值，必定不会回收 ImageMinimumGCAge // 镜像未被使用一段时间后应该被回收，这里规定这个最低时长 容器回收 一些容器构建(docker build)等会在容器构建打包过程中创建出一些中间容器，他们往往都不活跃，kubelet可以自动回收这些容器资源。</description>
     </item>
-    
     <item>
       <title>Runc容器运行过程及容器逃逸原理</title>
       <link>https://tangyanhan.github.io/posts/runc-container/</link>
       <pubDate>Thu, 28 Jan 2021 09:13:11 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/runc-container/</guid>
       <description>在每一个Kubernetes节点中，运行着kubelet，负责为Pod创建销毁容器，kubelet预定义了API接口，通过GRPC从指定的位置调用特定的API进行相关操作。而这些CRI的实现者，如cri-o, containerd等，通过调用runc创建出容器。runc功能相对单一，即针对特定的配置，构建出容器运行指定进程，它不能直接用来构建镜像，kubernetes依赖的如cri-o这类CRI，在runc基础上增加了通过API管理镜像，容器等功能。
 Kubelet，Cri-O，runc，Linux大致层级示意图如下：
@@ -40,24 +43,20 @@ runc spec 切换到root，然后运行:
 runc run &amp;lt;container-id&amp;gt; 或者将run命令拆解，分成多步运行:
 runc create &amp;lt;container-id&amp;gt; runc list # 列出创建状态的容器 runc start &amp;lt;container-id&amp;gt; runc list runc delete &amp;lt;container-id&amp;gt; 运行分析 通过ps axef命令，打印出所有进程及其层级关系，发现我们之前运行的容器进程关系如图:</description>
     </item>
-    
     <item>
       <title>Kubebuilder</title>
       <link>https://tangyanhan.github.io/posts/kubebuilder/</link>
       <pubDate>Tue, 29 Dec 2020 13:58:33 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/kubebuilder/</guid>
       <description>安装前置 安装好go，配置好GOPATH, GOPROXY
 安装好kustomize
 go get sigs.k8s.io/kustomize/kustomize/v3 安装好controller-gen go get sigs.k8s.io/controller-tools/cmd/controller-gen 安装 确保机器已经安装好go等工具，运行以下命令：
 os=$(go env GOOS) arch=$(go env GOARCH) # download kubebuilder and extract it to tmp curl -L https://go.kubebuilder.io/dl/2.3.1/${os}/${arch} | tar -xz -C /tmp/ # move to a long-term location and put it on your path # (you&amp;#39;ll need to set the KUBEBUILDER_ASSETS env var if you put it somewhere else) sudo mv /tmp/kubebuilder_2.3.1_${os}_${arch} /usr/local/kubebuilder export PATH=$PATH:/usr/local/kubebuilder/bin 创建项目 在$GOPATH下创建目录 mkdir -p $GOPATH/example cd $GOPATH/src/example 初始化项目 kubebuilder init --domain my.</description>
     </item>
-    
     <item>
       <title>Kubernetes源码分析:选举实现</title>
       <link>https://tangyanhan.github.io/posts/k8s-election/</link>
       <pubDate>Wed, 17 Jun 2020 15:25:01 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/k8s-election/</guid>
       <description>Kubernetes 中有很多服务都是可以高可用部署的, 但有些需要对K8S资源进行创建/更新操作的服务, 在观察到资源变化后, 很容易同时对资源进行操作, 导致不必要的更新.
 虽然K8S有 ResourceVersion 这种锁存在, 多个实例同时进行资源的创建/更新操作也会浪费资源, 使得代码逻辑变得复杂. ControllerManagers, Scheduler 两个组件目前都是使用 client-go 中的 leaderelection 组件, 实现单个 leader 的选举.
@@ -67,12 +66,10 @@ ETCD已经通过Raft实现了一致性的保证, 我们只需要借助K8S自带�
 围绕竞态资源的操作被封装为 k8s.io/client-go/tools/leaderelection/resourcelock/interface.go:Interface
 type Interface interface { // Get returns the LeaderElectionRecord Get() (*LeaderElectionRecord, []byte, error) // Create attempts to create a LeaderElectionRecord Create(ler LeaderElectionRecord) error // Update will update and existing LeaderElectionRecord Update(ler LeaderElectionRecord) error // RecordEvent is used to record events RecordEvent(string) // Identity will return the locks Identity Identity() string // Describe is used to convert details on current resource lock // into a string Describe() string } 观察具体实现, 会发现主要通过对具体竞态资源的 annotations 字段进行更新来完成.</description>
     </item>
-    
     <item>
       <title>K8S Scheduler原理及扩展</title>
       <link>https://tangyanhan.github.io/posts/k8s-scheduler/</link>
       <pubDate>Tue, 12 May 2020 10:55:30 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/k8s-scheduler/</guid>
       <description>Schedule 过程 Kubernetes 默认的 Scheduler 负责调度Pod. 在由 ApiServer 创建出Pod后, Scheduler 负责写入NodeName字段, 然后由对应Node上的Kubelet负责创建Pod实际的containers等.
 默认调度器主要代码实现在这个文件中: pkg/scheduler/core/generic_scheduler.go
@@ -93,12 +90,10 @@ Preempt 抢占过程 当有一个Pod无法被调度到节点时, 可以进行抢
 可以驱逐尽可能新的Pod, 避免影响到一些长期运行的服务
 其主要实现在 genericScheduler.</description>
     </item>
-    
     <item>
       <title>Calico 多网卡解决方式</title>
       <link>https://tangyanhan.github.io/posts/calico-multicard/</link>
       <pubDate>Mon, 30 Mar 2020 16:19:15 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/calico-multicard/</guid>
       <description>当机器内存在多张网卡时, Calico的daemonset, 即 calico-node 可能使用错误的网卡尝试与其它主机建立连接. 以VirtualBox创建的多节点虚拟机为例, 我们一般需要两个网卡, 一个NAT网卡用于联系外网, 另一个虚拟网卡用于与host和其它节点建立一个虚拟局域网. 如果这时calico错误使用了NAT网卡, 那么自然无法连上其它主机.
 通过调整calicao 网络插件的网卡发现机制，修改 IP_AUTODETECTION_METHOD 对应的value值。官方提供的yaml文件中，ip识别策略（IPDETECTMETHOD）没有配置，即默认为first-found，这可能会导致一个网络异常的ip作为nodeIP被注册，从而影响 node-to-node mesh 。我们可以修改成 can-reach 或者 interface 的策略，尝试连接某一个Ready的node的IP，以此选择出正确的IP。
@@ -107,12 +102,10 @@ can-reach使用您的本地路由来确定将使用哪个IP地址到达提供的
 # Using IP addresses IP_AUTODETECTION_METHOD=can-reach=8.8.8.8 IP6_AUTODETECTION_METHOD=can-reach=2001:4860:4860::8888 # Using domain names IP_AUTODETECTION_METHOD=can-reach=www.google.com IP6_AUTODETECTION_METHOD=can-reach=www.google.com interface使用提供的接口正则表达式（golang语法）枚举匹配的接口并返回第一个匹配接口上的第一个IP地址。列出接口和IP地址的顺序取决于系统。
 # Valid IP address on interface eth0, eth1, eth2 etc. IP_AUTODETECTION_METHOD=interface=eth.* IP6_AUTODETECTION_METHOD=interface=eth.* 修改后, 重新apply即可.</description>
     </item>
-    
     <item>
       <title>使用Virtualbox&#43;kubeadm搭建k8s集群</title>
       <link>https://tangyanhan.github.io/posts/virtualbox-cluster/</link>
       <pubDate>Sun, 10 Nov 2019 20:11:43 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/virtualbox-cluster/</guid>
       <description>搭建K8S集群,动不动就是 1 Master 3节点, 或者更多这样子. Minikube只是个单节点K8S,不能用来学习更多多节点调度之类的知识. 现在的机器性能这么强劲, 为什么不在自己的笔记本或台式电脑上, 用Virtualbox虚拟机做出自己的多节点集群呢?
 第一步,安装好VirtualBox. 某些主机可能需要在BIOS中开启虚拟化支持,才能在Virtualbox中安装64位操作系统.
@@ -124,12 +117,10 @@ can-reach使用您的本地路由来确定将使用哪个IP地址到达提供的
 小插曲: 通过上面的网络设置, 你的虚拟机拥有了两块网卡, 如果你发现自己不能联网,可能是因为其中一块网卡未启动. 通过 ip route 查看网卡名字,然后 ifup 网卡名 即可.
 移除原来的所有软件源 cd /etc/yum.repos.d/ rm -rf *.repo # 这里是为了删掉不必要的软件更新等,加快更新缓存速度 curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo 添加普通软件源, docker-ce软件源及Kubernetes软件源 curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun cat &amp;lt;&amp;lt;EOF &amp;gt; /etc/yum.</description>
     </item>
-    
     <item>
       <title>二进制安装Kubernetes</title>
       <link>https://tangyanhan.github.io/posts/kubernetes-install-binary/</link>
       <pubDate>Mon, 04 Nov 2019 21:43:03 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/kubernetes-install-binary/</guid>
       <description>准备二进制文件 uo
 git clone https://gitee.com/mirrors/Kubernetes mkdir -p $GOPATH/src/k8s.io mv Kubernetes/ $GOPATH/src/k8s.io/kubernetes cd $GOPATH/src/k8s.io/kubernetes git checkout -b 1.16.2 v1.16.2 docker pull docker.io/gcrcontainer/kube-cross:v1.12.10-1 docker tag docker.io/gcrcontainer/kube-cross:v1.12.10-1 k8s.gcr.io/kube-cross:v1.12.10-1 make release docker cp 3c09eb833064:/go/src/k8s.io/kubernetes/_output/dockerized/go/bin ./ 下载Kubernetes:
@@ -138,6 +129,5 @@ https://github.com/kubernetes/kubernetes/releases
 wget https://dl.k8s.io/v1.16.2/kubernetes.tar.gz 解压缩之后,会发现它非常小,明显不是二进制包. 进入 cluster 目录, 运行get-kube-binaries.sh下载二进制包:
 ./get-kube-binaries.sh </description>
     </item>
-    
   </channel>
 </rss>

@@ -6,12 +6,12 @@
     <description>Recent content in Istio on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 08 Jan 2020 14:58:11 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/istio/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 08 Jan 2020 14:58:11 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/tags/istio/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Istio安装</title>
       <link>https://tangyanhan.github.io/posts/istio-install/</link>
       <pubDate>Wed, 08 Jan 2020 14:58:11 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/istio-install/</guid>
       <description>安装前置条件 已安装helm 2.x, 官方暂不支持 helm 3.0及以上 快速安装helm VER=v2.16.1 wget https://mirror.azure.cn/kubernetes/helm/helm-$VER-linux-amd64.tar.gz tar -xvf helm-$VER-linux-amd64.tar.gz sudo mv linux-amd64/helm /usr/local/bin helm init --upgrade --tiller-image gcr.azk8s.cn/kubernetes-helm/tiller:$VER --stable-repo-url https://mirror.azure.cn/kubernetes/charts/ 下载源码 下面是一个国内的同步仓库, 可以避免因为网速无法从Github下载的问题.
 git clone https://gitee.com/mirrors/istio.git 然后, git tag 列出可用tag, 选择一个想要的tag并checkout:
@@ -19,6 +19,5 @@ git checkout -b v1.4.1 1.4.1 初始化CRD Istio创建了大量的CRD定义, Isti
 cd install/kubernetes/helm/istio-init 这期间由于使用了gcr.io的镜像, 国内访问困难, 需要修改镜像地址. 打开 values.yaml, 修改其中的 global.hub字段, 将其改为使用 gcr.azk8s.cn:
 global: # Default hub for Istio images. # Releases are published to docker hub under &amp;#39;istio&amp;#39; project.</description>
     </item>
-    
   </channel>
 </rss>

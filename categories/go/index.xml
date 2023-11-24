@@ -6,12 +6,12 @@
     <description>Recent content in Go on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 20 Nov 2017 22:23:04 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/categories/go/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 20 Nov 2017 22:23:04 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/categories/go/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Go中通过Lua操纵Redis</title>
       <link>https://tangyanhan.github.io/posts/redis-lua/</link>
       <pubDate>Mon, 20 Nov 2017 22:23:04 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/redis-lua/</guid>
       <description>为了在我的一个基本库中降低与Redis的通讯成本，我将一系列操作封装到LUA脚本中，借助Redis提供的EVAL命令来简化操作。 EVAL能够提供的特性：
 可以在LUA脚本中封装若干操作，如果有多条Redis指令，封装好之后只需向Redis一次性发送所有参数即可获得结果 Redis可以保证Lua脚本运行期间不会有其他命令插入执行，提供像数据库事务一样的原子性 Redis会根据脚本的SHA值缓存脚本，已经缓存过的脚本不需要再次传输Lua代码，减少了通信成本，此外在自己代码中改变Lua脚本，执行时Redis必定也会使用最新的代码。 导入常见的Go库如	&amp;ldquo;github.com/go-redis/redis&amp;rdquo;，就可以实现以下代码。
@@ -19,6 +19,5 @@
 运行一段Lua脚本 updateRecordExpireScript.Run(c.Client, []string{recordKey(key)}, expireField, time.Now().UTC().UnixNano(), int64(c.opt.RecordTTL/time.Second)).Err() 运行时，Run将会先通过EVALSHA尝试通过缓存运行脚本。如果没有缓存，则使用EVAL运行，这时Lua脚本才会被整个传入Redis。
 Lua脚本的限制 Redis不提供引入额外的包，例如os等，只有redis这一个包可用。 Lua脚本将会在一个函数中运行，所有变量必须使用local声明 return返回多个值时，Redis将会只给你第一个 脚本中的类型限制 脚本返回nil时，Go中得到的是err = redis.Nil（与Get找不到值相同） 脚本返回false时，Go中得到的是nil，脚本返回true时，Go中得到的是int64类型的1 脚本返回{&amp;ldquo;ok&amp;rdquo;: &amp;hellip;}时，Go中得到的是redis的status类型（true/false) 脚本返回{&amp;ldquo;err&amp;rdquo;: &amp;hellip;}时，Go中得到的是err值，也可以通过return redis.error_reply(&amp;ldquo;My Error&amp;rdquo;)达成 脚本返回number类型时，Go中得到的是int64类型 传入脚本的KEYS/ARGV中的值一律为string类型，要转换为数字类型应当使用to_number 如果脚本运行了很久会发生什么？ Lua脚本运行期间，为了避免被其他操作污染数据，这期间将不能执行其它命令，一直等到执行完毕才可以继续执行其它请求。当Lua脚本执行时间超过了lua-time-limit时，其他请求将会收到Busy错误，除非这些请求是SCRIPT KILL（杀掉脚本）或者SHUTDOWN NOSAVE（不保存结果直接关闭Redis）</description>
     </item>
-    
   </channel>
 </rss>

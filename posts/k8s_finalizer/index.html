@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-cn" lang="zh-cn">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.120.4">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>K8S中的删除：垃圾回收，资源清理以及Finalizer实现 &middot; E.T.</title>
+  <meta name="description" content="" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://tangyanhan.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  
+  
+
+
+  
+  
+
+</head>
+
+  <body class="theme-base-0b ">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://tangyanhan.github.io/"><h1>E.T.</h1></a>
+      <p class="lead">
+       汤某人的技术一言难尽 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://tangyanhan.github.io/">Home</a> </li>
+        <li><a href="https://github.com/tangyanhan/"> Github </a></li><li><a href="https://www.linkedin.com/in/ethan-tang-6063177a/"> LinkedIn </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-about">
+        <HR align=center width="100%" color=#987cb9 SIZE=1>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/c&#43;&#43;/" class="is-tags taxo__link">
+                        C&#43;&#43; · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/ebpf/" class="is-tags taxo__link">
+                        eBPF · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/go/" class="is-tags taxo__link">
+                        Go · 5
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/helm/" class="is-tags taxo__link">
+                        Helm · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/istio/" class="is-tags taxo__link">
+                        Istio · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/kubernetes/" class="is-tags taxo__link">
+                        Kubernetes · 8
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" class="is-tags taxo__link">
+                        分布式 · 1
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E5%AE%89%E5%85%A8/" class="is-tags taxo__link">
+                        安全 · 4
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E6%9D%82%E8%B0%88/" class="is-tags taxo__link">
+                        杂谈 · 2
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+        <ul class="sidebar-nav">
+        
+            <li class="tag-item">
+                <span class="tag">
+                    <a href="/tags/%E7%BD%91%E7%BB%9C/" class="is-tags taxo__link">
+                        网络 · 9
+                    </a>
+                </span>
+            </li>
+        
+        </ul>
+        
+    </div>
+
+    <p>&copy; 2023. Yanhan Tang. All rights reserved. </p>
+    
+
+  </div>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  <h1>K8S中的删除：垃圾回收，资源清理以及Finalizer实现</h1>
+  <time datetime=2023-11-24T12:14:07&#43;0800 class="post-date">Fri, Nov 24, 2023</time>
+  <p>现代大多数高级语言都会自动进行垃圾回收(Garbage Collection)，但一般也会强调对于特殊的资源，例如fd, net connection在删除前进行手动回收, 这些一般会放在析构函数之类的地方，对应K8S中就是Finalizer。</p>
+<h1 id="garbage-collection">Garbage Collection</h1>
+<p>Garbage Collection默认由Controller Manager自带实现，具体使用需要进行参数调整。</p>
+<h2 id="以succeededfailed结束的pod">以Succeeded/Failed结束的Pod</h2>
+<p>对于已经终止的Pod，由Controller Manager通过<code>terminated-pod-gc-threshold</code>这一阈值进行管理，目前其默认值为12500，如果集群中需要更好的清理他们，可能需要调低数值：</p>
+<pre tabindex="0"><code>func RecommendedDefaultPodGCControllerConfiguration(obj *kubectrlmgrconfigv1alpha1.PodGCControllerConfiguration) {
+	if obj.TerminatedPodGCThreshold == 0 {
+		obj.TerminatedPodGCThreshold = 12500
+	}
+}
+</code></pre><h2 id="已完成的job">已完成的Job</h2>
+<p>适用于在Job进入Completed状态一段时间后自动清理： <code>.spec.ttlSecondsAfterFinished</code></p>
+<h2 id="owner-reference失效的孤儿资源">Owner Reference失效的孤儿资源</h2>
+<h3 id="级联删除">级联删除</h3>
+<p>删除策略可以通过在client-go中修改Pro0pagationPolicy来改变，或者在kubectl中通过<code>--cascade</code>参数改变。</p>
+<h4 id="同步级联删除foreground-cascading-deletion">同步级联删除(Foreground cascading deletion)</h4>
+<p><code>kubectl delete deploy nginx --cascade=foreground</code></p>
+<ul>
+<li>API Server修改<code>metadata.deletionTimestamp</code>作为标记删除时间</li>
+<li>API Server 更新<code>metadata.finalizers</code>为<code>forgroundDeletion</code></li>
+<li>资源直至整个删除结束才会消失</li>
+</ul>
+<h4 id="异步级联删除">异步级联删除</h4>
+<p>默认通过kubectl删除资源时，就会通过此选项。在使用client-go时，需要额外制定。</p>
+<p><code>kubectl delete deploy nginx --cascade=background</code></p>
+<h4 id="单独删除故意让子级资源成为孤儿">单独删除，故意让子级资源成为孤儿</h4>
+<p><code>kubectl delete deploy nginx --cascade=orphan</code></p>
+<p>这种情况下，孤儿资源过一段时间就会被Controller进行回收。</p>
+<h2 id="节点容器资源回收">节点容器资源回收</h2>
+<p>节点资源由kubelet进行回收。</p>
+<h3 id="镜像回收">镜像回收</h3>
+<p>当磁盘资源达到一定程度时，开始回收下载镜像所占用的磁盘资源，主要控制参数：</p>
+<pre tabindex="0"><code>ImageGCHighThresholdPercent // 磁盘占用超过该值，必定开始回收
+ImageGCLowThresholdPercent  // 磁盘占用低于该值，必定不会回收
+ImageMinimumGCAge           // 镜像未被使用一段时间后应该被回收，这里规定这个最低时长
+</code></pre><h3 id="容器回收">容器回收</h3>
+<p>一些容器构建(docker build)等会在容器构建打包过程中创建出一些中间容器，他们往往都不活跃，kubelet可以自动回收这些容器资源。</p>
+<h1 id="pod足迹清除">Pod足迹清除</h1>
+<p>有些Pod在运行过程中会在磁盘上写入一些文件，要清除这些文件，可以通过<code>.spec.containers.lifecycle.preStop</code>来指定容器终止前的动作</p>
+<h1 id="finalizer">Finalizer</h1>
+<p>API Server一般只负责资源的CRUD，在删除资源时，它所能做的就是修改标记删除时间，以及从etcd中删除数据。具体的额外动作需要通过 <code>.metadata.finalizers</code>来指定。</p>
+<h2 id="finalizer工作机制">Finalizer工作机制</h2>
+<p>在请求删除资源时，如果目标资源的<code>.metadata.finalizers</code>字段不为空，那么API Server只会对资源进行标记，直到finalizers字段为空，才会进行etcd资源删除。</p>
+<p>通过观察Controller Manager自带的几个finalizer可知finalizer的工作机制与其它的Resource controller非常接近：</p>
+<ol>
+<li>监视资源的更新和删除事件</li>
+<li>当有符合条件的资源进行更新时，将其finalizers字段中加入我们要使用的finalizer</li>
+<li>当有带有该finalizer字段的资源进行删除时，进行相关动作后，将我们的finalizer字段从中移除</li>
+<li>等待所有finalizer字段被移除，API Server即可进一步实际删除资源</li>
+</ol>
+<p>因此在资源卡住时，可以通过强制清除finalizer字段来进行强行删除. 那么这些finalizer实际做了什么，如果强行删除会有什么影响呢？</p>
+<h3 id="删除namespace时背后都在发生什么">删除namespace时，背后都在发生什么？</h3>
+<p>在操作自己搭建的小集群时，偶尔会尝试删除整个namespace，经常会出现这个namespace迟迟删不掉的情况，这是因为namespace创建时就已经在finalizer中加入了&rsquo;kubernetes&rsquo;这个字段：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#cd5555">&#34;spec&#34;</span><span style="color:#a61717;background-color:#e3d2d2">:</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#8b008b;font-weight:bold">&#34;finalizers&#34;</span>: [
+</span></span><span style="display:flex;"><span>        <span style="color:#cd5555">&#34;kubernetes&#34;</span>
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>}<span style="color:#a61717;background-color:#e3d2d2">,</span>
+</span></span></code></pre></div><p>当删除卡死时，可以尝试通过PUT请求直接清空finalizer，那么这可能会导致什么后果？</p>
+<p>finalizer相关逻辑与namespace controller共同运行于controller manager中，在namespace已经被标记删除且finalizer尚未清空时，会通过 <a href="https://github.com/kubernetes/kubernetes/blob/master/pkg/controller/namespace/deletion/namespaced_resources_deleter.go#L502">deleteAllContents</a> 发现所有GroupVersionResources，并删除它们，提供一个预估时间。</p>
+<p>预估时间主要通过GracePeriodSeconds来进行粗略估计，对于部分支持Graceful Deletion的资源，也对应的进行Graceful Delete（目前主要原生资源是Pod支持Graceful Delete），其它自定义资源需要支持RESTGracefulDeleteStrategy：</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#eed;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#228b22">// RESTGracefulDeleteStrategy must be implemented by the registry that supports
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22">// graceful deletion.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span><span style="color:#8b008b;font-weight:bold">type</span> RESTGracefulDeleteStrategy <span style="color:#8b008b;font-weight:bold">interface</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#228b22">// CheckGracefulDelete should return true if the object can be gracefully deleted and set
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// any default values on the DeleteOptions.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// NOTE: if return true, `options.GracePeriodSeconds` must be non-nil (nil will fail),
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#228b22">// that&#39;s what tells the deletion how &#34;graceful&#34; to be.
+</span></span></span><span style="display:flex;"><span><span style="color:#228b22"></span>	<span style="color:#008b45">CheckGracefulDelete</span>(ctx context.Context, obj runtime.Object, options *metav1.DeleteOptions) <span style="color:#00688b;font-weight:bold">bool</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>因此清除finalizer的主要问题，就是会导致其中一些需要Graceful Deletion的资源不能得到正确删除，可能会出现一些资源泄露、状态不一致之类的问题。另外，这些资源的删除过程也将不再由k8s显式控制，无法观察他们的状态。</p>
+
+</div>
+<aside class="sidebar-right">
+  <header>
+  <h3>K8S中的删除：垃圾回收，资源清理以及Finalizer实现</h3>
+  </header>
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#garbage-collection">Garbage Collection</a>
+      <ul>
+        <li><a href="#以succeededfailed结束的pod">以Succeeded/Failed结束的Pod</a></li>
+        <li><a href="#已完成的job">已完成的Job</a></li>
+        <li><a href="#owner-reference失效的孤儿资源">Owner Reference失效的孤儿资源</a>
+          <ul>
+            <li><a href="#级联删除">级联删除</a>
+              <ul>
+                <li><a href="#同步级联删除foreground-cascading-deletion">同步级联删除(Foreground cascading deletion)</a></li>
+                <li><a href="#异步级联删除">异步级联删除</a></li>
+                <li><a href="#单独删除故意让子级资源成为孤儿">单独删除，故意让子级资源成为孤儿</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><a href="#节点容器资源回收">节点容器资源回收</a>
+          <ul>
+            <li><a href="#镜像回收">镜像回收</a></li>
+            <li><a href="#容器回收">容器回收</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#pod足迹清除">Pod足迹清除</a></li>
+    <li><a href="#finalizer">Finalizer</a>
+      <ul>
+        <li><a href="#finalizer工作机制">Finalizer工作机制</a>
+          <ul>
+            <li><a href="#删除namespace时背后都在发生什么">删除namespace时，背后都在发生什么？</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</aside>
+
+    </main>
+
+    
+  </body>
+</html>

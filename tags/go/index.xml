@@ -6,12 +6,12 @@
     <description>Recent content in Go on E.T.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 13 May 2020 11:16:24 +0800</lastBuildDate><atom:link href="https://tangyanhan.github.io/tags/go/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 13 May 2020 11:16:24 +0800</lastBuildDate>
+    <atom:link href="https://tangyanhan.github.io/tags/go/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Go源码分析: chan 实现</title>
       <link>https://tangyanhan.github.io/posts/go-chan/</link>
       <pubDate>Wed, 13 May 2020 11:16:24 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-chan/</guid>
       <description>chan组成 chan 可以简单定义为一个&amp;quot;带锁的队列&amp;quot;, 当make(chan type), 不带数量时, 队列最大长度为1.
 chan的实现需要达成以下目标:
@@ -21,12 +21,10 @@ chan的实现需要达成以下目标:
 语法糖 与go fn()启动goroutine一样, chan的很多使用, 本质上是编译器提供的语法糖. 下面提供一些与源码的对照:
 从chan中读取值 v := &amp;lt;- c // Expand by compiler: runtime.chanrecv1(&amp;amp;c, &amp;amp;v) 读取值的同时知道chan是否关闭 v, ok := &amp;lt;- c // Expand by compiler: ok := runtime.chanrecv2(&amp;amp;c, &amp;amp;v) 写入chan c &amp;lt;- v // Expand: chansend1(&amp;amp;c, &amp;amp;v) 非阻塞写入 c := make(chan int) select { case c &amp;lt;- v: // .</description>
     </item>
-    
     <item>
       <title>Go源码分析: map</title>
       <link>https://tangyanhan.github.io/posts/go-map/</link>
       <pubDate>Thu, 07 May 2020 12:05:24 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-map/</guid>
       <description>map 的基本构成 map的实现文件为 src/runtime/map.go. 它的基本结构是一个HashMap,实现方式为哈希桶, 根据key将数据散列到不同的桶中，每个桶中有固定的8个键值对.
 桶尾部可以挂载额外的桶(overflow buckets).
@@ -39,12 +37,10 @@ chan的实现需要达成以下目标:
 $$2^{B}\cdot\frac{13}{2}&amp;gt;n$$
 // Find the size parameter B which will hold the requested # of elements. // For hint &amp;lt; 0 overLoadFactor returns false since hint &amp;lt; bucketCnt. B := uint8(0) for overLoadFactor(hint, B) { B++ } h.B = B 读取一个key Go map 根据key获得值有几种方法：</description>
     </item>
-    
     <item>
       <title>Go源码分析: 逃逸分析</title>
       <link>https://tangyanhan.github.io/posts/go-escape-analysis/</link>
       <pubDate>Sun, 05 Apr 2020 23:25:07 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-escape-analysis/</guid>
       <description>什么是逃逸分析 逃逸分析(Escape Analysis)是Go在编译程序时执行的过程, 由编译器通过分析, 决定变量应当分配在栈上还是堆上.
 在编译中进行逃逸分析 目前有代码如下:
@@ -52,12 +48,10 @@ package main import ( &amp;#34;fmt&amp;#34; ) type User struct { name string } f
 go build -gcflags &amp;#39;-m -N -l&amp;#39; ./advanced/cmd/escape-analysis 然后获得输出如下:
 # github.com/tangyanhan/u235/advanced/cmd/escape-analysis advanced/cmd/escape-analysis/main.go:11:18: leaking param: u to result ~r1 level=1 advanced/cmd/escape-analysis/main.go:22:13: main .</description>
     </item>
-    
     <item>
       <title>Go源码分析: Slice内存增长方式</title>
       <link>https://tangyanhan.github.io/posts/go-growslice/</link>
       <pubDate>Sat, 04 Apr 2020 22:41:18 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-growslice/</guid>
       <description>源文件: runtime/slice.go
 slice 是一个连续的内存结构, 由3部分组成: 内存区域, 长度 和 可用长度(cap):
@@ -67,12 +61,10 @@ cap决定了实际分配内存区域的大小， 在进行 append/copy等操作�
 make slice原型： func makeslice
 func makeslice(et *_type, len, cap int) unsafe.Pointer { mem, overflow := math.MulUintptr(et.size, uintptr(cap)) if overflow || mem &amp;gt; maxAlloc || len &amp;lt; 0 || len &amp;gt; cap { // NOTE: Produce a &amp;#39;len out of range&amp;#39; error instead of a // &amp;#39;cap out of range&amp;#39; error when someone does make([]T, bignumber).</description>
     </item>
-    
     <item>
       <title>Go,Javascript与Websocket</title>
       <link>https://tangyanhan.github.io/posts/go-js-ws/</link>
       <pubDate>Sat, 19 Oct 2019 15:45:40 +0800</pubDate>
-      
       <guid>https://tangyanhan.github.io/posts/go-js-ws/</guid>
       <description>JS中建立Websocket连接 var ws = new WebSocket(&amp;#34;ws://hostname/path&amp;#34;, [&amp;#34;protocol1&amp;#34;, &amp;#34;protocol2&amp;#34;]) 参数说明 第一个参数是服务端websocket地址，如果是https+websocket，那么前缀写成wss
 第二个参数并不是必须的，它约定了双方通讯使用的自定义子协议，会被放到这个Header中： Sec-WebSocket-Protocol
@@ -88,6 +80,5 @@ Go中提供Websocket服务 Google自己提供一个Websocket包 : golang.org/x/n
 数据发送 WebSocket发送的数据都是“帧（Frames）”，主要有这么几种：
 持续帧（用于数据分片，一般不明确使用） 文本帧（传输文本数据） 二进制帧（传输二进制数据） Ping/Pong帧 （用于心跳等，简单检测连接存活状态） 控制帧（关闭连接等） JS中提供了send方法，能够发送文本帧或二进制帧：</description>
     </item>
-    
   </channel>
 </rss>
